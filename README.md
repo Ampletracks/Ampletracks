@@ -27,23 +27,42 @@ Ampletracks currently has the following features:
 - Define a parent-child hierarchy between records (only of the same record type) and the option to mark the values of some data fields as being inherited from the parent record
 - Define relationships that link one or more records to another record (even of a different record type) 28 Export record type definitions in XML format, and Import record type definitions created on other Ampletracks instances
 
-#Glossary
+# Glossary
 
 The system is built around a number of entities:
 
 - Record Types
+
     The representation of the different things you are storing data about
+    
 - Records
+
     An item of a given record type
+
 - Data Fields
-    The individual bits of data associated with a given ecord type
+
+    The individual bits of data associated with a given record type
+
 - Relationships
+
     A Link between a record and one or more other records (of the same type, or a different type)
+
 - Users
+
     People who have a login to the system
+
 - Permission
+
     The right to perform a specific action (list, view, create, update, delete), to a specific entity
--Role
+
+- Role
+
     A named bundle of permissions that can be assigned to a user
+
 - Project
+
     An organisational unit which can have users and records associated with it
+
+# Installation
+
+See the Wiki section: [Installation](wiki/installation.md)
