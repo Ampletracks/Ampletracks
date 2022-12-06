@@ -65,4 +65,4 @@ The system is built around a number of entities:
 
 # Installation
 
-See the Wiki section: [Installation](https://github.com/Ampletrakcs/Ampletracks/wiki/Installing-Ampletracks)
+See the Wiki section: [Installation](https://github.com/Ampletracks/Ampletracks/wiki/Installing-Ampletracks)
