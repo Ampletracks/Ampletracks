@@ -1,0 +1,56 @@
+body {
+    font: 500 100%/1.4 var(--f-body);
+    color: var(--c-text);
+}
+
+h1, .h1,
+h2, .h2,
+h3, .h3,
+h4, .h4,
+h5, .h5,
+h6, .h6 {
+  display: flex;
+  align-items: center;
+  margin: clamp( 0.2em, calc( 0.2em + 1vw ), 1.1em ) 0 clamp( 0.1em, calc( 0.1em + 0.5vw ), 0.3em ) 0;
+  font-family: var(--f-title);
+}
+
+h1, .h1 {
+  font-size: var(--f-h1-size);
+}
+
+h2, .h2 {
+  font-size: var(--f-h2-size);
+}
+
+h3, .h3 {
+  font-size: var(--f-h3-size);
+}
+
+h4, .h4 {
+  font-size: var(--f-h4-size);
+}
+
+h5, .h5 {
+  font-size: var(--f-h5-size);
+}
+
+h6, .h6 {
+  font-size: var(--f-h6-size);
+}
+
+p,
+address,
+table,
+li {
+  font-size: var(--f-body-size);
+  
+  .lede &,
+  &.lede {
+    font-size: var(--f-lede-size);
+  }
+}
+
+small {
+  font-size: var(--f-small-size);
+}

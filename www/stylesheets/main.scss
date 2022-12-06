@@ -1,0 +1,128 @@
+@import 'reset.scss';
+@import 'globalMixins';
+@import 'icons.scss';
+
+html,
+body {
+    padding: 0;
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: antialiased;
+    font-smoothing: antialiased;
+    background: var(--c-bg);
+}
+
+*,
+*:before,
+*:after,
+input,
+select,
+textarea {
+    box-sizing: border-box;
+}
+
+img {
+    max-width: 100%;
+    image-rendering: -webkit-optimize-contrast;
+}
+
+a {
+    color: var(--c-brand-a);
+}
+
+table {
+    width: 100%;
+    margin-bottom: 2em;
+    border-collapse: collapse;
+
+    /* don't put the big bottom margin on subtables */
+    table {
+        margin-bottom: 0;
+        td, td:last-child {
+            border: none;
+        }
+        tbody {
+            border: none;
+        }
+    }
+}
+
+thead,
+tbody {
+    border-bottom: 1px solid var(--c-border);
+}
+
+tr {
+    &:nth-child(even) {
+        background-color: var(--c-brand-f);
+    }
+
+    &:hover {
+        background-color: var(--c-brand-h);
+    }
+}
+
+th,
+td {
+    padding: clamp( 0.1em, calc( 0.1em + 0.1vw ), 0.3em ) clamp( 0.4em, calc( 0.4em + 0.1vw ), 0.8em ) ;
+    border-left: 1px solid var(--c-border);
+
+    &:last-child {
+        border-right: 1px solid var(--c-border);
+    }
+
+    &.dataField.image {
+        text-align: center;
+    }
+}
+
+table.record {
+    th.project,th.recordId {
+        width: 1%;
+        select {
+            max-width: 8em;
+        }
+    }
+}
+
+th {
+    min-width: 90px;
+    vertical-align: top;
+    text-align: left;
+    background-color: var(--c-brand-d);
+    padding: 0.4em;
+
+    &.filter {
+        &.date,&.integer {
+            white-space: nowrap;
+        }
+        input[type="text"], input[type="number"], select, textarea {
+            padding: 0.2em;
+            font-size: 85%;
+        }
+    }
+
+    &.actions {
+        width: 1%;
+        text-align: center;
+    }
+}
+
+p.rowCount.bottom {
+    display: none;
+}
+
+div.alertable-message div.title {
+    font-weight: bold;
+    margin-bottom: 0.4em;
+    font-size: 120%;
+}
+
+@import 'typography.scss';
+@import 'layout.scss';
+@import 'components.scss';
+@import 'forms.scss';
+
+@import 'site-header.scss';
+@import 'menus.scss';
+@import 'site-footer.scss';

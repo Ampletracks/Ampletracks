@@ -1,0 +1,68 @@
+main {
+    min-height: 40vh;
+    padding-top: 0.5em;
+}
+
+.container {
+    max-width: var(--l-max-width);
+    margin: 0 auto;
+}
+
+// Horizontal spacing.
+.body-pad {
+    padding-left: var(--l-body-pad);
+    padding-right: var(--l-body-pad);
+}
+
+// Vertical spacing.
+.block-pad {
+    padding-top: var(--l-block-pad);
+    padding-bottom: var(--l-block-pad);
+}
+
+.layout {
+    --grid-cols: 1fr;
+
+    @media (min-width: $mq-desktop-min) {
+        --grid-cols: 1fr 32%;
+    }
+
+    display: grid;
+    grid-gap: var(--l-gutter-width);
+    grid-template-columns: var(--grid-cols);
+
+    @media (min-width: $mq-desktop-min) {
+        .sidebar {
+            grid-column-start: 2;
+            grid-row: 1;
+        }
+
+        .content {
+            grid-column-start: 1;
+            grid-row: 1;
+        }
+    }
+}
+
+.grid-row {
+    --grid-cols: 1fr;
+
+    @media (min-width: $mq-desktop-min) {
+        --grid-cols: 1fr 1fr;
+    }
+
+    width: 100%;
+    display: grid;
+    grid-gap: var(--l-gutter-width);
+    grid-template-columns: var(--grid-cols);
+
+    &__col {
+        grid-column: 1 / -1;
+    }
+
+    @media (min-width: $mq-desktop-min) {
+        &__col {
+            grid-column: auto / span 1;
+        }
+    }
+}

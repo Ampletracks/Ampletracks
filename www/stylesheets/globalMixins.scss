@@ -1,0 +1,82 @@
+// The version of Sass we're using doesn't handle using min() to compare different units
+//   override to use css's builtin min()
+// Fix from https://stackoverflow.com/a/61414405
+@function min($numbers...) {
+    @return m#{i}n(#{$numbers});
+}
+
+:root {
+    // FONTS
+    --f-title: urbane-rounded, Arial, sans-serif;
+    --f-body: source-sans-pro, Arial, sans-serif;
+    --f-h1-size: clamp(1.25rem, calc(1rem + 2.64vw), 2.375rem); // 36px -> 48px
+    --f-h2-size: clamp(0.875rem, calc(0.875rem + 2.08vw), 1.8rem); // 30px -> 46px
+    --f-h3-size: clamp(0.83rem, calc(0.83rem + 1.39vw), 1.6rem); // 24px -> 36px
+    --f-h4-size: clamp(0.8rem, calc(0.8rem + 0.5vw), 1.5rem); // 20px -> 30px
+    --f-h5-size: clamp(0.7rem, calc(0.7rem + 0.4vw), 1.4rem); // 18px -> 22px
+    --f-h6-size: clamp(0.6rem, calc(0.6rem + 0.2vw), 1.3rem); // 16px -> 16px
+    --f-body-size: clamp(0.7rem, calc(1rem + 0.14vw), 1.2rem); // 16px -> 18px
+    --f-lede-size: clamp(0.6rem, calc(1rem + 0.556vw), 1rem); // 18px -> 24px
+    --f-small-size: clamp(0.4rem, calc(0.625rem + 0.139vw), 1rem); // 10px -> 12px
+
+    // COLOURS
+    --c-text: #050d2b; // Text colour.
+    --c-bg: white; // Background colour.
+    --c-border: #d0d0d0;
+    --c-error: red;
+
+    --c-brand-a: #1a7182;
+    --c-brand-b: #700e41;
+    --c-brand-c: #c8e5eb;
+    --c-brand-d: #e0e0e0;
+    --c-brand-e: #333333;
+    --c-brand-f: #f0f0f0;
+    --c-brand-g: #6d6d6d;
+    --c-brand-h: #cee8ed;
+    --c-brand-i: #aaaaaa;
+    --c-brand-j: #4a0a2b;
+    --c-brand-k: #999999;
+    --c-brand-l: #113a41;
+    --c-brand-m: #396b2f;
+
+    // LAYOUT
+    --l-body-pad: clamp(10px, 2vw, 30px);    // Horizontal spacing.
+    --l-block-pad: clamp(2rem, 5vw, 40px);  // Verical spacing.
+    --l-gutter-width: min(5vw, 20px);
+    --l-max-width: 2440px;
+    // TODO - fix for min() doesn't work here
+    //--l-max-content: Min(var(--l-max-width), calc(100vw - var(--l-body-pad) * 2));
+    --l-input-bottom-margin: clamp(0.5rem, 2vw, 0.7em);
+
+    --l-header-height: clamp(2rem, 8vw, 120px);
+    --l-viewport-height: calc(100vh - var(--l-header-height));
+
+    // Universal styles.
+    --s-border-radius: 1.875rem;
+    --s-box-shadow: 5px 5px 20px rgba(0,0,0,0.2);
+}
+
+// Media Queries.
+$mq-mobile-max: 599px;
+$mq-tablet-min: 600px;
+$mq-tablet-large-min: 760px;
+$mq-tablet-max: 1023px;
+$mq-desktop-min: 1024px;
+$mq-desktop-large-min: 1200px;
+$mq-max-width: 1440px;
+
+// Utils
+.no-widows {
+    white-space: nowrap;
+}
+
+.no-transitions {
+    * {
+        transition: 0s 0s !important;
+    }
+}
+
+.bg-d {
+    background-color: var(--c-brand-d);
+}
+

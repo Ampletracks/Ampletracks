@@ -1,0 +1,39 @@
+@import 'icons.scss';
+
+th.displayToPublic, th.displayOnList {
+    width: 1%;
+    text-align: center;
+}
+
+td.displayToPublic, td.displayOnList {
+    text-align: center;
+}
+
+div.selectDefinition table {
+	td {
+		padding: 4px 2px;
+	}
+
+	td.delete {
+		@include backgroundIcon(0.25, 6, 13, right);
+		cursor: pointer;
+	}
+	
+	td.handle {
+		@include backgroundIcon(0.3, 7, 20, right);
+	
+		&:after {
+			opacity: 0.5;
+		}
+	}
+
+	td.defaultCheckbox {
+		text-align: right;
+	}
+}
+
+#sortOptionsButton {
+	display: block;
+	margin-top: 5px;
+	font-size: 90%;
+}

@@ -1,0 +1,314 @@
+.primary-menu {
+    position: relative;
+    z-index: 9;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    > li {
+        > a {
+            display: flex;
+            align-items: center;
+
+            > svg {
+                margin-right: 0.6em;
+            }
+        }
+
+        // Hide/show sub-menu.
+        > button:focus,
+        > a:focus {
+            + ul {
+                display: block;
+            }
+        }
+    }
+
+    a {
+        display: block;
+        padding: 1em;
+        line-height: 1;
+        font-weight: 700;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    // Sub-menu.
+    ul {
+        display: none;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+
+        a {
+            color: var(--c-brand-a);
+        }
+    }
+
+    .current-selection {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        padding: 1em;
+        border: 0;
+        background-color: transparent;
+
+        svg {
+            margin-left: 0;
+            margin-right: 0.6em;
+        }
+
+        span {
+            white-space: nowrap;
+        }
+    }
+
+    /**
+     *  Mobile specific styles
+     */
+    @media (max-width: $mq-tablet-max) {
+        padding-bottom: var(--l-body-pad);
+
+        > li {
+            a {
+                border-top: 1px solid var(--c-brand-a);
+            }
+        }
+
+        // Sub-menu.
+        ul {
+            li {
+                background-color: var(--c-brand-c);
+            }
+        }
+    }
+
+    /**
+     *  Desktop specific styles
+     */
+    @media (min-width: $mq-desktop-min) {
+        display: flex;
+        align-items: center;
+
+        > li {
+            border: 0;
+            position: relative;
+
+            &:hover {
+
+                ul {
+                    display: block;
+                }
+
+                .current-selection {
+                    color: white;
+                    background-color: var(--c-brand-l);
+
+                    svg {
+                        path {
+                            &:nth-child(1) {
+                                stroke: white;
+                            }
+                            &:nth-child(2) {
+                                fill: white;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        .current-selection {
+            border-radius: 0.3em 0.3em 0 0;
+            overflow: hidden;
+        }
+
+        // Sub menu.
+        ul {
+            display: none;
+            width: 100%;
+            position: absolute;
+            top: 0;
+            right: 0;
+            padding-top: 3.2em;
+            border: 1px solid var(--c-brand-a);
+            border-radius: 0.3em 0.3em 0 0;
+            overflow: hidden;
+
+            li {
+                background-color: white;
+                border-top: 1px solid var(--c-brand-c);
+
+                &:first-child a {
+                    border: 0;
+                }
+
+                &:hover a {
+                    color: black;
+                }
+            }
+        }
+    }
+}
+
+.toggle-menu-secondary {
+    padding: 0;
+
+    .secondary-menu {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+
+        li {
+            display: flex;
+            flex-wrap: wrap;
+            border-top: 1px solid var(--c-brand-k);
+
+            > a {
+                flex-basis: auto;
+                //flex-grow: 1;
+            }
+
+            > button {
+                flex-basis: 1em;
+                flex-grow: 0;
+                border: 0;
+                background: transparent;
+
+                &[aria-expanded="true"] {
+                    transform: rotate(180deg);
+                }
+            }
+
+            ul {
+                flex-basis: 100%;
+                flex-shrink: 0;
+            }
+        }
+
+        a {
+            display: flex;
+            align-items: center;
+            padding: clamp( 0.5em, calc( 0.5em + 0.1vw ),1em );
+            font-weight: 700;
+            text-decoration: none;
+            color: inherit;
+
+            svg {
+                width: 1em;
+                height: 0.8em;
+            }
+        }
+
+        // Sub-menu.
+        ul {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            color: white;
+            background-color: var(--c-brand-b);
+            z-index: 9;
+
+            a {
+                display: block;
+                width: 100%;
+                white-space: nowrap;
+
+                &:hover {
+                    color: white;
+                    background-color: var(--c-brand-j);
+                }
+            }
+        }
+
+        // Has children.
+        .toggle-menu {
+            > a {
+                padding-right: 0;
+            }
+        }
+    }
+
+    /**
+     *  Desktop specific styles
+     */
+    @media (min-width: $mq-desktop-min) {
+
+        .secondary-menu {
+            padding: 0;
+            display: flex;
+            align-items: center;
+
+            > li {
+                position: relative;
+                border: 0;
+                border-right: 1px solid #ccc;
+
+                &:first-child a {
+                    padding-left: 0;
+                }
+            }
+
+            // Sub-menu.
+            ul {
+                display: none;
+                position: absolute;
+                top: clamp( 2.4em, calc(2.4em + 0.1vw), 2.9em);
+                right: 0;
+                min-width: 100%;
+            }
+
+            a {
+                &:hover {
+                    color: var(--c-brand-b);
+                }
+            }
+        }
+
+        .toggle-menu {
+            &:hover {
+                .toggle-menu__menu {
+                    display: block;
+                }
+            }
+            .toggle-menu__toggle {
+                display: block;
+            }
+        }
+    }
+}
+
+.toggle-menu {
+    /**
+     *  Mobile specific styles
+     */
+    @media (max-width: $mq-tablet-max) {
+
+        .toggle-menu__toggle {
+            display: block;
+
+            svg {
+                display: block;
+            }
+        }
+
+        .toggle-menu__menu {
+            margin-top: 0.5em;
+            display: none;
+
+            &.is-expanded {
+                display: block;
+            }
+        }
+    }
+
+    /**
+     *  Desktop specific styles
+     */
+    @media (min-width: $mq-desktop-min) {
+
+        .toggle-menu__toggle {
+            display: none;
+        }
+    }
+}

@@ -1,0 +1,62 @@
+.site-header {
+    .top-row {
+        padding: clamp(5px, 2vw, 10px) 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .logos {
+        margin: 0;
+        padding: 0.5rem 0;
+        list-style: none;
+        display: flex;
+        align-items: center;
+
+        > * {
+            padding: 0 1rem;
+            border-left: 1px solid var(--c-brand-e);
+
+            &:first-child {
+                border-left: none;
+                padding-left: 0;
+            }
+        }
+
+        a {
+            display: block;
+        }
+
+        img {
+            display: block;
+            height: 50px;
+            max-height: clamp(20px, 3vw, 50px);
+        }
+    }
+
+    .toggle-menu {
+        .toggle {
+            background: transparent;
+            border: 0;
+        }
+    }
+
+    /**
+     * Desktop specific styles
+     */
+    @media (min-width: $mq-desktop-min) {
+        > .container:first-child {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .toggle-menu {
+            .top-row {
+                .toggle {
+                    display: none;
+                }
+            }
+        }
+    }
+}

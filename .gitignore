@@ -1,0 +1,8 @@
+*.swp
+www/stylesheets/*.css
+www/images/instanceLogos
+lib/phpqrcode/cache/
+config/*
+!config/example.config.php
+data/
+log/

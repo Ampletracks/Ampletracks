@@ -1,0 +1,72 @@
+table.relationship {
+
+    border-spacing: 5px;
+    border-collapse: separate;
+    margin: 20px 20px;
+
+    tr.descriptions {
+
+        td {
+            vertical-align: middle;
+            padding: 5px 0px 10px 0px;
+            small { font-size: 14px; }
+        }
+
+        td.backward {
+            text-align: right;
+            textarea, input {
+                text-align: right;
+            }
+        }
+
+        td.max {
+            input {
+                // Hide the arrows....
+                /* Chrome, Safari, Edge, Opera */
+                &::-webkit-outer-spin-button,
+                &::-webkit-inner-spin-button {
+                    -webkit-appearance: none;
+                    margin: 0;
+                }
+
+                /* Firefox */
+                -moz-appearance: textfield;
+
+                width: 3em;
+            }
+        }
+
+        textarea,input {
+            padding: 5px;
+            font-size: 15px;
+        }
+
+        td.arrow.up {
+            padding: 0 0 0 5px;
+        }
+        td.arrow.down {
+            padding: 0 5px 0 0;
+        }
+    } 
+
+    tr.from.recordType, tr.to.recordType {
+        td {
+            padding: 10px;
+            background-color: #ccd;
+
+            font-size: 130%;
+            select {
+                font-size: inherit;
+                padding: 2px;
+            }
+        }
+    }
+
+}
+
+table.main {
+    tr.divider td {
+        background-color: #C2E2C2;
+        padding: 2px;
+    }
+}

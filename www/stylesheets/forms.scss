@@ -1,0 +1,313 @@
+::-webkit-input-placeholder {
+
+}
+
+:-ms-input-placeholder {
+
+}
+
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="password"],
+input[type="file"],
+select,
+textarea {
+    width: 100%;
+    padding: 0.5em;
+    border: 1px solid var(--c-brand-i);
+    margin-bottom: var(--l-input-bottom-margin);
+
+    &.dontExpand {
+        width: initial;
+    }
+}
+
+/* don't expand select boxes in th's */
+th select {
+    width: initial;
+}
+
+input[type="date"] {
+    padding: 0.3em;
+    margin-bottom: var(--l-input-bottom-margin);
+}
+
+/* not sure why numbers are coming out too wide - this is to correct them overflowing table columns */
+input[type="number"] {
+    width: 90%;
+}
+
+input[type="file"] {
+    background: white;
+}
+
+textarea {
+    min-height: 200px;
+}
+
+select {
+    width: 100%;
+}
+
+input[type="submit"], input[type="button"] {
+    @extend .btn;
+}
+
+label {
+    > span:first-child {
+        display: block;
+        margin-bottom: 0.4em;
+    }
+}
+
+legend {
+    display: block;
+    float: left;
+    width: 100%;
+    margin-bottom: 1em;
+    font-weight: 700;
+}
+
+div.questionAndAnswer {
+
+    margin-top: clamp( 0.1em, calc( 0.1em + 1vw ), 0.6em );
+    label {
+        padding:  0;
+    }
+
+    &.relationship.list {
+        div {
+            display: inline-block;
+            font-size: var(--f-body-size);
+        }
+
+        .btn {
+            margin-left: 0.5em;
+        }
+    }
+
+    &.error {
+        background-color: var(--c-brand-c);
+
+        input[type="text"],
+        input[type="number"],
+        input[type="email"],
+        input[type="password"],
+        input[type="file"],
+        select,
+        textarea {
+            border-color: var(--c-error);
+        }
+    }
+}
+
+ul.error {
+    color: var(--c-error);
+    list-style: none;
+    padding-left: 0;
+    margin-bottom: 0;
+
+    li {
+        display: flex;
+        font-size: 80%;
+        font-weight: 700;
+
+        &::before {
+            background-color: var(--c-error);
+            color: #fff;
+            border-radius: 50%;
+            display: block;
+            flex-basis: 1.5em;
+            flex-shrink: 0;
+            line-height: 1.5;
+            margin-right: 0.6em;
+            text-align: center;
+            height: 1.5em;
+            width: 1.5em;
+            content: "!";
+        }
+    }
+}
+div.answer ul.error {
+    width : 100%;
+}
+
+div.question {
+    margin-bottom: 0.2em;
+}
+
+div.answer {
+    display: flex;
+    flex-wrap: wrap;
+
+    &.readOnly {
+        margin-left: 0.5em;
+        font-style: italic;
+    }
+
+    &.versioned {
+        > input[type="text"],
+        > input[type="number"],
+        > input[type="email"],
+        > input[type="password"],
+        > select,
+        > textarea,
+        > .tts-holder,
+        > .checkboxHolder
+        {
+            width: auto;
+            /* if the text box is really wide due to large size attribute force it to fit within the box - but leave room for versioning icon */
+            max-width: calc( 100% - 2em );
+            flex-grow: 100;
+        }
+
+        .checkboxHolder {
+            padding: 0.5em 0.75em;
+            background-color: white;
+            border: 1px solid var(--c-brand-i);
+            margin-bottom: var(--l-input-bottom-margin);
+
+            label {
+                margin-left: 0.5em;
+
+                > span:first-child {
+                    display: none;
+                }
+            }
+        }
+
+        .unit {
+            padding: 0.5em 0.75em;
+            background-color: white;
+            border: 1px solid var(--c-brand-i);
+            margin-bottom: var(--l-input-bottom-margin);
+        }
+    }
+
+    a.version {
+        flex-basis: 2em;
+        flex-grow: 0;
+        display: grid;
+        justify-content: center;
+        padding-top: 0.4em;
+        background: white;
+        border: 1px solid var(--c-brand-i);
+        border-left-color: white;
+        margin-bottom: var(--l-input-bottom-margin);
+        min-height: 2.2em;
+
+        img {
+            width: 1.2em;
+        }
+    }
+
+    span.inherited {
+        flex-basis: 100%;
+        margin-top: 0.4em;
+    }
+
+    div.note {
+        font-size: 85%;
+        opacity: 0.7;
+    }
+}
+
+div.picklistHolder {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    --grid-cols: 1fr 1fr;
+    grid-gap: 0.2em var(--l-gutter-width);
+
+    .picklistListTitle {
+        margin-bottom: 0.2em;
+        font-size: 90%;
+    }
+
+    .picklistListHolder {
+        select {
+            min-height: 9em;
+        }
+    }
+
+    .picklistExplanation {
+        grid-column: 1 / span 2;
+        font-size: 85%;
+    }
+}
+
+.form-row {
+    position: relative;
+    display: block;
+    padding: 1rem;
+    background-color: var(--c-brand-d);
+
+    &.checkbox {
+        display: flex;
+        align-items: center;
+
+        input[type="checkbox"] {
+            margin-right: 1em;
+        }
+    }
+
+    &.transparent {
+        padding: 0;
+        background-color: transparent;
+    }
+
+    &.invalid {
+        background-color: var(--c-brand-c);
+
+        input,
+        textarea,
+        select {
+            border-color: var(--c-error);
+        }
+    }
+
+    .versions {
+        position: absolute;
+        right: 0;
+        top: 0;
+    }
+
+    p:last-child {
+        margin-bottom: 0;
+    }
+
+    &.commentary {
+        padding-left: 0;
+        background-color: transparent;
+    }
+}
+
+.form-grid {
+    display: grid;
+    grid-gap: 1em;
+    grid-template-columns: 1fr 1fr;
+    margin-bottom: 2em;
+
+    .form-row {
+        // phpscss still can't handle this. Probably worth investigating and fixing at some point
+        //grid-column: 1 / -1;
+        grid-column-start: 1;
+        grid-column-end: -1;
+
+        &.half {
+            @media (min-width: $mq-desktop-min) {
+                grid-column: auto / span 1;
+            }
+        }
+    }
+}
+
+.asyncUploadContainer {
+    width: 100%;
+}
+
+.maxSizeWarning {
+    font-size: var(--f-body-size);
+    margin-top: 1em;
+}

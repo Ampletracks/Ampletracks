@@ -1,0 +1,218 @@
+.btn-list {
+    margin: 0 0  2em;
+    padding: 1em 0 0;
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    border-top: 1px solid var(--c-border);
+    border-bottom: 1px solid var(--c-border);
+
+    &.no-border {
+        border: 0;
+    }
+}
+
+.btn-box {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5em;
+    padding: 0.5em 0;
+    background-color: white;
+
+    > * {
+        margin: 0 0.4em;
+        flex-basis: auto;
+        flex-grow: 0;
+    }
+
+
+    &-btn {
+        flex-grow: 1;
+        text-align: right;
+
+        .btn {
+            margin: 0;
+        }
+    }
+}
+
+.btn {
+    display: inline-block;
+    margin-right: 1em;
+    margin-bottom: 1em;
+    padding: 0.6em 1em;
+    border: 0;
+    text-decoration: none;
+    color: white;
+    background-color: var(--c-brand-a);
+    border-radius: 0.2em;
+    line-height: 1.15;
+
+    &:hover {
+        background-color: var(--c-brand-b);
+    }
+
+    &.small {
+        line-height: 1;
+        padding: 0.3em 0.5em;
+    }
+}
+
+.count {
+    display: inline-block;
+    margin: 0 1em;
+    width: 2rem;
+    height: 2rem;
+    line-height: 2rem;
+    font-size: 1rem;
+    text-align: center;
+    color: white;
+    background-color: var(--c-brand-b);
+    border-radius: 50%;
+}
+
+.links-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    li {
+        margin-bottom: 1em;
+    }
+
+    a {
+        display: flex;
+        align-items: center;
+        text-decoration: none;
+        font-weight: 700;
+        color: inherit;
+
+        svg {
+            margin-right: 1em;
+        }
+    }
+}
+
+.data-records-header {
+    @media (min-width: $mq-desktop-min) {
+        display: flex;
+        align-items: center;
+
+        h1 {
+            flex-basis: auto;
+            flex-grow: 1;
+        }
+
+        .btn-list {
+            margin-bottom: 0;
+        }
+    }
+}
+
+td.actions {
+    position: relative;
+    padding: 0;
+
+    button {
+        display: block;
+        width: 1.5em;
+        height: 1.5em;
+        margin: auto;
+        padding: 0;
+        border: 0;
+        background-color: transparent;
+
+        &:hover + ul,
+        &:focus + ul {
+            display: block;
+        }
+    }
+
+    ul {
+        display: none;
+        min-width: max-content;
+        width: 100%;
+        position: absolute;
+        top: calc(50% - 1em);
+        left: 0;
+        z-index: 999;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+
+        &:hover,
+        &:focus {
+            display: block;
+        }
+    }
+
+    a {
+        display: block;
+        padding: 0.4em;
+        text-decoration: none;
+        color: white;
+        background-color: var(--c-brand-a);
+
+        &:hover,
+        &:focus {
+            color: var(--c-brand-a);
+            background-color: white;
+        }
+    }
+}
+
+hr.contentStart {
+    margin-bottom: 2em;
+}
+
+.errorSummary {
+    // phpscss still can't handle this. Probably worth investigating and fixing at some point
+    //grid-column: 1 / -1;
+    grid-column-start: 1;
+    grid-column-end: -1;
+    padding: 1.6em 1em;
+    display: flex;
+    align-items: center;;
+    border: 1px solid var(--c-error);
+
+    // Pseudo icon.
+    &:before {
+        content: "!";
+        display: block;
+        flex-basis: 1.5em;
+        flex-shrink: 0;
+        width: 1.5em;
+        height: 1.5em;
+        line-height: 1.5;
+        margin-right: 1em;
+        text-align: center;
+        color: white;
+        background-color: var(--c-error);
+        border-radius: 50%;
+    }
+}
+
+.info {
+    display: flex;
+    align-items: center;;
+    font-size: 80%;
+    font-weight: 700;
+    color: var(--c-brand-m);
+    margin-top: 1em;
+
+    // Pseudo icon.
+    &:before {
+        content: "i";
+        display: block;
+        flex-basis: 1.5em;
+        flex-shrink: 0;
+        width: 1.5em;
+        height: 1.5em;
+        line-height: 1.5;
+        margin-right: 0.6em;
+        text-align: center;
+        color: white;
+        background-color: var(--c-brand-m);
+        border-radius: 50%;
+    }
+}

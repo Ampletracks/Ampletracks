@@ -1,0 +1,46 @@
+
+
+@mixin iconColor( $color ) {
+	/*
+	Go here to compute filters to change the icon color...
+	https://codepen.io/sosuke/pen/Pjoqqp
+	*/
+	@if $color==blue {
+		filter: invert(52%) sepia(28%) saturate(3444%) hue-rotate(193deg) brightness(103%) contrast(101%);
+	} @else if $color==darkGreen {
+		filter: invert(28%) sepia(91%) saturate(1049%) hue-rotate(103deg) brightness(96%) contrast(94%);
+	} @else if $color==red {
+		filter: invert(10%) sepia(83%) saturate(7434%) hue-rotate(21deg) brightness(93%) contrast(128%);
+	} @else if $color==white {
+        filter: invert(100%) sepia(100%) saturate(0%) hue-rotate(108deg) brightness(104%) contrast(104%);
+	}
+}
+
+$iconColorDarkBlue : #5DA7FE;
+$iconColorDarkGreen : #077F23;
+
+@mixin iconSetup {
+  background-repeat: no-repeat;
+  background-image: url(/stylesheets/zondicons/sprite.svg);
+}
+
+@mixin backgroundIcon($scale, $col, $row, $alignment:left, $color:blue) {
+    &::#{if($alignment==left, before, after)} {
+        @include iconSetup;
+		@include iconColor( $color );
+        content             : " ";
+        background-position : (($col - 1)*(64 + 16)*$scale*-1px) (($row - 1)*(64 + 16)*$scale*-1px);
+        background-size     : 1264px * $scale 1584px * $scale;
+        width               : 64px * $scale;
+        height              : 64px * $scale;
+        display             : inline-block;
+        vertical-align      : middle;
+        @if ($alignment==left) {
+            margin-right: 64px * $scale * 0.3;
+        }
+        @if ($alignment==right) {
+            margin-left: 64px * $scale * 0.3;
+        }
+    }
+}
+

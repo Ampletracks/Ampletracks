@@ -1,0 +1,36 @@
+.login {
+  position: relative;
+
+  > * {
+    position: relative;
+    z-index: 2;
+  }
+
+  // Pseudo bg image.
+  &:after {
+    content: "";
+    display: block;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    z-index: 1;
+    bottom: 0;
+    right: var(--l-body-pad);
+    background: url(../images/login-bg.svg) no-repeat right bottom;
+    background-size: auto 100%;
+  }
+
+  input {
+    display: block;
+    max-width: 655px;
+    border-radius: 0.4em;
+  }
+}
+
+body {
+    &.login {
+        &:after {
+            background-image: none;
+        }
+    }
+}
