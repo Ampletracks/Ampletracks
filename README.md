@@ -1,3 +1,5 @@
+![Ampletracks Logo](www/images/ampletracks-logo.svg "Ampletracks Logo")
+
 # Introduction
 
 Ampletracks is a flexible and heirarchical database specifically designed for storing data about material samples. It aims to balance the following:
