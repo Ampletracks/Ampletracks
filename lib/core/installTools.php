@@ -39,66 +39,66 @@ function makeDirectoriesWritable() {
 
 function upgradeDb($databaseName,$adminUsername,$adminPassword,$username,$password,$hostname,$tables) {
 
-	class installToolsDbErrorHandler {
-		private $surpress = false;
-		
-		function surpress( $value ) {
-			$this->surpress = $value;
-		}
-		
-		function handleError($errorCode, $basicMessage, $detailedMessage) {
-			if (!$this->surpress) echo $detailedMessage."\n";
-		}
-	}
+    class installToolsDbErrorHandler {
+        private $surpress = false;
+        
+        function surpress( $value ) {
+            $this->surpress = $value;
+        }
+        
+        function handleError($errorCode, $basicMessage, $detailedMessage) {
+            if (!$this->surpress) echo $detailedMessage."\n";
+        }
+    }
 
     $hostnameArg = escapeshellarg($hostname);
-	// Create the database (and swallow any errors about it existing already)
-	echo `mysql -h $hostnameArg -e "CREATE DATABASE \\\`$databaseName\\\`" 2>&1 | grep -v "database exists" `;
+    // Create the database (and swallow any errors about it existing already)
+    echo `mysql -h $hostnameArg -e "CREATE DATABASE \\\`$databaseName\\\`" 2>&1 | grep -v "database exists" `;
 
-	// Create the web app db user
-	echo `mysql -h $hostnameArg -e "REVOKE ALL ON *.* FROM '$username'@'localhost'" 2>&1`;
-	echo `mysql -h $hostnameArg -e "DROP USER '$username'@'localhost'" 2>&1`;
-	echo `mysql -h $hostnameArg -e "FLUSH PRIVILEGES" 2>&1`;
-	echo `mysql -h $hostnameArg -e "CREATE USER '$username'@'localhost' IDENTIFIED BY '$password'" 2>&1`;
-	echo `mysql -h $hostnameArg -e "GRANT USAGE ON *.* TO '$username'@'localhost'" 2>&1`;
-	echo `mysql -h $hostnameArg -e "GRANT SELECT, INSERT, UPDATE, ALTER, CREATE, DROP, DELETE, LOCK TABLES ON \\\`$databaseName\\\`.* TO '$username'@'localhost'" 2>&1`;
+    // Create the web app db user
+    echo `mysql -h $hostnameArg -e "REVOKE ALL ON *.* FROM '$username'@'localhost'" 2>&1`;
+    echo `mysql -h $hostnameArg -e "DROP USER '$username'@'localhost'" 2>&1`;
+    echo `mysql -h $hostnameArg -e "FLUSH PRIVILEGES" 2>&1`;
+    echo `mysql -h $hostnameArg -e "CREATE USER '$username'@'localhost' IDENTIFIED BY '$password'" 2>&1`;
+    echo `mysql -h $hostnameArg -e "GRANT USAGE ON *.* TO '$username'@'localhost'" 2>&1`;
+    echo `mysql -h $hostnameArg -e "GRANT SELECT, INSERT, UPDATE, ALTER, CREATE, DROP, DELETE, LOCK TABLES ON \\\`$databaseName\\\`.* TO '$username'@'localhost'" 2>&1`;
 
-	$errorHandler = new installToolsDbErrorHandler();
-	$DB = new Dbif( $databaseName, $adminUsername, $adminPassword, $hostname, $errorHandler);
+    $errorHandler = new installToolsDbErrorHandler();
+    $DB = new Dbif( $databaseName, $adminUsername, $adminPassword, $hostname, $errorHandler);
 
-	if (!$DB->connected()) die("Couldn't connect to database");
+    if (!$DB->connected()) die("Couldn't connect to database");
 
-	$existingTables = array_flip($DB->getTables());
+    $existingTables = array_flip($DB->getTables());
     $pid = getmypid();
 
     $c=0;
 
     $maxTableNameLength = max(array_map('strlen', array_keys($tables)));
 
-	foreach( $tables as $tableName=>$columns ) {
+    foreach( $tables as $tableName=>$columns ) {
         $c++;
-		$justCreated = false;
+        $justCreated = false;
         $status = '';
-		if (!isset($existingTables[$tableName])) {
-			list($columnName,$columnDefinition) = each($columns);
-			$DB->exec("CREATE TABLE `$tableName` (`$columnName` $columnDefinition) ENGINE=MyISAM DEFAULT CHARSET=utf8");
-			$justCreated = true;
+        if (!isset($existingTables[$tableName])) {
+            list($columnName,$columnDefinition) = each($columns);
+            $DB->exec("CREATE TABLE `$tableName` (`$columnName` $columnDefinition) ENGINE=MyISAM DEFAULT CHARSET=utf8");
+            $justCreated = true;
             $status = 'created';
-		}
-		
-		$existingColumns = array_flip($DB->getColumnNames($tableName));
+        }
+        
+        $existingColumns = array_flip($DB->getColumnNames($tableName));
 
-		// remove any existing columns that no longer exist
-		foreach( $existingColumns as $columnName=>$notUsed ) {
-			if (!isset($columns[$columnName])) {
-				$DB->exec("ALTER TABLE `$tableName` DROP COLUMN `$columnName`");
+        // remove any existing columns that no longer exist
+        foreach( $existingColumns as $columnName=>$notUsed ) {
+            if (!isset($columns[$columnName])) {
+                $DB->exec("ALTER TABLE `$tableName` DROP COLUMN `$columnName`");
                 if ($status=='') $status = 'removed unused column(s):';
                 $status .= $columnName." "; 
-			}
-		}
-	
+            }
+        }
+    
         # All of the temporary table shennanigans below are required because of the removal of ALTER TABLE IGNORE in MySQL 5.7.4
-        # The workaround for this is to ceate a new copy of the table, Do the alters on this and then insert select the data over.	
+        # The workaround for this is to ceate a new copy of the table, Do the alters on this and then insert select the data over.    
         $tempTableName = 'temp_'.$tableName.'_'.$pid;
         $DB->exec("RENAME TABLE `$tableName` TO `{$tempTableName}`");
         # We have to use SHOW CREATE TABLE not CREATE TABLE LIKE because the latter doesn't preserve AUTO_INCREMENT_ID
@@ -121,42 +121,42 @@ function upgradeDb($databaseName,$adminUsername,$adminPassword,$username,$passwo
         while( $getIndexQuery->fetchInto($row)) {
             $existingIndexes[$row['Key_name']]=true;
         }
-		foreach( $columns as $columnName=>$columnDefinition ) {
-			if (isset($existingColumns[$columnName])) {
-				// This code doesn't handle changes to autoincrement columns
-				if (preg_match('/AUTO_INCREMENT/i',$columnDefinition)) continue;
-				if (preg_match('/PRIMARY KEY/i',$columnDefinition)) {
-					$DB->exec("ALTER TABLE `{$tableName}` DROP PRIMARY KEY");
-				}
-				$DB->exec("ALTER TABLE `{$tableName}` MODIFY COLUMN `$columnName` $columnDefinition");
-			} else {
-				if (preg_match('/^(PRIMARY\s+|UNIQUE\s+|INDEX\s*\()/i',$columnDefinition)) {
-					# for indexes
-					if (preg_match('/^PRIMARY/i',$columnDefinition)) {
-						if (!$justCreated && isset($existingIndexes[$columnName])) {
+        foreach( $columns as $columnName=>$columnDefinition ) {
+            if (isset($existingColumns[$columnName])) {
+                // This code doesn't handle changes to autoincrement columns
+                if (preg_match('/AUTO_INCREMENT/i',$columnDefinition)) continue;
+                if (preg_match('/PRIMARY KEY/i',$columnDefinition)) {
+                    $DB->exec("ALTER TABLE `{$tableName}` DROP PRIMARY KEY");
+                }
+                $DB->exec("ALTER TABLE `{$tableName}` MODIFY COLUMN `$columnName` $columnDefinition");
+            } else {
+                if (preg_match('/^(PRIMARY\s+|UNIQUE\s+|INDEX\s*\()/i',$columnDefinition)) {
+                    # for indexes
+                    if (preg_match('/^PRIMARY/i',$columnDefinition)) {
+                        if (!$justCreated && isset($existingIndexes[$columnName])) {
                             // benj 20170926 - I don't think we need to worry about dropping the index from the original table
                             //$DB->exec("ALTER TABLE `{$tempTableName}` DROP PRIMARY KEY");
                             $DB->exec("ALTER TABLE `$tableName` DROP PRIMARY KEY");
                         }
-					} else {
-						if (!$justCreated && isset($existingIndexes[$columnName])) {
+                    } else {
+                        if (!$justCreated && isset($existingIndexes[$columnName])) {
                             // benj 20170926 - I don't think we need to worry about dropping the index from the original table
                             //$DB->exec("ALTER TABLE `{$tempTableName}` DROP INDEX `$columnName`");
                             $DB->exec("ALTER TABLE `$tableName` DROP INDEX `$columnName`");
                         }
-						$columnDefinition = preg_replace('/INDEX\s*\(/',"INDEX `$columnName` (",$columnDefinition);
-					}
-					$indexes[$columnName] = $columnDefinition;
-				} else {
-					# for columns - do these later after we have sorted out the indexes
+                        $columnDefinition = preg_replace('/INDEX\s*\(/',"INDEX `$columnName` (",$columnDefinition);
+                    }
+                    $indexes[$columnName] = $columnDefinition;
+                } else {
+                    # for columns - do these later after we have sorted out the indexes
                     $newColumns[$columnName] = $columnDefinition;
-				}
-			}
-		}
+                }
+            }
+        }
 
         foreach( $newColumns as $columnName=>$columnDefinition ) {
-			$DB->exec("ALTER TABLE `{$tableName}` ADD COLUMN `$columnName` $columnDefinition");
-			$DB->exec("ALTER TABLE `{$tempTableName}` ADD COLUMN `$columnName` $columnDefinition");
+            $DB->exec("ALTER TABLE `{$tableName}` ADD COLUMN `$columnName` $columnDefinition");
+            $DB->exec("ALTER TABLE `{$tempTableName}` ADD COLUMN `$columnName` $columnDefinition");
         }
 
         foreach( $indexes as $indexName=>$indexDefinition ) {
@@ -188,10 +188,10 @@ function upgradeDb($databaseName,$adminUsername,$adminPassword,$username,$passwo
 
 
         echo str_pad($tableName,$maxTableNameLength," ",STR_PAD_RIGHT ).": $status\n";
-		$existingTables[$tableName] = 1;
-	}
-	
-	return $DB;
+        $existingTables[$tableName] = 1;
+    }
+    
+    return $DB;
 }
 
 function usage($error) {
@@ -328,6 +328,7 @@ function install($product,$writableDirectories,$tables,$dbSetup,$upgrades) {
         }
     }
 
+    $_ENV = getenv();
     // See if any of the parameters have been given as environment variables
     foreach( explode(',','SITE_NAME,SITE_BASE_DIR,WWW_DATA_USER,WWW_DATA_GROUP,WWW_DATA_FILE_MODE,WWW_DATA_DIRECTORY_MODE,INSTALL_DB_USER,INSTALL_DB_PASSWORD,DB_USER,DB_NAME,DB_HOST,FIRST_USER_EMAIL,FIRST_USER_PASSWORD') as $parameter) {
         if (isset($_ENV[$parameter]) && !defined($parameter)) {

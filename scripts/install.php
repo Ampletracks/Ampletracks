@@ -2,17 +2,17 @@
 
 // Database setup
 $tables = array(
-	'actionLog' => array(
-		'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
-		'time' => "INT(10) UNSIGNED NOT NULL",
-		'entity' => "VARCHAR(255) NOT NULL",
-		'entityId' => "INT(10) UNSIGNED NOT NULL",
-		'userId' => "INT(10) UNSIGNED NOT NULL",
-		'message' => "TEXT NOT NULL",
-		'index_userId' => "INDEX (`userId`,`entityId`)",
-		'index_time' => "INDEX (`time`,`entityId`)",
-		'index_entityId' => "INDEX (`entityId`)",
-	),
+    'actionLog' => array(
+        'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
+        'time' => "INT(10) UNSIGNED NOT NULL",
+        'entity' => "VARCHAR(255) NOT NULL",
+        'entityId' => "INT(10) UNSIGNED NOT NULL",
+        'userId' => "INT(10) UNSIGNED NOT NULL",
+        'message' => "TEXT NOT NULL",
+        'index_userId' => "INDEX (`userId`,`entityId`)",
+        'index_time' => "INDEX (`time`,`entityId`)",
+        'index_entityId' => "INDEX (`entityId`)",
+    ),
     'cms' => array(
         'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
         'label' => "VARCHAR(255) NOT NULL",
@@ -33,14 +33,14 @@ $tables = array(
         'pageId' => "INT(10) UNSIGNED NOT NULL",
         'index_pageIdCmsId' => "UNIQUE INDEX (`pageId`,`cmsId`)",
     ),
-	'configuration' => array(
-		'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
-		'name' => "varchar(255) DEFAULT NULL",
-		'description' => "TEXT DEFAULT NULL",
-		'value' => "TEXT DEFAULT NULL",
-		'path' => "varchar(255) DEFAULT NULL",
-		'index_name' => "UNIQUE INDEX (`name`(120))",
-	),
+    'configuration' => array(
+        'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
+        'name' => "varchar(255) DEFAULT NULL",
+        'description' => "TEXT DEFAULT NULL",
+        'value' => "TEXT DEFAULT NULL",
+        'path' => "varchar(255) DEFAULT NULL",
+        'index_name' => "UNIQUE INDEX (`name`(120))",
+    ),
     'dataField' => array(
         'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
         'orderId' => "SMALLINT(5) UNSIGNED NOT NULL",
@@ -80,7 +80,7 @@ $tables = array(
     ),
 
     'failedLogin' => array(
-		'hashedUsername'    => "CHAR(32)",
+        'hashedUsername'    => "CHAR(32)",
         'lastFailedAt'      => "INT(10) UNSIGNED NOT NULL",
         'attempts'          => "INT(10) UNSIGNED NOT NULL DEFAULT 1",
         'index_primary'     => "UNIQUE INDEX (hashedUsername)",
@@ -109,7 +109,7 @@ $tables = array(
         'number'            => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
     ),
     'passwordReset' => array(
-		'id'                => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
+        'id'                => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
         'userId'            => "INT(10) UNSIGNED NOT NULL",
         'createdAt'         => "INT(10) UNSIGNED NOT NULL",
         'validationCode'    => "CHAR(32)",
@@ -117,11 +117,11 @@ $tables = array(
         'index_userId'      => "INDEX(`userId`)",
     ),
     'relationship' => array(
-        'id'            		=> "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
-        'relationshipLinkId'	=> "INT(10) UNSIGNED NOT NULL",
-        'fromRecordId' 			=> "INT(10) UNSIGNED NOT NULL",
-        'toRecordId' 			=> "INT(10) UNSIGNED NOT NULL",
-        'reciprocalRelationshipId'	=> "INT(10) UNSIGNED NOT NULL",
+        'id'                    => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
+        'relationshipLinkId'    => "INT(10) UNSIGNED NOT NULL",
+        'fromRecordId'             => "INT(10) UNSIGNED NOT NULL",
+        'toRecordId'             => "INT(10) UNSIGNED NOT NULL",
+        'reciprocalRelationshipId'    => "INT(10) UNSIGNED NOT NULL",
         'index_fromRecordId'        => "UNIQUE INDEX(`fromRecordId`,`relationshipLinkId`,`toRecordId`)",
         'index_toRecordId'        => "INDEX(`toRecordId`,`fromRecordId`)",
     ),
@@ -130,12 +130,12 @@ $tables = array(
         'deletedAt'     => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
     ),
     'relationshipLink' => array(
-        'id'            		=> "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
+        'id'                    => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
         'relationshipPairId'    => "INT(10) UNSIGNED NOT NULL",
-        'fromRecordTypeId' 		=> "INT(10) UNSIGNED NOT NULL",
-        'toRecordTypeId' 		=> "INT(10) UNSIGNED NOT NULL",
-        'description'			=> "VARCHAR(255) NOT NULL DEFAULT ''",
-        'max'					=> "INT(10) UNSIGNED NOT NULL DEFAULT 1",
+        'fromRecordTypeId'         => "INT(10) UNSIGNED NOT NULL",
+        'toRecordTypeId'         => "INT(10) UNSIGNED NOT NULL",
+        'description'            => "VARCHAR(255) NOT NULL DEFAULT ''",
+        'max'                    => "INT(10) UNSIGNED NOT NULL DEFAULT 1",
         'index_relationshipPairId' => "INDEX(`relationshipPairId`)",
     ),
     'site' => array(
@@ -167,24 +167,22 @@ $tables = array(
         'hasValue' => "TINYINT UNSIGNED NOT NULL",
         'index_test' => "UNIQUE INDEX (`test`)",
     ),
-	'user' => array(
-		'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
-		'firstName' => "VARCHAR(255) NOT NULL",
-		'lastName' => "VARCHAR(255) NOT NULL",
-		'email' => "VARCHAR(255) NOT NULL",
-		'mobile' => "VARCHAR(255) NOT NULL DEFAULT ''",
-		'password' => "VARCHAR(255) NOT NULL",
-		'deletedAt' => "INT(10) UNSIGNED NOT NULL",
-		'lastLoggedInAt' => "INT(10) UNSIGNED NOT NULL",
-		'lastLoginIp' => "INT(10) UNSIGNED NOT NULL",
-		'createdAt' => "INT(10) UNSIGNED NOT NULL",
-        'recordTypeFilter' => "INT(10) UNSIGNED NOT NULL",
-        'scannerCommsFilename' => "CHAR(44) NOT NULL DEFAULT ''",
-        'scannerCommsFilenameExpiresAt' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
-		'index_email' => "UNIQUE INDEX (`email`,`deletedAt`)",
-		'index_lastName' => "INDEX (`lastName`(40),`deletedAt`,`firstName`(40))",
-		'index_deletedAt' => "INDEX (`deletedAt`)",
-	),
+    'user' => array(
+        'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
+        'firstName' => "VARCHAR(255) NOT NULL",
+        'lastName' => "VARCHAR(255) NOT NULL",
+        'email' => "VARCHAR(255) NOT NULL",
+        'mobile' => "VARCHAR(255) NOT NULL DEFAULT ''",
+        'password' => "VARCHAR(255) NOT NULL",
+        'deletedAt' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
+        'lastLoggedInAt' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
+        'lastLoginIp' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
+        'createdAt' => "INT(10) UNSIGNED NOT NULL DEAULT 0",
+        'recordTypeFilter' => "INT(10) UNSIGNED NOT NULL DEFAULT 0"
+        'index_email' => "UNIQUE INDEX (`email`,`deletedAt`)",
+        'index_lastName' => "INDEX (`lastName`(40),`deletedAt`,`firstName`(40))",
+        'index_deletedAt' => "INDEX (`deletedAt`)",
+    ),
     'userRole' => array(
         'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
         'userId' => "INT(10) UNSIGNED NOT NULL",
@@ -335,9 +333,10 @@ $dbSetup = function() {
     $DB->exec("REPLACE INTO rolePermission (id,roleId,level,entity,recordTypeId,action) VALUES (1,1,'global','superuser',0,'edit')");
     $DB->exec("REPLACE INTO role (id,name,deletedAt) VALUES (1,'superuser',0)");
    
-    if (defined(FIRST_USER_EMAIL)) {
+    if (defined('FIRST_USER_EMAIL')) {
         $firstUserAlreadyExists = $DB->getValue('SELECT id FROM user WHERE email=? and deletedAt=0',FIRST_USER_EMAIL);
         if (!$firstUserAlreadyExists) {
+            echo "Creating first user\n";
             if (!defined('FIRST_USER_PASSWORD')) {
                 define('FIRST_USER_PASSWORD',substr(base64_encode(random_bytes(32)),0,20));
                 echo "Admin user created with the following password: ".FIRST_USER_PASSWORD."\n";
