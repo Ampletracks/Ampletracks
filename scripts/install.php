@@ -172,7 +172,7 @@ $tables = array(
 		'firstName' => "VARCHAR(255) NOT NULL",
 		'lastName' => "VARCHAR(255) NOT NULL",
 		'email' => "VARCHAR(255) NOT NULL",
-		'mobile' => "VARCHAR(255) NOT NULL",
+		'mobile' => "VARCHAR(255) NOT NULL DEFAULT ''",
 		'password' => "VARCHAR(255) NOT NULL",
 		'deletedAt' => "INT(10) UNSIGNED NOT NULL",
 		'lastLoggedInAt' => "INT(10) UNSIGNED NOT NULL",
@@ -335,8 +335,8 @@ $dbSetup = function() {
     $DB->exec("REPLACE INTO rolePermission (id,roleId,level,entity,recordTypeId,action) VALUES (1,1,'global','superuser',0,'edit')");
     $DB->exec("REPLACE INTO role (id,name,deletedAt) VALUES (1,'superuser',0)");
    
-    if (!empty(FIRST_USER_EMAIL)) {
-        $firstUserAlreadyExists = $DB->getValue('SELECT id FROM user WHERE email=?',FIRST_USER_EMAIL);
+    if (defined(FIRST_USER_EMAIL)) {
+        $firstUserAlreadyExists = $DB->getValue('SELECT id FROM user WHERE email=? and deletedAt=0',FIRST_USER_EMAIL);
         if (!$firstUserAlreadyExists) {
             if (!defined('FIRST_USER_PASSWORD')) {
                 define('FIRST_USER_PASSWORD',substr(base64_encode(random_bytes(32)),0,20));
