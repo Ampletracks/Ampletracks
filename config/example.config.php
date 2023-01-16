@@ -29,6 +29,13 @@ define('AUTH_COOKIE_NAME','ampletracks_auth');
 
 // ================================= The following are optional =====================================
 
+// If you want to the Ampletracks code to automatically handle generation of an SSL certificate for you using LetsEncrypt
+// then set this to be an email address
+//define('ACME_ACCOUNT_EMAIL','admin@yourdomain.com');
+// If you're using LetsEncrypt in a non-production environment then uncomment the next line
+//define('ACME_USE_STAGING_ENVIRONMENT',{{ lets_encrypt_use_staging_environment }});
+
+
 // These are required for RECAPTCHA which is used to prevent brute force login attacks
 // If these are not set then this protection is disabled
 //define('LOGIN_RECAPTCHA_SITE_KEY','<your recaptcha site key here>');
