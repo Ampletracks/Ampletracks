@@ -17,12 +17,13 @@ class Logger {
 		if (!$this->logFile) {
 
 			// generate the log file name
-			$logFilename = SITE_BASE_DIR.'log/core_'.date('Ymd').'.log';
+			$logFilename = SITE_BASE_DIR.'/log/core_'.date('Ymd').'.log';
 			
 			// open the log file
             $newFile = !file_exists( $logFilename );
 			$this->logFile = @fopen( $logFilename, 'a');
 			if (!$this->logFile or !is_resource($this->logFile)) {
+				echo $logFilename;
 				echo "Error writing to log file\n";
 				exit;
 			}

@@ -404,7 +404,7 @@ $dbSetup = function() {
     $DB->exec('update record set depth=length(path)-length(replace(path,",","")) WHERE depth=0');
 };
 
-$writableDirectories = ['data/images','data/tmp/uploads','data/system'];
+$writableDirectories = ['data/images','data/tmp/uploads','data/system','data/acme'];
 
 
 # ======================================================================================
