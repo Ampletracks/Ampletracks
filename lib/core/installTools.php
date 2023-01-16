@@ -341,11 +341,11 @@ function install($product,$writableDirectories,$tables,$dbSetup,$upgrades) {
     if (!defined('WWW_DATA_USER') || !defined('WWW_DATA_GROUP')) {
         $cmdOutput = `$webUserAscertainingCommand`;
         $cmdOutput = trim(preg_replace('/^\w+/','',$cmdOutput));
-        list($WWW_DATA_USER,$WWW_DATA_GROUP) = preg_split('/\s+|,/',$cmdOutput);
+        list($WWW_DATA_USER,$WWW_DATA_GROUP) = preg_split('/\s+|,/',$cmdOutput.',');
         foreach( ['WWW_DATA_USER','WWW_DATA_GROUP'] as $thing ) {
             if (!defined($thing)) {
                 if (empty($$thing)) {
-                    echo "$thing was not defined and my attempts to determine the correct value using the command below failed:\n$cmd\n";
+                    echo "$thing was not defined and my attempts to determine the correct value using the command below failed:\n$webUserAscertainingCommand\n";
                     exit(1);
                 }
                 define($thing,$$thing);
