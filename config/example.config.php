@@ -33,7 +33,7 @@ define('AUTH_COOKIE_NAME','ampletracks_auth');
 // then set this to be an email address
 //define('ACME_ACCOUNT_EMAIL','admin@yourdomain.com');
 // If you're using LetsEncrypt in a non-production environment then uncomment the next line
-//define('ACME_USE_STAGING_ENVIRONMENT',{{ lets_encrypt_use_staging_environment }});
+//define('ACME_USE_STAGING_ENVIRONMENT',true);
 
 
 // These are required for RECAPTCHA which is used to prevent brute force login attacks

@@ -48,6 +48,7 @@ if (
     
     if (!$persistLogin) $username = $_REQUEST['username'];
     
+    $hashedUsername = substr(hash('sha256',getLocalSecret().SECRET.$username),0,32);
     // See if the account is currently locked due to failed logins and just requires a captcha
     if (defined('LOGIN_RECAPTCHA_SECRET_KEY') && LOGIN_RECAPTCHA_SECRET_KEY) {
         if (!defined('LOGIN_LOCK_TIMEOUT')) define('LOGIN_LOCK_TIMEOUT',1800);
@@ -56,7 +57,6 @@ if (
         # Remove any login locks that have timed out
         $DB->exec('DELETE FROM failedLogin WHERE lastFailedAt<UNIX_TIMESTAMP()-?',LOGIN_LOCK_TIMEOUT);
 
-        $hashedUsername = substr(hash('sha256',getLocalSecret().SECRET.$username),0,32);
 
         # See if we have a login lock record for this user
         $numAttempts = $DB->getValue('SELECT attempts FROM failedLogin WHERE hashedUsername=?',$hashedUsername);

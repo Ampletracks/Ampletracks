@@ -78,7 +78,6 @@ if (!defined('SECRET') || empty(SECRET)) coreError("Configuration file didn't de
 // Load the database config if it exists
 $dbConfigFilename = CONFIG_DIR.'/'.SITE_NAME.'.db.php';
 if (file_exists($dbConfigFilename)) include($dbConfigFilename);
-
 if (defined('DB_NAME')) {
 	// Connect to DB
 	$errorHandler = new DbErrorHandler();

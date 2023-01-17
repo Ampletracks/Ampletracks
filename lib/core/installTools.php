@@ -14,23 +14,27 @@ function makeDirectoriesWritable() {
         $dir = $baseDir.'/'.$directory;
         @mkdir( $dir,$mode,true );
         $commands = [
-            'find '.escapeshellarg($dir).' -type f -printf "%m\n" | uniq'
+            'find '.escapeshellarg($dir).' -type f -printf "%m\n"'
                 => ['change the permissions of', $fileMode, 'find '.escapeshellarg($dir).' -type f -exec chmod '.escapeshellarg($fileMode).' -- {} + 2>&1'],
-            'find '.escapeshellarg($dir).' -type d -printf "%m\n" | uniq'
+            'find '.escapeshellarg($dir).' -type d -printf "%m\n"'
                 => ['change the permissions of', $directoryMode, 'find '.escapeshellarg($dir).' -type d -exec chmod '.escapeshellarg($directoryMode).' -- {} + 2>&1'],
-            'find '.escapeshellarg($dir).' -printf "'.(strlen($group)?'%u:%g':'%u').'\n" | uniq'
+            'find '.escapeshellarg($dir).' -printf "'.(strlen($group)?'%u:%g':'%u').'\n"'
                 => ['change the ownership of', $user, 'chown -R '.escapeshellarg($user).' '.escapeshellarg($dir).' 2>&1'],
         ];
         // First see if any files actually need their permissions changed
         foreach($commands as $checkCommand=>$details) {
-            $needChanging = trim(`$checkCommand`);
+            exec($checkCommand." 2>/dev/null", $needsChanging, $resultCode);
+            $needChanging = trim(implode("\n",array_unique($needsChanging)));
+            if ($resultCode!=0) {
+                echo "ERROR: Couldn't determine if it was neccessary to {$details[0]} $dir - skipping this step\n";
+                continue;
+            }
             if ($needChanging!=$details[1]) {
                 $cmd = $details[2];
                 $cmdOutput = `$cmd`;
                 if (!empty($cmdOutput)) {
                     echo "ERROR: Unable to {$details[0]} $dir (and any files and subdirectories) using the following command:\n$cmd\n";
                     echo "Got the following errors:\n$cmdOutput";
-                    exit(1);
                 }
             }
         }
@@ -413,7 +417,11 @@ function install($product,$writableDirectories,$tables,$dbSetup,$upgrades) {
     foreach( $dbConfigToSave as $key=>$value ) {
         $config .= sprintf("define('%s','%s');\n",addslashes($key),addslashes($value));
     }
-    file_put_contents($dbConfigFilename,$config);
+    $result = @file_put_contents($dbConfigFilename,$config);
+    if (!$result) {
+        echo "Couldn't write database credentials to $dbConfigFilename - this is essential so aborting now\n";
+        exit;
+    }
 
     echo "Database config written to $dbConfigFilename\n";
 

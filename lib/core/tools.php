@@ -1040,12 +1040,12 @@ function questionAndAnswer( $question, $answer, $extraClass='', $extra='' ) {
     <?
 }
 
-function systemData($key, $value = null) {
+function systemData($key, $value = null, $useCache = true) {
     global $DB;
     static $systemDataCache = [];
 
     if($value === null) {
-        if(!isset($systemDataCache[$key])) {
+        if(!isset($systemDataCache[$key]) || !$useCache) {
             $systemDataCache[$key] = $DB->getValue('SELECT value FROM systemData WHERE `key` = ?', $key);
         }
         $returnValue = $systemDataCache[$key];

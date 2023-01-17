@@ -339,7 +339,7 @@ $dbSetup = function() {
             echo "Creating first user\n";
             if (!defined('FIRST_USER_PASSWORD')) {
                 define('FIRST_USER_PASSWORD',substr(base64_encode(random_bytes(32)),0,20));
-                echo "Admin user created with the following password: ".FIRST_USER_PASSWORD."\n";
+                echo "Admin user created with the following details:\n Username: ".FIRST_USER_EMAIL."\n Password: ".FIRST_USER_PASSWORD."\n";
             }
             // Avoid the admin user having a predictable ID
             $userId = $DB->getValue('SELECT MAX(id) FROM user');
