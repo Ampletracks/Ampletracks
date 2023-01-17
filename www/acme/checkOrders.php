@@ -55,6 +55,23 @@ function saveState($runsToday) {
     systemData(ACME_SYSTEM_DATA_STATE_KEY,$runsToday.':'.time());
 }
 
+function certDoesntNeedRenewing( $crtFile ) {
+	static $error = false;
+
+	$cert = file_get_contents($crtFile);	
+	if (!$cert) return 'Couldn\'t read existing certificate file';
+	$certInfo = openssl_x509_parse($cert);
+	if(!is_array($certInfo) || !isset($certInfo['validTo_time_t'])) {
+		return 'Couldn\'t read existing certificate details';
+	}
+
+	if($certInfo['validTo_time_t'] - (ACME_RENEWAL_REMAINING_DAYS * 86400) > time()) {
+		// No need to renew yet
+		return false;
+	}
+	return true;
+}
+
 function getCertificate( $client,$domain ) {
     try {
         $order = $client->getOrCreateOrder($domain, [$domain]);
@@ -123,8 +140,7 @@ $twelveHours = 3600 * 12;
 if ( $timeSinceLastRun > $twelveHours ) {
   $runsToday=0;
 }
-$calledFromBrowser = !preg_match('/wget/i',$_SERVER['HTTP_USER_AGENT']);
-$calledFromBrowser = false;
+$calledFromBrowser = isset($_SERVER['HTTP_USER_AGENT']) && !preg_match('/wget/i',$_SERVER['HTTP_USER_AGENT']);
 
 $acmeDir = DATA_DIR.'/acme/';
 if(!is_writable($acmeDir)) {
@@ -171,6 +187,7 @@ if(ws('mode') == 'verify') {
 
 $proceed = false;
 $saveState = true;
+$certDoesntNeedRenewingError = false;
 // If we are running interactively then we press ahead no matter what
 if ( $calledFromBrowser ) $proceed=true;
 // If we are in the setup phase then press ahead no matter what
@@ -180,18 +197,24 @@ else if ($runsToday==9999) $proceed=false;
 // If we are in a normal running state then don't do anything until the random delay has passed
 else if ($runsToday==0 && !randomDelayDone($timeSinceLastRun)) $proceed = $saveState = false;
 // If the random delay has passed see if the certificate needs renewing
-else if ( certDoesntNeedRenewing($crtFile) ) {
+// Single = below is intentional
+else if ( $certDoesntNeedRenewingError = certDoesntNeedRenewing($crtFile) ) {
     $runsToday==9999;
     $proceed=false;
 }
 else $proceed=true;
 
 if (!$calledFromBrowser) {
+	if (strlen($certDoesntNeedRenewingError)) {
+		echo $certDoesntNeedRenewingError;
+		$LOGGER->log($certDoesntNeedRenewingError);
+	}
+
     if ($saveState) saveState($runsToday);
     if (!$proceed) exit;
 
     // Don't hit Lets encrypt too much in one day
-    if ($runsToday > DAILY_RENEWAL_ATTEMPT_LIMIT) {
+    if ($runsToday !=9999 && $runsToday > DAILY_RENEWAL_ATTEMPT_LIMIT) {
         $LOGGER->log("ACME certificate renewal process exceeded daily run limit");
         exit;
     }
@@ -211,8 +234,8 @@ if (!$calledFromBrowser || !$error) {
     saveState($runsToday);
 }
 
-if (!$calledFromBrowser && $error) {
-    $LOGGER->log("ACME certificate renewal process error: $error");
+if (!$calledFromBrowser) {
+	if ($error) $LOGGER->log("ACME certificate renewal process error: $error");
     exit;
 }
 
