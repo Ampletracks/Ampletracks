@@ -10,5 +10,5 @@ if [ ! -e "$certificate" ]; then exit; fi
 if [ ! -e "$pidFile" ]; then exit; fi
 
 if [ "$certificate" -nt "$pidFile" ]; then
-	service apache2 restart
+	/usr/sbin/service apache2 restart
 fi
