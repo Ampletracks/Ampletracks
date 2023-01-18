@@ -66,3 +66,16 @@ The system is built around a number of entities:
 # Installation
 
 See the Wiki section: [Installation](https://github.com/Ampletracks/Ampletracks/wiki/Installing-Ampletracks)
+
+# Funding
+
+Ampletracks was funded through the EPSRC MIDAS grant, on the study of irradiated fuel assembly materials  - EP/S01702X/1, https://gow.epsrc.ukri.org/NGBOViewGrant.aspx?GrantRef=EP/S01702X/1
+
+# Attribution
+
+Ampletracks was conceptualised by Philipp Frankel, Benjamin Jefferson, Christopher Race (all contributed equally). Ampletracks is built and maintained by Benjamin Jefferson, with support from Andrew Wilson. The initial testing of Ampletracks was done by Christopher Race and Rhys Thomas. Documentation is currently being written by Benjamin Jefferson. Stavrina Dimosthenous is responsible for testing instance deployment.
+
+# Citation
+
+Please cite us as:
+
