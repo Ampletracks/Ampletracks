@@ -3,6 +3,10 @@ HOW TO INSTALL AMPLETRACKS
 
 Ampletracks runs on a standard LAMP stack i.e. Linux, Apache, MySQL and PHP
 
+Whilst there is no reason why Ampletracks will not run on any standard Linux distribution, we only
+have documentation in place at this stage relating to Debian. We are working on documenting other
+distributions and OS's.
+
 The installation process for Debian has been automated using [Ansible](https://github.com/ansible/ansible).
 
 Once you have the prerequisites in place installing Ampletracks using Ansible will typically take
