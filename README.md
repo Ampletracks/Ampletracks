@@ -65,7 +65,7 @@ The system is built around a number of entities:
 
 # Installation
 
-See the INSTALL.md file
+See the [INSTALL.md](./INSTALL.md) file
 
 # Funding
 
