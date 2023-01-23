@@ -79,7 +79,7 @@ Ampletracks was conceptualised by Philipp Frankel, Benjamin Jefferson, Christoph
 
 # Citation
 
-See CITATION.cff
+See [CITATION.cff](./CITATION.cff), or generate an automatic APA or BibTeX entry under About on the right-hand side.
 
 # Contributing Code
 
