@@ -3,6 +3,7 @@ message: "If you use this software, please cite it as below."
 authors:
   - family-names: "Jefferson"
     given-names: "Benjamin"
+    linkedin: "https://uk.linkedin.com/in/benjefferson" 
   - family-names: "Dimosthenous"
     given-names: "Stavrina"
     orcid: "https://orcid.org/0000-0002-6199-5094"
@@ -18,7 +19,7 @@ authors:
   - family-names: "Wilson"
     given-names: "Andrew"
 title: "Ampletracks"
-version: 
+version: 0.2
 doi: 
 date-released:
 url: "https://github.com/Ampletracks/Ampletracks" 
