@@ -22,7 +22,7 @@ Prerequisites
 - Git installed on the same machine as you installed Ansible on
   See https://git-scm.com/downloads
 
-- A server running Debian 11 or Debian 10
+- A server running Debian 11 or Debian 10.
   See https://www.debian.org/download
   If you are using one of the major cloud hosting providers there will usually be a pre-built
   server image you can install e.g.
