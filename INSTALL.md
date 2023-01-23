@@ -19,7 +19,7 @@ Prerequisites
   but there is nothing to stop this being the server you plan to install Ampletracks onto.
   See https://docs.ansible.com/ansible/latest/installation_guide/index.html
 
-- Git installed on the same machine as you installed Ansible on
+- Git installed on the same machine as you installed Ansible on.
   See https://git-scm.com/downloads
 
 - A server running Debian 11 or Debian 10.
