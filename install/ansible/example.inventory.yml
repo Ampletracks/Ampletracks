@@ -1,0 +1,115 @@
+# This is the sample inventory file for installing Ampletracks using Ansible.
+
+# This file tells ansible all it needs to know about where you want Ampletracks to be installed
+# and how you want Ampletracks to be configured.
+#
+# Any lines starting with a # (hash) symbol are comments which will be ignored.
+# These lines can be left in place or removed as you wish.
+#
+# You should replace <things in angle brackets> below with appropriate values for your situation.
+# Optional parameters are hashed out (hash symbol at the start of the line).
+# If you want to use any of these optional settings simply remove the hash symbol from the start of the line.
+
+ampletracks_servers:
+
+  hosts:
+    # Tell Ansible which server(s) to install stuff on
+    # Typically there will only be one host listed here like so...
+    # myampletracks.mydomain.com:
+    # Each host must have a colon after it
+    # You can specify multiple hosts if you want to although most people wont need to do this
+    <domain name or IP address of your server>:
+
+  vars:
+
+    # Tell Ansible who to log in as when configuring the server
+    # This user must have "sudo" rights
+    # - on a brand new Debian server installation use "admin"
+    # - on a brand new Ubuntu server installation use "ubuntu"
+    # e.g. ansible_ssh_user: admin
+    ansible_ssh_user: <user to log in as>
+
+    # Mandatory Ampletracks configuration
+    #====================================
+
+    # Domain Name
+
+    # This is the web address that users will go to to access your Ampletracks site.
+    # The domain name provided here will probably be the same as the one provided above for "hosts".
+    ampletracks_domain_name: <domain name of your Ampletracks site>
+
+    # First User
+
+    # When the site is first installed you will need an account to log in with.
+    # Once you have logged in with this account you can use that to create accounts for other users.
+    # e.g. ampletracks_first_user_email: "me@mydomain.com"
+    ampletracks_first_user_email: "<email address of first user"
+
+    # Defining the password is optional - if you don't define it, a random one will be generated and given
+    # to you when you run the installation.
+    # Once the site is installed you can log in with the randomly generated one and change
+    # it using the web interface.
+    # ampletracks_first_user_password: <password>
+    #
+    # If you re-run the installation playbook on a server which has already been installed then the
+    # "first user" will only be generated if a user with email defined in ampletracks_first_user_email doesn't
+    # already exist in the database i.e. re-running the playbook won't break your existing user.
+
+    # Timezone
+
+    # In order for dates and times to display correctly it is worth setting the timezone
+    # e.g. timezone: Europe/London
+    # timezone: <Your timezone>
+    #
+    # To get a list of possible timezones Use "timedatectl list-timezones" on the command line,
+    # then pick one of those.
+    # If this is ommitted then the system will use the server's default timezone.
+    # This setting is written into the server-wide PHP settings so will affect any other PHP
+    # web sites running on the server
+
+    # SSL Certificates
+
+    # We strongly advise you to use this feature.
+    # Ampletracks has built in functionality to automatically use Let's Encrypt to obtain a free SSL Certificate
+    # We can't see any down side to this. The certificates are free and the Ampletracks code will automatically
+    # sort out renewing the certificate and installing the renewed certificate.
+    #
+    # If you get other SSL certificates for other systems from another provider there is nothing to stop you still
+    # using Let's Encrypt just for Ampletracks.
+    #
+    # Even if you have a wildcard certificate for your domain from another provider it is generally simpler
+    # just to let Ampletracks sort itself out using Let's Encrypt
+    # 
+    # All that is required is to provide an email address. In our experience Let's Encrypt send zero spam.
+    #
+    # e.g. lets_encrypt_admin_email: me@mydomain.com
+    #
+    # lets_encrypt_use_staging_environment: true
+    # 
+    # N.B. Let's encrypt will not work on development sites which are not accessible from the public internet
+    # lets_encrypt_admin_email: <sysadmin email address>
+    # N.B. In order for the ceritificate setup process to work out of the box, it is essential that you
+    # setup your DNS BEFORE running the installation playbook i.e. the dns for the domain name you
+    # supplied above for ampletracks_domain_name should point to the IP of the server where you are
+    # installing Ampletracks
+
+    # Advanced options
+
+    # Change the group ownership for directories that need to be written to by the web server
+    # e.g. ampletracks_www_data_group: www-data
+    # ampletracks_www_data_group: <the name of the group that the web server runs as>
+    #
+    # If in doubt do not uncomment this.
+    # If this is omitted (or hashed out) then we look for the running web server in ps and
+    # see what user that is running as.
+
+    # Specify the name used for the MySQL database
+    # ampletracks_db_name: <database name>
+    #
+    # If this is omitted then it defaults to 'ampletracks'.
+    
+    # Ansible stuff
+
+    # This just tells ansible to use its best guess of what version of Python to use
+    # In testing this playbook auto seemed to be the best value
+    ansible_python_interpreter: auto

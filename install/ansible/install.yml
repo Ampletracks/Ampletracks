@@ -1,6 +1,6 @@
 ---
 - name: Set up environment
-  hosts: new_server
+  hosts: ampletracks_servers
   tasks:  
     - name: Distribution
       debug: msg="{{ ansible_distribution }}"

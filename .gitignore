@@ -6,3 +6,4 @@ config/*
 !config/example.config.php
 data/
 log/
+install/ansible/inventory.yml
