@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+  - family-names: "Jefferson"
+    given-names: "Benjamin"
+    linkedin: "https://uk.linkedin.com/in/benjefferson" 
+  - family-names: "Dimosthenous"
+    given-names: "Stavrina"
+    orcid: "https://orcid.org/0000-0002-6199-5094"
+  - family-names: "Frankel"
+    given-names: "Philipp"
+    orcid: "https://orcid.org/0000-0001-5612-2937"
+  - family-names: "Race"
+    given-names: "Christopher"
+    orcid: "https://orcid.org/0000-0002-9775-687X"
+  - family-names: "Thomas"
+    given-names: "Rhys"
+    orcid: "https://orcid.org/0000-0002-7915-8075"
+  - family-names: "Wilson"
+    given-names: "Andrew"
+title: "Ampletracks"
+version: 0.2
+doi: 
+date-released:
+url: "https://github.com/Ampletracks/Ampletracks" 
