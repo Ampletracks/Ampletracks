@@ -24,6 +24,7 @@ Prerequisites
 
 - A server running Debian 11 or Debian 10.
   See https://www.debian.org/download
+  
   If you are using one of the major cloud hosting providers there will usually be a pre-built
   server image you can install e.g.
     - https://aws.amazon.com/marketplace/pp/prodview-l5gv52ndg5q6i
