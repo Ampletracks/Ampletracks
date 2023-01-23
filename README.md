@@ -9,6 +9,8 @@ Ampletracks is a flexible and heirarchical database specifically designed for st
 - Flexbility
 - Cost effectiveness - both in terms of development cost and running cost
 
+Whilst Ampletracks has been designed with materials science in mind, the flexibility inherent in the system means that it is likely to be useful in other contexts. Please let us know if you find a novel use for Ampletracks.
+
 # Goals
 
 Ampletracks has been designed to meet the following fundamental goals:
@@ -77,5 +79,9 @@ Ampletracks was conceptualised by Philipp Frankel, Benjamin Jefferson, Christoph
 
 # Citation
 
-Please cite us as:
+See CITATION.cff
+
+# Contributing Code
+
+Ampletracks is an Open Source project aimed at improving structured data collection and sharing in the materials science community although we think it might have wider applications beyond materials science. We welcome contributions from projects using and modifying Ampletracks for their own purposes. If you modify Ampletracks in a way that might be generally useful to the wider community please consider submitting this as a pull request so that others can benefit from it Please fork the repository and submit any changes in the form of a pull request.
 
