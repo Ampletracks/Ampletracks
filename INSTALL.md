@@ -17,13 +17,16 @@ Prerequisites
 
 - A machine with Ansible installed on it. This will typically be your workstation,
   but there is nothing to stop this being the server you plan to install Ampletracks onto.
+  
   See https://docs.ansible.com/ansible/latest/installation_guide/index.html
 
 - Git installed on the same machine as you installed Ansible on.
-  See https://git-scm.com/downloads
+
+    See https://git-scm.com/downloads
 
 - A server running Debian 11 or Debian 10.
-  See https://www.debian.org/download
+
+    See https://www.debian.org/download
   
   If you are using one of the major cloud hosting providers there will usually be a pre-built
   server image you can install e.g.
@@ -32,9 +35,12 @@ Prerequisites
     - https://azuremarketplace.microsoft.com/en-us/marketplace/apps/debian.debian-11?tab=PlansAndPrice&exp=ubp8
 
 - Shared keys in place to log in to this server.
-  See https://www.digitalocean.com/community/tutorials/how-to-set-up-ssh-keys-on-debian-11
+
+  If you need some pointers on how to do that there are many online guides.
+  e.g.https://www.digitalocean.com/community/tutorials/how-to-set-up-ssh-keys-on-debian-11
 
 - [Optional, but required if you want to use Let's Encrypt for SSL certificates - which is recommended]
+
   DNS in place for the domain name you plan to host your Ampletracks site on. This will
   typically be an "A" record from the domain name pointing to the IP address of the server where
   Ampletracks will be installed. The TTL (time to live) for this DNS record is up to you - the
@@ -42,6 +48,7 @@ Prerequisites
   changes you make to this DNS record to propagate, but making it shorter (e.g. 600 seconds i.e. 10
   minutes) might end up increasing the cost charged by your DNS provider.
   DNS may well be handled by your IT Department, or Web Agency.
+  
   The steps required to do this will vary depending on your DNS provider but here are some examples:
     - https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resource-record-sets-creating.html
     - https://cloud.google.com/dns/docs/records
