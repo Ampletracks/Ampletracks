@@ -1,20 +1,24 @@
 <?
 
+function setPrimaryFilter($value) {
+    $_COOKIE[PRIMARY_FILTER_NAME.'Filter']=$value;
+}
+
 function applyPrimaryFilter($idField) {
     global $DB, $WS, $USER_ID;
-    // Add in the branch filter
+    // Add in the filter
 
-    // get the branch filter from the cookie - or if this is missing then find their current defaut
+    // get the filter from the cookie - or if this is missing then find their current defaut
     $cookieName = PRIMARY_FILTER_NAME.'Filter';
     $setCookie = isset($_REQUEST[PRIMARY_FILTER_NAME.'FilterChange']);
     if ($setCookie) {
         $newFilterValue = $_REQUEST[PRIMARY_FILTER_NAME.'FilterChange'];
-        $_COOKIE[PRIMARY_FILTER_NAME.'Filter'] = $newFilterValue;
+        $_COOKIE[$cookieName] = $newFilterValue;
         // If they have just changed the filter then set this to be their current
         if ($USER_ID && $newFilterValue) $DB->update('user',array('id'=>$USER_ID),array($cookieName=>$newFilterValue));
     } else if (!isset($_COOKIE['branchFilter'])) {
         // Load the current branch filter setting from the user table
-        $_COOKIE[PRIMARY_FILTER_NAME.'Filter'] = $DB->getValue('SELECT `'.$cookieName.'` FROM user WHERE id=?',$USER_ID);
+        $_COOKIE[$cookieName] = $DB->getValue('SELECT `'.$cookieName.'` FROM user WHERE id=?',$USER_ID);
         // If we still couldn't find one then just set it to 1
         if (!$_COOKIE[$cookieName]) $_COOKIE[$cookieName] = 1;
         $setCookie = true;

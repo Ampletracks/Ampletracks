@@ -17,13 +17,17 @@
 	global $DB;
 	$output = [
 		'id'		=> $rowData['id'],
+        'recordTypeId'=> $rowData['recordTypeId'],
+        'recordType'=> $rowData['recordType'],
 		'parentId'  => $rowData['parentId'],
 		'path'  	=> substr($rowData['path'],0,-1),
+        'data'=> [],
 	];
 	$recordData = $DB->getHash('SELECT dataFieldId, data FROM recordData WHERE recordId=? AND !hidden AND dataFieldId IN (?)',$rowData['id'],$fieldIds);
 	foreach( $fieldsToDisplay as $fieldId=>$fieldData ) {
 		if (!isset($recordData[$fieldId])) continue;
-		$output[toCamelCase($fieldData['name'])]=dataField::packForJSON($fieldData['typeId'], $recordData[$fieldId]);
+        if (empty($fieldData['exportName'])) continue;
+		$output['data'][$fieldData['exportName']]=dataField::packForJSON($fieldData['typeId'], $recordData[$fieldId]);
 	}
 	if ($row>0) echo ",\n";
 	echo json_encode($output);

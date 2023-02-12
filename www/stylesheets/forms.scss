@@ -161,28 +161,29 @@ div.answer {
             max-width: calc( 100% - 2em );
             flex-grow: 100;
         }
+    }
 
-        .checkboxHolder {
-            padding: 0.5em 0.75em;
-            background-color: white;
-            border: 1px solid var(--c-brand-i);
-            margin-bottom: var(--l-input-bottom-margin);
+    .checkboxHolder {
+        padding: 0.5em 0.75em;
+        background-color: white;
+        border: 1px solid var(--c-brand-i);
+        margin-bottom: var(--l-input-bottom-margin);
+
+        span.checkbox {
+            display: block;
 
             label {
                 margin-left: 0.5em;
-
-                > span:first-child {
-                    display: none;
-                }
             }
         }
 
-        .unit {
-            padding: 0.5em 0.75em;
-            background-color: white;
-            border: 1px solid var(--c-brand-i);
-            margin-bottom: var(--l-input-bottom-margin);
-        }
+    }
+
+    .unit {
+        padding: 0.5em 0.75em;
+        background-color: white;
+        border: 1px solid var(--c-brand-i);
+        margin-bottom: var(--l-input-bottom-margin);
     }
 
     a.version {

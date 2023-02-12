@@ -477,10 +477,12 @@ bundle_hash(2)
                         $rows_fetched++;
 
 						# if there is some bundle_data and this row is different to the last - or if this is the last row of data we have
-                        # echo "==${row_data[0]}==<BR />";
+
+                        # We need to go one row past the end as we display the previous row
+                        $beyondLastRow = $rows_fetched == $num_rows + 1;
 						if (
                             (is_array($last_row) && is_array($row_data) && $last_row[0] <> $row_data[0]) ||
-                            $rows_fetched == $num_rows + 1 // We need to go one row past the end as we display the previous row
+                            $beyondLastRow
                         ) {
 							# add in the bundle data
 							if ($bundle_cols < 0) {
@@ -493,6 +495,7 @@ bundle_hash(2)
 							}
 							# then print out a row
 							$row++;
+                            $last_row['_isLastRow'] = true;
 							if ( $row > $skip ) {
                                 enrichRowData( $last_row ) ;
 								$template_function('list', $last_row, $row-1, $shown, $num_cols, $num_rows, $this );

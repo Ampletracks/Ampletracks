@@ -13,7 +13,6 @@ function postStartup() {
     
     $recordTypeId = (int)getPrimaryFilter();
 
-    $permissionsEntity = 'recordTypeId:'.$recordTypeId;
 
     // Get the name of the record type
     $entityName = $DB->getValue('SELECT name FROM recordType WHERE id=?',$recordTypeId);
@@ -21,6 +20,8 @@ function postStartup() {
     if (!$recordTypeId) {
         displayError('You must choose a record type');
     }
+
+    $permissionsEntity = 'recordTypeId:'.$recordTypeId;
     if (!canDo('list',$permissionsEntity )) {
         displayError('You do not have permission to view '.pluralize($entityName));
     }
@@ -28,8 +29,24 @@ function postStartup() {
 }
 
 function processInputs() {
+    global $DB, $recordTypeId;
     if (ws('mode')=='json') {
         $GLOBALS['ignoreLimit']=true;
+    }
+
+    // If they passed in a specific record ID and the type of that record doesn't match the current record type filter
+    // then flip the filter to the relevant record type and try again
+    $recordIdFilter = (int)ws('filter_record:id_eq');
+    if ($recordIdFilter) {
+        $targetRecordTypeId = $DB->getValue('SELECT typeId FROM record WHERE id=?',$recordIdFilter);
+        if ($targetRecordTypeId != $recordTypeId) {
+            // See if they have permissions to see the other record type
+            if (canDo('list','recordTypeId:'.$targetRecordTypeId)) {
+                //setPrimaryFilter($targetRecordTypeId);
+                header("Location: /record/list.php?recordTypeFilterChange={$targetRecordTypeId}&filter_record:id_eq={$recordIdFilter}");
+                exit;
+            }
+        }
     }
 }
 
@@ -40,7 +57,7 @@ function listSql(){
     
     $DB->returnHash();
     $fieldsToDisplay = $DB->getHash('
-        SELECT dataField.id, dataField.name, dataField.typeId, dataField.unit, dataField.parameters, dataFieldType.name as type
+        SELECT dataField.id, dataField.name, dataField.exportName, dataField.typeId, dataField.unit, dataField.parameters, dataFieldType.name as type
         FROM dataField
             INNER JOIN dataFieldType ON dataFieldType.id=dataField.typeId
         WHERE !deletedAt AND displayOnList AND recordTypeId=?
@@ -63,7 +80,7 @@ function listSql(){
         foreach( $filter->filterNames() as $filterName ) {
             if (isset($_POST[$filterName])) ws($filterName,$filter->sanitizeFilter($_POST[$filterName]));
         }
-        $joins .= "LEFT JOIN recordData $alias ON $alias.recordId=record.Id AND $alias.dataFieldId=".(int)$id." AND !FIND_IN_SET(".(int)$id.",record.hiddenFields)\n";
+        $joins .= "LEFT JOIN recordData $alias ON $alias.recordId=record.Id AND $alias.dataFieldId=".(int)$id." AND $alias.hidden=0\n";
         $fields .= ', `'.$alias.'`.`data` AS answer_'.(int)$id;
     }
 
@@ -76,7 +93,8 @@ function listSql(){
 
     $sql="
         SELECT
-            record.id, record.path, record.parentId, record.hiddenFields, MAX(label.id) AS labelId, recordType.primaryDataFieldId, 
+            record.id, record.path, record.parentId, record.hiddenFields, record.typeId AS recordTypeId, MAX(label.id) AS labelId,
+            recordType.primaryDataFieldId, recordType.name AS recordType,
             project.name AS project
             $fields
         FROM

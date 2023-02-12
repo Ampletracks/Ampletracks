@@ -9,8 +9,11 @@ $INPUTS = array(
 function processDeleteBefore($id) {
     global $DB;
 
-    // See if there are projects that need a new home
-    
+    // See if there are records that need a new home
+    $recordsNeedRehoming = $DB->getValue('SELECT COUNT(*) FROM record WHERE deletedAt=0 AND projectId=?',$id);
+    if (!$recordsNeedRehoming) return true;
+
+    // Check the recipient Project ID is valid
     $recipientProjectId = $DB->getValue('SELECT id FROM project WHERE deletedAt=0 AND id<>? AND id=?',$id,ws('recipientProjectId'));
     if (!$recipientProjectId) return false;
 
@@ -18,6 +21,7 @@ function processDeleteBefore($id) {
 
     return true;
 }
+
 function processUpdateBefore( $id ) {
     global $DB;
     // check if a project already exists with this name

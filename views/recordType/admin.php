@@ -47,7 +47,7 @@
                         formTextarea('recordType_publicPreviewMessage',80,5);
                         inputError('recordType_publicPreviewMessage');
                     ?>
-                    <div class="info"><?=cms('Record Type: Public preview message explanation',0,'The text supplied here is displayed when a user who isni\'t logged in scans the QR code on a label which is linked to this kind of record')?></div>
+                    <div class="info"><?=cms('Record Type: Public preview message explanation',0,'The text supplied here is displayed when a user who isn\'t logged in scans the QR code on a label which is linked to this kind of record')?></div>
                 </div>
             </div>
 

@@ -46,6 +46,7 @@ $tables = array(
         'orderId' => "SMALLINT(5) UNSIGNED NOT NULL",
         'recordTypeId' => "INT(10) UNSIGNED NOT NULL",
         'name' => "VARCHAR(255) DEFAULT NULL",
+        'exportName' => "VARCHAR(255) DEFAULT NULL",
         'typeId' => "TINYINT(3) UNSIGNED NOT NULL",
         'optional' => "TINYINT(3) UNSIGNED NOT NULL DEFAULT 1",
         'saveInvalidAnswers' => "ENUM('never','never but save version','only if unset','only if unset but save version','always') NOT NULL DEFAULT 'only if unset but save version'",
@@ -412,8 +413,29 @@ $writableDirectories = ['data/images','data/tmp/uploads','data/system','data/acm
 
 $upgrades = array(
     // =====================================================================================================
-    4   => function() {
+    2 => function() {
+        global $DB;
+        $DB->exec('UPDATE record SET ownerId=createdBy');
     },
+    3 => function() {
+        global $DB;
+        $firstUser = $DB->getValue('SELECT id FROM user WHERE deletedAt=0 ORDER BY id ASC LIMIT 1');
+        $DB->exec('UPDATE label SET assignedBy=?, assignedAt=UNIX_TIMESTAMP() WHERE recordId>0 AND assignedAt=0',$firstUser);
+    },
+    4 => function() {
+        $DB->exec('INSERT IGNORE INTO userRole (userId, roleId) SELECT id,1 FROM user WHERE deletedAt=0');
+        $DB->exec('INSERT IGNORE INTO project (id,name) VALUES(1,"Default project")');
+        $DB->exec('UPDATE record SET projectId=1');
+        global $DB;
+    },
+    5 => function() {
+        global $DB;
+        $needUpdating = $DB->getHash('SELECT id, name FROM dataField WHERE ISNULL(exportName)');
+        foreach( $needUpdating as $id=>$name) {
+            $DB->update('dataField',['id'=>$id],['exportName'=>toCamelCase($name)]);
+        }
+    },
+
     // =====================================================================================================
 );
 

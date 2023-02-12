@@ -66,10 +66,8 @@ th,
 td {
     padding: clamp( 0.1em, calc( 0.1em + 0.1vw ), 0.3em ) clamp( 0.4em, calc( 0.4em + 0.1vw ), 0.8em ) ;
     border-left: 1px solid var(--c-border);
+    border-right: 1px solid var(--c-border);
 
-    &:last-child {
-        border-right: 1px solid var(--c-border);
-    }
 
     &.dataField.image {
         text-align: center;
@@ -81,6 +79,26 @@ table.record {
         width: 1%;
         select {
             max-width: 8em;
+        }
+    }
+
+    td.relationships {
+        min-width: 15em;
+        display: inline-block;
+        max-height: 8em;
+        overflow-y: auto;
+        border: none;
+        table {
+            td {
+                font-size: 80%;
+            }
+            tr {
+                background-color: initial;
+                border-bottom: 1px solid var(--c-border);
+                &:last-child {
+                    border-bottom: none;
+                }
+            }
         }
     }
 }

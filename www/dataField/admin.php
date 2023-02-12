@@ -28,6 +28,13 @@ function processUpdateBefore( $id ) {
         // populate the recordType ID if this is a new Field
         $recordTypeId=getPrimaryFilter();
         ws('dataField_recordTypeId',$recordTypeId);
+
+        // If we are creating a new record and no exportName has been provided then default this
+        // to be the camelCase version of the name
+        // If they _really_ want to make this blank they'll have to edit it after creation
+        if (empty(ws('dataField_exportName'))) {
+            ws('dataField_exportName',toCamelCase(ws('dataField_name')));
+        }
     }
 
     $oldInheritance = $DB->getValue('SELECT inheritance FROM  dataField WHERE id = ?', $id);

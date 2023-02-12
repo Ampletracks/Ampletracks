@@ -45,7 +45,7 @@ include(VIEWS_DIR.'/header.php');
 
     <form >
         Layout:
-        <? formOptionbox('layout',['A4 3x9'=>'3x9','A4 5x13'=>'5x13'],'onChange="changeLayout(this.value)" class="dontExpand"'); ?>
+        <? $labelSelect->display(); ?>
         
     </form>
     <br />

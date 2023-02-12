@@ -237,6 +237,26 @@ $(function(){
 		return false;
 	});
 
+    // Make a copy of any button with a class of defaultButton and stick it at the front of the form
+    // but off the side of the screen. This makes this the default action for the form when
+    // enter is pressed
+    $('form').prepend(function() {
+        let self = $(this);
+        let existingButton = self.find('input.defaultButton');
+        let defaultButton;
+        // If there is no default then create a standard submit button
+        defaultButton = existingButton ? existingButton.clone() : $('<input type="submit" />');
+        defaultButton.css({
+            position:    'absolute',
+            left:        '-999px',
+            top:        '-999px',
+            height:        0,
+            width:        0
+        });
+        return defaultButton;
+    });
+
+    // Submit filters when they are changed
 	$('table.main th').find('input,select').on('change',function(){
 		$('#filterForm').submit();
 	});

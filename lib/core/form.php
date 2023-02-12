@@ -1208,7 +1208,7 @@ $ob->showDefault()
                 return(0);
             }
 
-            $input_str = '<span class="checkbox"><input id="input_%s%s_%d" type="%s" name="%s" value="%s" %s %s /><label for="input_%s%s_%d"><span></span>%s</label><br/></span>'."\n";
+            $input_str = '<span class="checkbox"><input id="input_%s%s_%d" type="%s" name="%s" value="%s" %s %s /><label for="input_%s%s_%d">%s</label></span>'."\n";
             $input_name = $this->name;
             $input_type = 'radio';
             if ($this->multiple) {

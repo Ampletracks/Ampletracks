@@ -16,6 +16,14 @@ include('../../lib/core/startup.php');
 include(LIB_DIR.'/labelTools.php');
 
 if (ws('mode')=='preview') {
+    $labelSelect = new formOptionbox('layout', [
+        'A4 3x9'=>'3x9',
+        'A4 5x13: Avery B7651-50'=>'5x13',
+        'AFM Sample Case'=>'AFM Sample Case',
+
+    ]);
+    $labelSelect->setExtra('onChange="changeLayout(this.value)" class="dontExpand"');
+
     include(VIEWS_DIR.'/label/preview.php');
     exit;
 }
@@ -308,15 +316,30 @@ if ($layout=='3x9') {
         'dims'          => [65,29.6],
         'spacing'       => [0,0],
         'logoDims'      => [33,7],
-        'logoOffset'    => [30, 3.5],
+        'logoOffset'    => [28, 3.5],
         'qrCodeOffset'  => [2, 2.3],
         'qrCodeSize'    => 26,
         'drawOutline'   => false,
         'text' => [
-            ['Sample ID : Security Code','Arial','',5.5,28.5,11.2,36,5,0],
-            ['%%code%%','Courier','',10.5,29.5,15.7,34,4.5,'TB'],
-            ['If found please visit:','Arial','',5.5,28.5,20,37,5,0],
-            [$fqdn,'Arial','B',strlen($fqdn)>14?7.5:8.5,28,23,37,20,0],
+            ['Sample ID : Security Code','Arial','',6,24,12.8,36,5,0],
+            ['%%code%%','Courier','',10.5,27.5,15.3,34,4.5,'TB'],
+            ['If found please visit:','Arial','',6,20.5,19.6,37,5,0],
+            [$fqdn,'Arial','B',strlen($fqdn)>14?7.5:8.5,23,23,37,20,0],
+        ]
+    ];
+} else if ($layout=='AFM Sample Case') {
+    $layout = [
+        'name'          => 'AFM Sample Case',
+        'cols'          => 8,
+        'rows'          => 1,
+        'topMargin'     => 15,
+        'leftMargin'    => 7.75,
+        'dims'          => [25,25],
+        'spacing'       => [0,0],
+        'qrCodeOffset'  => [5, 5],
+        'qrCodeSize'    => 12,
+        'drawOutline'   => true,
+        'text' => [
         ]
     ];
 } else {
@@ -324,20 +347,20 @@ if ($layout=='3x9') {
         'name'              => '5x13',
         'cols'              => 5,
         'rows'              => 13,
-        'topMargin'         => 8,
-        'leftMargin'        => 9.75,
-        'dims'              => [38.1,21.3],
+        'topMargin'         => 12,
+        'leftMargin'        => 5,
+        'dims'              => [40.5,21.1],
         'spacing'           => [0,0],
-        'logoDims'          => [20,5],
-        'logoOffset'        => [17.4, 2],
+        'logoDims'          => [15,4],
+        'logoOffset'        => [19.4, 2],
         'qrCodeOffset'      => [0.6, 0.6],
         'qrCodeSize'        => 16.5,
         'drawOutline'       => false,
         'text' => [
-            ['Sample ID : Security Code','Arial','',4.1,17,5.8,20,5,0],
-            ['%%code%%','Courier','',5.8,16,9.5,22,3.2,0],
-            ['If found please visit:','Arial','',5.6,17,12.2,20,5,0],
-            [$fqdn,'Arial','B',strlen($fqdn)>14?7.5:8.5,1,15.5,36,6,0],
+            ['Sample ID : Security Code','Arial','',4.1,17,8.4,20,5,0],
+            ['%%code%%','Courier','',5.8,16,10.4,22,3.2,0],
+            ['If found please visit:','Arial','',4.1,15,12.8,20,5,0],
+            [$fqdn,'Arial','B',strlen($fqdn)>14?7.5:8.5,1,16.5,36,6,0],
         ]
 ];
 }
@@ -346,7 +369,7 @@ $layout['fqdn'] = $fqdn;
 
 $logoImage = SITE_BASE_DIR.'/data/images/labelLogo.png';
 $logo = false;
-if (file_exists($logoImage)) {
+if (isset($layout['logoDims']) && file_exists($logoImage)) {
     $logo = imagecreatefrompng($logoImage);
     // convert to black and white
     //imagefilter($logo, IMG_FILTER_GRAYSCALE);

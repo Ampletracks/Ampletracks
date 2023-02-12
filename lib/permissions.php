@@ -453,18 +453,21 @@ function addUserAccessLimits( $options=[] ) {
 
     // If they have no list permissions in relation to this entity then return false
     if (!isset($permissions['list'])) {
+        // Put in an unattainable limit
+        $return[$prefix.$ownerIdColumn.'_eq']=0;
         return false;
     }
 
+    $return=[];
     // if they have global list for this entity then don't impose any limits
     if (isset($permissions['list']['global'])) { /* do nothing */ }
     else if (isset($permissions['list']['project'])) {
-        ws($prefix.$projectIdColumn.'_in',getUserProjects( $userId ));
+        $return[$prefix.$projectIdColumn.'_in']=getUserProjects( $userId );
     } else {
         // permission level must be "own"
-        ws($prefix.$ownerIdColumn.'_eq',$userId);
+        $return[$prefix.$ownerIdColumn.'_eq']=$userId;
     }
-    return true;
+    return $return;
 }
 
 // N.B. This only works for create/list actions - i.e. where entityId is not required
