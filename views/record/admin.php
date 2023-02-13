@@ -503,7 +503,7 @@ formHidden('hiddenFields');
             var hideOnEdit = $('.hideOnEdit');
             var showOnEdit = $('.showOnEdit');
             <? if (canDo('edit',ws('id'),'recordTypeId:'.ws('record_typeId'))) { ?>
-                var editButton = $('<button class="btn">Edit</button>').appendTo($('.btn-list'));
+                var editButton = $('<li><button class="btn">Edit</button></li>').appendTo($('.btn-list'));
                 editButton.on('click',function(){
                     showOnEdit.show();
                     hideOnEdit.hide();

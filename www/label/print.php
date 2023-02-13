@@ -19,7 +19,7 @@ if (ws('mode')=='preview') {
     $labelSelect = new formOptionbox('layout', [
         'A4 3x9'=>'3x9',
         'A4 5x13: Avery B7651-50'=>'5x13',
-        'AFM Sample Case'=>'AFM Sample Case',
+        'A4 8x11: Tiny'=>'Tiny',
 
     ]);
     $labelSelect->setExtra('onChange="changeLayout(this.value)" class="dontExpand"');
@@ -277,7 +277,7 @@ class pdfLabels {
             $pdf->Cell($dims[0],$dims[1],'',0);
         }
 
-        if (isset($logo)) {
+        if (isset($logo) && isset($logoDims)) {
             $pdf->GDImage($logo, $originX+$logoOffset[0], $originY+$logoOffset[1], $logoDims[0],$logoDims[1] );
         }
 
@@ -327,16 +327,16 @@ if ($layout=='3x9') {
             [$fqdn,'Arial','B',strlen($fqdn)>14?7.5:8.5,23,23,37,20,0],
         ]
     ];
-} else if ($layout=='AFM Sample Case') {
+} else if ($layout=='Tiny') {
     $layout = [
-        'name'          => 'AFM Sample Case',
+        'name'          => 'Tiny',
         'cols'          => 8,
-        'rows'          => 1,
+        'rows'          => 11,
         'topMargin'     => 15,
         'leftMargin'    => 7.75,
-        'dims'          => [25,25],
+        'dims'          => [24,24],
         'spacing'       => [0,0],
-        'qrCodeOffset'  => [5, 5],
+        'qrCodeOffset'  => [6, 6],
         'qrCodeSize'    => 12,
         'drawOutline'   => true,
         'text' => [

@@ -112,6 +112,37 @@ function getCertificate( $client,$domain ) {
             $status = 'Complete';
             if (!$order->getCertificate()) {
                 $error = 'problem downloading Let\'s Encrypt certificate';
+            } else {
+                // If the order finalized and successfully created a certificate then copy the ceritificate and key file for safe keeping
+                // but ONLY if both certificate and key files are valid
+                global $acmeDir;
+                $safeDir = $acmeDir.'/safe';
+                if (!is_dir($safeDir)) {
+                    mkdir( $safeDir );
+                    chmod( $safeDir, 0744);
+                }
+                $certFile = $acmeDir.'/fullchain.crt';
+                $keyFile = $acmeDir.'/private.pem';
+
+                if (file_exists($certFile) && file_exists($keyFile)) {
+                    $safeCertFile = $safeDir.'/fullchain.crt';
+                    $safeKeyFile = $safeDir.'/private.pem';
+                    if (
+                        !file_exists($safeCertFile) ||
+                        !file_exists($safeKeyFile) ||
+                        filemtime($certFile) > filemtime($safeCertFile) ||
+                        filemtime($keyFile) > filemtime($safeKeyFile)
+                    ) {
+                        $key = file_get_contents($keyFile);
+                        $cert = file_get_contents($certFile);
+                        $keyIsValid = openssl_pkey_get_private($key);
+                        $certIsValid = openssl_x509_parse($cert);
+                        if ($certIsValid !== false && $keyIsValid !== false ) {
+                            copy( $certFile, $safeDir.'/fullchain.crt' );
+                            copy( $keyFile, $safeDir.'/private.pem' );
+                        }
+                    }
+                }
             }
         } else {
             $error = 'order not finalized whilst renewing Let\'s Encrypt cert';

@@ -415,7 +415,7 @@ $upgrades = array(
     // =====================================================================================================
     2 => function() {
         global $DB;
-        $DB->exec('UPDATE record SET ownerId=createdBy');
+        $DB->exec('UPDATE record SET ownerId=createdBy WHERE ownerId=0');
     },
     3 => function() {
         global $DB;
@@ -423,10 +423,10 @@ $upgrades = array(
         $DB->exec('UPDATE label SET assignedBy=?, assignedAt=UNIX_TIMESTAMP() WHERE recordId>0 AND assignedAt=0',$firstUser);
     },
     4 => function() {
-        $DB->exec('INSERT IGNORE INTO userRole (userId, roleId) SELECT id,1 FROM user WHERE deletedAt=0');
-        $DB->exec('INSERT IGNORE INTO project (id,name) VALUES(1,"Default project")');
-        $DB->exec('UPDATE record SET projectId=1');
         global $DB;
+        #$DB->exec('INSERT IGNORE INTO userRole (userId, roleId) SELECT id,1 FROM user WHERE deletedAt=0');
+        #$DB->exec('INSERT IGNORE INTO project (id,name) VALUES(1,"Default project")');
+        #$DB->exec('UPDATE record SET projectId=1');
     },
     5 => function() {
         global $DB;

@@ -98,7 +98,7 @@
         <? } ?>
         <? if (isset($builtInFieldsToDisplay['labelId'])) { ?>
             <td class="labelId">
-                @@labelId@
+                @@labelId@@
             </td>
         <? } ?>
         <? if (isset($builtInFieldsToDisplay['path'])) { ?>
