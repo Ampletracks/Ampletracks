@@ -10,15 +10,23 @@
       debug: msg="{{ ansible_distribution_major_version }}"
 
     - name: Set up internal ansible "facts" for Debian
-      set_fact:
-        admin_user: admin
       when: ansible_distribution == "Debian"
+      set_fact:
+        base_distro: Debian
+        admin_user: admin
 
     - name: Set up internal ansible "facts" for Ubuntu
       when: ansible_distribution == "Ubuntu"
       set_fact:
+        base_distro: Debian
         admin_user: ubuntu
 
+    - name: Set up internal ansible "facts" for Fedora
+      when: ansible_distribution == "Fedora"
+      set_fact:
+        base_distro: RedHat
+        admin_user: root
+    
     - name: Fail if we dont recognise the Distro
       fail:
         msg: "Bailing out. Don't recognise your distro: {{ ansible_distribution }}"
@@ -55,7 +63,7 @@
 
 
 - name: Set up Ampletrack server
-  hosts: new_server
+  hosts: ampletracks_servers
   remote_user: "{{ admin_user }}"
   become: yes
   become_method: sudo
@@ -81,18 +89,44 @@
       when: ansible_distribution == "Debian"
 
     - name: Update the apt cache
+      when: base_distro=="Debian"
       apt:
+        update_cache: yes
+   
+    - name: Update the dnf cache
+      when: base_distro=="RedHat"
+      dnf:
         update_cache: yes
 
     # Just install Mysql server on its own because we need to know if this changes (and secure the installation if it did)
-    - name: Install Mysql Server
+    # We need to install python3-mysqldb on the server for tha ansible mysql module to work
+    - name: Install Mysql Server on Debian
+      when: base_distro=="Debian"
       apt:
         name: [
           mariadb-server,
-            net-tools
+          net-tools,
+          python3-pymysql,
         ]
         state: present
       register: install_mysql
+
+    - name: Install Mysql Server on RedHat
+      when: base_distro=="RedHat"
+      dnf:
+        name: [
+          mariadb-server,
+          net-tools,
+          python3-PyMySQL,
+          python2-PyMySQL
+        ]
+        state: present
+      register: install_mysql
+    
+    - name: Start MySQL service
+      service:
+        name: mariadb
+        state: started
 
       # Find the mysqld.sock in a distro-independent way
     - shell: netstat -l --protocol=unix | grep mysqld.sock | rev | cut -d ' ' -f 1 | rev
@@ -102,11 +136,6 @@
     - name: Secure MySQL installation
       block:
 
-      # We need to install python3-mysqldb on the server for tha ansible mysql module to work
-      - name: Install mysqldb for Python and net-tools (required for subsequent Ansible tasks)
-        apt:
-          name: python3-pymysql
-          state: present
 
       - name: create random 16 character password for MySQL just in case we need on
         set_fact:
@@ -171,7 +200,8 @@
       when: install_mysql.changed
 
     # Install everything first so that the relevant users & groups are created for www etc
-    - name: Install Apache, PHP etc
+    - name: Install Apache, PHP etc on Debian
+      when: base_distro=="Debian"
       apt:
         name: [
           cron,
@@ -183,6 +213,25 @@
           php-gd,
           php-xml,
           git,
+          wget
+        ]
+        state: present
+
+    - name: Install Apache, PHP etc on RedHat
+      when: base_distro=="RedHat"
+      dnf:
+        name: [
+          cronie,
+          httpd,
+          libapache2-mod-php,
+          php,
+          php-common,
+          php-mysqlnd,
+          php-curl,
+          php-gd,
+          php-xml,
+          php-json,
+          git-all,
           wget
         ]
         state: present
