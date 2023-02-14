@@ -223,6 +223,7 @@
         name: [
           cronie,
           httpd,
+          mod_ssl,
           php,
           php-common,
           php-mysqlnd,
@@ -235,10 +236,23 @@
         ]
         state: present
 
+    - name: Restart httpd for RedHat
+      when: base_distro=="RedHat"
+      service:
+        name: httpd
+        state: restarted
+        enabled: yes
+      register: restart
     - name: Enable Apache2 mod_rewrite
       apache2_module: name=rewrite state=present
 
-    - name: Enable Apache2 mod_ssl
+    - name: Enable Apache2 mod_ssl for Debian
+      when: base_distro=="Debian"
+      apache2_module: name=ssl state=present
+
+ 
+    - name: Enable Apache2 mod_ssl for RedHat
+      when: base_distro=="RedHat"
       apache2_module: name=ssl state=present
 
     - name: Enable Apache2 mod_headers
