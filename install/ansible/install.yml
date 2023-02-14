@@ -223,7 +223,6 @@
         name: [
           cronie,
           httpd,
-          libapache2-mod-php,
           php,
           php-common,
           php-mysqlnd,
