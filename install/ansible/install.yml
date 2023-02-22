@@ -223,6 +223,7 @@
         name: [
           cronie,
           httpd,
+          libselinux-python,
           mod_ssl,
           php,
           php-common,
@@ -242,7 +243,8 @@
         name: httpd
         state: restarted
         enabled: yes
-      register: restart
+      # register: restart
+
     - name: Enable Apache2 mod_rewrite
       apache2_module: name=rewrite state=present
 
@@ -405,7 +407,8 @@
         mode: 0644
 
 
-    - name: Build apache config file
+    - name: Build apache config file for Debian
+      when: base_distro=="Debian"
       template:
         src: ./files/apacheVhost.conf
         dest: "/etc/apache2/sites-available/{{ ampletracks_domain_name }}.conf"
@@ -413,15 +416,46 @@
         owner: root
         mode: 0644
 
+    - name: Build apache config file for RedHat
+      when: base_distro=="RedHat"
+      block:
+        - name: Check if /etc/httpd/sites-available exists
+          stat:
+            path: "/etc/httpd/sites-available"
+          register: sites-available_data
+
+        - name: Create /etc/httpd/sites-available
+          when: not sites-available_data.exists
+          file:
+            path: "/etc/httpd/sites-available"
+            state: directory
+
+        - name: Build config file
+          template:
+            src: ./files/apacheVhost.conf
+            dest: "/etc/httpd/sites-available/{{ ampletracks_domain_name }}.conf"
+            force: no
+            owner: root
+            mode: 0644
+
     - name: "Enable the domain: {{ ampletracks_domain_name }} in Apache"
       command: a2ensite {{ ampletracks_domain_name }}
       args:
         creates: /etc/apache2/sites-enabled/{{ ampletracks_domain_name }}.conf
 
-    - name: Restart apache
+    - name: Restart apache for Debian
+      when: base_distro=="Debian"
       service:
         name: apache2
         state: restarted
+
+    - name: Restart httpd for RedHat
+      when: base_distro=="RedHat"
+      service:
+        name: httpd
+        state: restarted
+        enabled: yes
+      register: restart
 
     - name: Run Ampletracks installer script
       environment:
