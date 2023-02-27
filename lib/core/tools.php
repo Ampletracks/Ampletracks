@@ -497,10 +497,11 @@ function deriveInputsFromFile( $files=null ) {
 	foreach( $files as $file ) {
 		if (!strlen($file)) continue;
 		// if the filename doesn't start with "/" then it is a relative path - make it absolute by adding the base_dir
-		if (strpos($file, DIRECTORY_SEPARATOR)!==0) $file = SITE_BASE_DIR.$file;
+		if (strpos($file, DIRECTORY_SEPARATOR)!==0) $file = SITE_BASE_DIR.DIRECTORY_SEPARATOR.$file;
 
 		// ignore this file if it doesn't exist;
 		if (!file_exists($file)) continue;
+
 
 		// read in the file data and split it into HTML tags
 		$contents = file_get_contents( $file );

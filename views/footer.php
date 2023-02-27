@@ -9,10 +9,14 @@
                     <span>All rights reserved.</span>
 
                     <ul>
+                        <?
+                        /*
                         <li><a href="#">Terms &amp; Conditions</a></li>
                         <li><a href="#">Privacy Website</a></li>
                         <li><a href="#">Cookies</a></li>
                         <li><a href="#">Sitemap</a></li>
+                        */
+                        ?>
                     </ul>
                 </div>
 

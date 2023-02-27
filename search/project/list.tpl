@@ -31,7 +31,26 @@ global $DB, $projects;
             <a href="../record/admin.php?record_typeId=@@id@@">Create</a>
 		</td>
 		<td>@@name@@</td>
-        <td>@@numRecords@@</td>
+        <td>
+            <?
+            if ($rowData['numRecords']==0) {
+                echo "-";
+            } else {
+                foreach($rowData['bundle'] as $data) {
+                    $canList = canDo('list', 0, $rowData['id'], 'recordTypeId:'.$data['recordTypeId']);
+                    if (!$canList) continue;
+                    echo '<div class="recordCount">';
+                    echo '<span class="count">';
+                    echo htmlspecialchars($data['numRecords']);
+                    echo '</span><span class="type">';
+                    echo '<a href="../record/list.php?filter_record:projectId_eq='.htmlspecialchars($rowData['id']).'&recordTypeFilterChange='.htmlspecialchars($data['recordTypeId']).'">';
+                    echo htmlspecialchars($data['recordType']);
+                    echo '</a>';
+                    echo '</span></div>';
+                }
+            }
+            ?>
+        </td>
 	</tr>
     <div style="display: none;">
         <div class="confirmDelete" id="deleteProject_@@id@@">
