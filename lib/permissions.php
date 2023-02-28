@@ -404,6 +404,7 @@ function canDo( ) {
  *          - If entity is "record" then this should be set to 'recordTypeId:<entityId>'
  *      'userId' - defaults to $USER_ID
  *      'prefix' - prefix to be used when adding limits to workspace  defaults to 'limit_'
+ *      'action' - the action we want to be able to perform - defaults to 'list' - ONLY 'list' and 'edit' supported
  */
 function addUserAccessLimits( $options=[] ) {
     static $projectColumnLookup = [
@@ -440,6 +441,7 @@ function addUserAccessLimits( $options=[] ) {
     $entity = isset($options['entity']) ? $options['entity'] : $ENTITY;
     $userId = isset($options['userId']) ? $options['userId'] : $USER_ID;
     $prefix = isset($options['prefix']) ? $options['prefix'] : 'limit_';
+    $action = isset($options['action']) ? $options['action'] : 'list';
 
     $lookupEntity = substr($entity,0,13);
     $projectIdColumn = isset($options['projectIdColumn']) ? $options['projectIdColumn'] : $projectColumnLookup[$lookupEntity];
@@ -452,17 +454,18 @@ function addUserAccessLimits( $options=[] ) {
     // if they are a superuse then don't impose any limits
     if (isset($permissions['superuser'])) return true;
 
+    $return=[];
+
     // If they have no list permissions in relation to this entity then return false
-    if (!isset($permissions['list'])) {
+    if (!isset($permissions[$action])) {
         // Put in an unattainable limit
         $return[$prefix.$ownerIdColumn.'_eq']=0;
-        return false;
+        return $return;
     }
 
-    $return=[];
     // if they have global list for this entity then don't impose any limits
-    if (isset($permissions['list']['global'])) { /* do nothing */ }
-    else if (isset($permissions['list']['project'])) {
+    if (isset($permissions[$action]['global'])) { /* do nothing */ }
+    else if (isset($permissions[$action]['project'])) {
         $return[$prefix.$projectIdColumn.'_in']=getUserProjects( $userId );
     } else {
         // permission level must be "own"
