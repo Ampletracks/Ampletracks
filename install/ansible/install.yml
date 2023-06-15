@@ -29,7 +29,8 @@
       set_fact:
         base_distro: RedHat
         admin_user: root
-    
+        mysql_config_file_location: /etc/my.cnf.d/mariadb-server.cnf
+
     - name: Fail if we dont recognise the Distro
       fail:
         msg: "Bailing out. Don't recognise your distro: {{ ansible_distribution }}"
@@ -120,8 +121,7 @@
         name: [
           mariadb-server,
           net-tools,
-          python3-PyMySQL,
-          python2-PyMySQL
+          python3-PyMySQL
         ]
         state: present
       register: install_mysql
@@ -202,11 +202,21 @@
 
       when: install_mysql.changed
 
-    - name: Set sql_mode in MySQL config
+    - name: Set sql_mode in MySQL config for Debian
+      when: base_distro=="Debian"
       lineinfile:
         path: "{{ mysql_config_file_location.0.path }}"
-        regexp: "^\s*sql_mode"
+        regexp: "^\\s*sql_mode"
         line: "sql_mode               = NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION"
+
+    - name: Set sql_mode in MySQL config for Fedora
+      when: base_distro=="RedHat"
+      lineinfile:
+        path: "{{ mysql_config_file_location }}"
+        regexp: "^[mariadb]\\b"
+        insertafter: "[mariadb]"
+        line: "sql_mode               = NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION\n"      
+
 
     # Install everything first so that the relevant users & groups are created for www etc
     - name: Install Apache, PHP etc on Debian
