@@ -17,9 +17,7 @@
 	<tr>
 		<td class="actions" rowspan="2">
 			<a href="admin.php?id=@@id@@">Edit</a>
-            <? if ($rowData['numInstances']==0) { ?>
-                <a href="admin.php?id=@@id@@&mode=delete">Delete</a>
-            <? } ?>
+            <a href="admin.php?id=@@id@@&mode=delete">Delete</a>
 		</td>
 		<td>@@fromRecordType@@</td>
 		<td>@@forwardDescription@@</td>

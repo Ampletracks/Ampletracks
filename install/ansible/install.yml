@@ -12,14 +12,17 @@
     - name: Set up internal ansible "facts" for Debian
       when: ansible_distribution == "Debian"
       set_fact:
+
         base_distro: Debian
         admin_user: admin
+        mysql_config_file_location: /etc/mysql/mariab.conf.d/50-server.cnf 
 
     - name: Set up internal ansible "facts" for Ubuntu
       when: ansible_distribution == "Ubuntu"
       set_fact:
         base_distro: Debian
         admin_user: ubuntu
+        mysql_config_file_location: /etc/mysql/mariab.conf.d/50-server.cnf 
 
     - name: Set up internal ansible "facts" for Fedora
       when: ansible_distribution == "Fedora"
@@ -198,6 +201,12 @@
           login_unix_socket: "{{ mysqld_socket.stdout }}"
 
       when: install_mysql.changed
+
+    - name: Set sql_mode in MySQL config
+      lineinfile:
+        path: "{{ mysql_config_file_location.0.path }}"
+        regexp: "^\s*sql_mode"
+        line: "sql_mode               = NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION"
 
     # Install everything first so that the relevant users & groups are created for www etc
     - name: Install Apache, PHP etc on Debian

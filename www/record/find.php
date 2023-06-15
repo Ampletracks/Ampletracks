@@ -10,6 +10,7 @@ include(LIB_DIR.'/dataField.php');
 
 $error = '';
 $errorReturnCode = 400;
+$canCreateRecord = false;
 
 if (!isset($_GET['id']) || strlen($_GET['id'])<12) {
     
@@ -31,6 +32,15 @@ if (!isset($_GET['id']) || strlen($_GET['id'])<12) {
         if (!$label->recordId) {
             $error = 'This label has not yet been associated with an item';
             $errorReturnCode = false;
+            $canCreateRecord = true;
+
+            $recordTypes = $DB->getHash('SELECT id, name FROM recordType WHERE deletedAt=0');
+            $recordTypeSelect = new formOptionbox('record_typeId',['-- Select record type --'=>'']);
+            foreach( $recordTypes AS $recordTypeId=>$recordType ) {
+                if (!canDo('create',0,"recordType:$recordTypeId")) continue;
+                $canCreateRecord=true; 
+                $recordTypeSelect->addOption($recordType, $recordTypeId);
+            }
         } else {
             $dataFields = datafield::buildAllForRecord( $label->recordId, ['where'=>'dataField.displayToPublic'] );
         }
@@ -61,6 +71,14 @@ include(VIEWS_DIR.'/header.php');
 <? if ($error) { ?>
     <p class="error"><?=cms('Public record preview: error',1,'There was a problem retrieving data about this item')?></p>
     <p class="error"><?=htmlspecialchars($error)?></p>
+    <? if ($USER_ID && $canCreateRecord) { ?>
+        <form method="post" action="/record/admin.php">
+            <? formHidden('labelId',$label->id); ?>
+            Create a record now and associate it with this label<br />
+            <? $recordTypeSelect->display() ?>
+            <input type="submit" value="Create new record" />
+        </form>
+    <? } ?> 
 <? } else { ?>
     <p class="introduction"><?=cms('Public record preview: introduction',1,'The publicly avaiable data relating to this item is shown below')?></p>
     <? if (strlen(trim($previewMessage))) { ?>

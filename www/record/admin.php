@@ -5,6 +5,7 @@ $INPUTS = array(
         'record_typeId' 		=> 'INT',
         'subMode' 				=> 'TEXT',
         'anchor'				=> 'TEXT',
+        'labelId'               => 'INT',
     ),
     'update' => array(
         'dataField'     		=> 'ARRAY ANY',
@@ -239,7 +240,10 @@ function processInputs($mode,$id) {
     }
 	
     if (!$id && $mode!=='update') {
-        header('Location: admin.php?mode=update&parentId='.(int)ws('parentId'));
+        $redirect = 'admin.php?mode=update&parentId='.(int)ws('parentId');
+        if (ws('labelId')) $redirect.='&labelId='.(int)ws('labelId');
+        if (ws('record_typeId')) $redirect.='&record_typeId='.(int)ws('record_typeId');
+        header('Location: '.$redirect);
         exit;
     }
 
@@ -413,6 +417,11 @@ function processUpdateAfter( $id, $isNew ) {
         }
         $updates['path'] .= $id.',';
         $updates['depth']++;
+
+        if (ws('labelId')) {
+            $DB->update('label',array('id'=>ws('labelId')),array('recordId'=>$id));
+        }
+            
         $DB->update('record',array('id'=>$id),$updates);
         
         if (ws('record_parentId')) {
