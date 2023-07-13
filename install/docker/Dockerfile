@@ -18,6 +18,7 @@ RUN echo $(ls)
 RUN echo $(ls /etc/cron.d/)
 RUN cd ansible/ && \
 echo $(ansible-playbook -i inventory.yml -e interactive=no install.yml | tee -a out.txt) && \
+echo $(ansible-playbook -i inventory.yml -e interactive=no install.yml | tee -a out.txt) && \
 cd / && \
 echo $(ls) && \
 chmod +x boot_script.sh
