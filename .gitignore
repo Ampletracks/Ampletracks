@@ -7,4 +7,6 @@ config/*
 data/
 log/
 install/ansible/inventory.yml
-*inventory.yml
+install/ansible/install.retry
+install/docker/container-inventory/inventory.yml
+install/docker/container-inventory/install.retry
