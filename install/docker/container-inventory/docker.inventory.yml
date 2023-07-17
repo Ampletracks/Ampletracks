@@ -40,20 +40,20 @@ ampletracks_servers:
 
     # This is the web address that users will go to to access your Ampletracks site.
     # The domain name provided here will probably be the same as the one provided above for "hosts".
-    ampletracks_domain_name: <yourdomain.com>
+    ampletracks_domain_name: "<your-domain-name>"
 
     # First User
 
     # When the site is first installed you will need an account to log in with.
     # Once you have logged in with this account you can use that to create accounts for other users.
     # e.g. ampletracks_first_user_email: "me@mydomain.com"
-    ampletracks_first_user_email: "me@me.com"
+    ampletracks_first_user_email: "<your-email-address>"
 
     # Defining the password is optional - if you don't define it, a random one will be generated and given
     # to you when you run the installation.
     # Once the site is installed you can log in with the randomly generated one and change
     # it using the web interface.
-    ampletracks_first_user_password: <mypassword>
+    ampletracks_first_user_password: "<mypassword>"
     #
     # If you re-run the installation playbook on a server which has already been installed then the
     # "first user" will only be generated if a user with email defined in ampletracks_first_user_email doesn't
@@ -63,7 +63,7 @@ ampletracks_servers:
 
     # In order for dates and times to display correctly it is worth setting the timezone
     # e.g. timezone: Europe/London
-    timezone: Europe/London
+    # timezone: "<your-timezone>"
     #
     # To get a list of possible timezones Use "timedatectl list-timezones" on the command line,
     # then pick one of those.
