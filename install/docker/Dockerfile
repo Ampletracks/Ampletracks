@@ -10,8 +10,11 @@ apt install -y ansible && \
 apt install -y curl && \
 apt install -y net-tools
 
-RUN mkdir ansible
-ADD ./container-inventory/ansible ansible/
+RUN mkdir ansible && \
+mkdir ansible/files
+COPY ./container-inventory/inventory.yml ansible/
+COPY ../ansible/install.yml ansible/
+ADD ../ansible/files ansible/files/
 COPY ./container-inventory/boot_script.sh .
 COPY ./container-inventory/apache_restart /etc/cron.d/
 RUN echo $(ls)
