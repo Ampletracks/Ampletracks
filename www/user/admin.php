@@ -1,14 +1,24 @@
 <?
 $INPUTS = array(
+    'request'   => array(
+        'token' => 'TEXT TRIM'
+    ),
     'update'    => array(
         'recordTypeIds' => 'INT ARRAY',
         'roleIds' => 'INT ARRAY',
         'projectIds' => 'INT ARRAY',
+        'encryptedPassword' => 'TEXT',
     )
 );
 
 function processInputs($mode, $id) {
     global $WS, $USER_ID;
+
+    if ($mode=='request') {
+        include(CORE_DIR.'encryptedToken.php');
+        $newUserData = decryptEncryptedToken('requestAccount',ws('token'));
+        $WS = array_merge($WS,$newUserData);
+    }
 
     global $canEditLogin;
     $canEditLogin=false;
@@ -27,6 +37,7 @@ function processInputs($mode, $id) {
     if (!$canEditLogin) {
         unset($WS['user_email']);
         unset($WS['password']);
+        unset($WS['encryptedPassword']);
     }
 
     if (isset($WS['user_email'])) $WS['user_email'] = trim($WS['user_email']);
@@ -36,6 +47,8 @@ function processInputs($mode, $id) {
             $WS['user_password']=password_hash($WS['password'],PASSWORD_DEFAULT);
         } else unset($WS['user_password']);
     }
+
+    if (isset($WS['encryptedPassword'])) $WS['user_password']=$WS['encryptedPassword'];
 }
 
 function buildSelectors($userId) {

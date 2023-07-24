@@ -374,24 +374,25 @@ global $parentName;
                             else echo implode(',',$labelIds);
                         ?></div>
                         <div class="showOnEdit">
-                            Assign new label: <? formInteger('labelId',0,1000000, null, null, 'id="labelID"'); ?>
+                            Assign label: <? formInteger('labelId',0,1000000, null, null, 'id="labelID"'); ?>
                             <? inputError('labelId'); ?><br />
-                            <a class="btn small" href="#" clickToShow="#removeLabel">Remove label</a>
+                            <input dependsOn="labelId gt 0" class="small" type="submit" value="Submit" /><br />
+                            <a class="btn small" href="#" clickToShow="#removeLabel"><?=cms('Remove label')?></a>
                             <? if (ws('id')) { ?>
-                                <a class="btn small createLabel" href="#" >Create label</a>
+                                <a class="btn small createLabel" href="#" ><?=cms('Create new label')?></a>
                             <? } ?>
                         </div>
                         <div id="removeLabel" style="display:none">
                             Remove label :<? formInteger('removeLabelId',0,1000000); ?>
                             <? inputError('removeLabelId'); ?><br />
-                            Enter the ID of the label you wish to disassociate from this record. 
+                            Enter the ID of the label you wish to disassociate from this record.<br />
+                            <input class="small" type="submit" value="Submit" />
+                            <? if (inputError('removeLabelId',false)) {?>
+                                <script>
+                                    $(function(){$('[clickToShow=\\#removeLabel]').trigger('click');});
+                                </script>
+                            <? } ?>
                         </div>
-                        <? if (inputError('removeLabelId',false)) {?>
-                            <script>
-                                $(function(){$('[clickToShow=\\#removeLabel]').trigger('click');});
-                            </script>
-                        <? } ?>
-
                     </label>
                 </div>
             </section>
