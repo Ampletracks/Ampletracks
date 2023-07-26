@@ -6,6 +6,9 @@
     }
     $onlyShowWhenFieldHasValue = sprintf('<div dependsOn="dataField_typeId in %s">',implode('|',$typesWithValue));
 ?>
+<p>
+    Belongs to record type: <? wsp('recordType_name') ?>
+</p>
 <h2>Basics</h2>
 <div class="questionAndAnswer">
 	<div class="question">

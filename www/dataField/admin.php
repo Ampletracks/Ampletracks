@@ -175,6 +175,7 @@ function prepareDisplay( $id ) {
     $extraStylesheets[] = '/javascript/jodit/jodit.css';
     $extraScripts[] = '/javascript/jodit/jodit.js';
     
+    $DB->loadRow(['SELECT name FROM recordType WHERE id=?',ws('dataField_recordTypeId')],'recordType_');
     if ($id) $recordTypeId = ws('dataField_recordTypeId');
     else $recordTypeId = getPrimaryFilter();
     

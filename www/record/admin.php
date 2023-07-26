@@ -545,6 +545,7 @@ function prepareDisplay( $id ) {
     
     $extraScripts[] = '/javascript/dependentInputs.js';
     $extraScripts[] = '/javascript/jodit/jodit.js';
+    $extraScripts[] = '/javascript/dataField.js';
 
     $recordTypeId = ws('record_typeId');
 

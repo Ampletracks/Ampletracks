@@ -26,6 +26,7 @@ class DataField {
     protected $filterSpec = array( 'width'=>10,'filter'=>['ct']);
 
     protected $params;
+    private $defaulted=false;
     public $id;
     static $answers;
     static $parentAnswers;
@@ -237,9 +238,18 @@ class DataField {
             $this->unpackFromStorage( $answer );
             return $answer;
         }
-        else return null;
+        else {
+            if ($this->default) {
+                $this->defaulted = true;
+                return $this->default;
+            }
+            else return null;
+        }
     }
 
+    function displayDefaultWarning() {
+        if ($this->defaulted) echo '<div class="warning defaultValueUsed">'.cms('The default value has been used to populate this field').'</div>';
+    }
     function getParentAnswer($dataFieldId=0) {
         if (!$dataFieldId) $dataFieldId=$this->params['id'];
         if (isset(self::$parentAnswers[$dataFieldId])) {
@@ -691,7 +701,7 @@ TEXTBOX
 
 class DataField_textbox extends DataField {
 
-    const parameters = array( 'width', 'hint', 'maxLength', 'minLength');
+    const parameters = array( 'width', 'hint', 'maxLength', 'minLength', 'default');
 
     const filterSpec = array( 'width'=>10,'filter'=>'ct');
 
@@ -735,6 +745,12 @@ class DataField_textbox extends DataField {
                 formTextbox($prefix.'hint',30,250);
             }
         );
+        questionAndAnswer(
+            'Default value',
+            function() use($prefix){
+                formTextBox($prefix.'default',1,1000,null,20);
+            }
+        );
     }
 
     function displayInput() {
@@ -743,6 +759,7 @@ class DataField_textbox extends DataField {
         $this->displayUnit();
         $this->versionLink();
         inputError($inputName);
+        $this->displayDefaultWarning();
     }
 
 }
@@ -754,7 +771,7 @@ TEXTAREA
 */
 class DataField_textarea extends DataField {
 
-    const parameters = array( 'width','height','hint', 'maxLength', 'minLength');
+    const parameters = array( 'width','height','hint', 'maxLength', 'minLength','default');
 
     function __construct( $params ) {
         parent::__construct($params);
@@ -810,6 +827,12 @@ class DataField_textarea extends DataField {
                 formTextarea($prefix.'hint',100,5);
             }
         );
+        questionAndAnswer(
+            'Default value',
+            function() use($prefix){
+                formTextarea($prefix.'default',100,5);
+            }
+        );
     }
 
     function displayInput() {
@@ -817,6 +840,7 @@ class DataField_textarea extends DataField {
         formTextarea($inputName,$this->width,$this->height,$this->getAnswer(),'class="'.htmlspecialchars($this->getType()).'placeholder="'.htmlspecialchars($this->hint).'"');
         $this->versionLink();
         inputError($inputName);
+        $this->displayDefaultWarning();
     }
 }
 
@@ -828,7 +852,7 @@ INTEGER
 
 class DataField_integer extends DataField {
 
-    const parameters = array( 'width','max','min' );
+    const parameters = array( 'width','max','min','default' );
 
     protected $filterSpec = array('filter'=>['gt','lt']);
 
@@ -883,6 +907,12 @@ class DataField_integer extends DataField {
                 echo '<div class="note">Leave empty for no minimum</div>';
             }
         );
+        questionAndAnswer(
+            'Default',
+            function() use($prefix){
+                formInteger($prefix.'default');
+            }
+        );
 
     }
 
@@ -892,6 +922,7 @@ class DataField_integer extends DataField {
         $this->displayUnit();
         $this->versionLink();
         inputError($inputName);
+        $this->displayDefaultWarning();
     }
 
     function displayFilter() {
@@ -927,6 +958,7 @@ class DataField_float extends DataField_integer {
         $this->displayUnit();
         $this->versionLink();
         inputError($inputName);
+        $this->displayDefaultWarning();
     }
 
     function displayFilter() {
@@ -1042,6 +1074,7 @@ class DataField_select extends DataField {
 
                                 <th class="defaultCheckbox">Default</th>
                                 <th class="value">Option</th>
+                                <th colspan="2"></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -1131,6 +1164,11 @@ class DataField_select extends DataField {
 
     function displayInput() {
         $inputName = $this->inputName();
+
+        $this->default = [];
+        foreach( $this->optionValues as $idx=>$value ) {
+            if ($this->optionDefaults[$idx]) $this->default[]=$value;
+        }
         $answer = $this->getAnswer();
 
         $optionBox = new formOptionbox( $inputName );
@@ -1150,6 +1188,7 @@ class DataField_select extends DataField {
         $this->displayUnit();
         $this->versionLink();
         inputError($inputName);
+        $this->displayDefaultWarning();
     }
 
     function displayFilter() {
@@ -1223,9 +1262,11 @@ class DataField_date extends DataField {
 
     function displayInput() {
         $inputName = $this->inputName();
+        if ($this->defaultToToday) $this->default = time();
         formDate($inputName,$this->getAnswer(),$this->min,$this->max);
         $this->versionLink();
         inputError($inputName);
+        $this->displayDefaultWarning();
     }
 
     function displayFilter() {
@@ -1272,7 +1313,7 @@ EMAIL ADDRESS
 
 class DataField_emailAddress extends DataField {
 
-    const parameters = array('width', 'hint');
+    const parameters = array('width', 'hint', 'default');
 
     const filterSpec = array('width'=>10,'filter'=>'ct');
 
@@ -1303,6 +1344,12 @@ class DataField_emailAddress extends DataField {
                 formTextbox($prefix.'hint',30,250);
             }
         );
+        questionAndAnswer(
+            'Default',
+            function() use($prefix){
+                formTextbox($prefix.'default',30,250);
+            }
+        );
     }
 
     function displayInput() {
@@ -1310,6 +1357,7 @@ class DataField_emailAddress extends DataField {
         formEmail($inputName, $this->width, '', $this->getAnswer(), 'class="'.htmlspecialchars($this->getType()).'" placeholder="'.htmlspecialchars($this->hint).'"');
         $this->versionLink();
         inputError($inputName);
+        $this->displayDefaultWarning();
     }
 }
 
@@ -1321,7 +1369,7 @@ URL
 
 class DataField_url extends DataField_textbox {
 
-    const parameters = array( 'width', 'hint', 'maxLength', 'minLength', 'allowedSchemes[]', 'displayAsLink', 'openInNewTab' );
+    const parameters = array( 'width', 'hint', 'maxLength', 'minLength', 'allowedSchemes[]', 'displayAsLink', 'openInNewTab', 'default' );
     const urlSchemes = array( 'file', 'ftp', 'http', 'https' );
     const defaultUrlSchemes = array( 'http', 'https' );
 
