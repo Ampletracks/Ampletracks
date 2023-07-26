@@ -1,110 +1,36 @@
 <?
-/*
+/**
+ * Database Interface
+ * 
+ * An object oriented MySQL Database Interface
+ * 
+ * @author Ben Jefferson
+ * @version 1.0
+ * @package Ampletracks
+ * 
+ */
 
-USAGE
-=====
-	require_once('Dbif.php');
-
-	// This is not essential - Dbif will use a default (silent) error handler if none is supplied
-	class MyErrorHandler extends DbifDefaultErrorHandler {
-		function handleError($code, $basicMessage, $detailedMessage) {
-			// Log error message and redirect user to error page
-			echo $basicMessage." - ".$detailedMessage;
-		}
-	}
-
-	$errorHandler = new MyErrorHandler();
-	
-	$dbName = 'test';
-	$dbUsername = '';
-	$dbPassword = '';
-	$dbHost = '';
-	
-	// Connect to the database
-	$db = new Dbif( $dbName, $dbUsername, $dbPassword, $dbHost, $errorHandler );
-
-	// Check we managed to connect
-	if (!$db->connected()) die("Couldn't connect to database");
-	
-	// Use exec to run arbitrary update SQL 
-	$db->exec('CREATE TEMPORARY TABLE theTable (col1 int unsigned not null primary key auto_increment, col2 int unsigned not null, col3 varchar(255))');
-
-	// Insert some rows into the table
-	for( $i=10; $i; $i-- ) {
-		$db->insert('theTable',array(
-			'col1'	=> '',
-			'col2'	=> 123+$i,
-			'col3'	=> 'wibble'.$i
-		));
-	}
-			
-	$whereValue = 5;
-	$col3Update = "new 'value'";
-	
-	// run a query and get the results one row at a time
-	$query = $db->query('SELECT col1, col2, col3 FROM theTable WHERE col1>?',$whereValue);
-	while( $query->fetchInto($row) ) {
-		echo "$row[0],$row[1],$row[2]<br />\n";
-	}
-	$query->free();
-
-
-	// Perform an update using exec
-	$rowsAffected = $db->exec('UPDATE theTable SET col3=? where col1=?',$col3Update,$whereValue);
-	echo "Update affected $rowsAffected rows<br />\n";
-	
-	// Get a single value back
-	$value = $db->getValue('SELECT col2 FROM theTable WHERE col1=?',$whereValue);
-	echo "Got back value $value<br />\n";
-	
-	// Do another insert
-	// The fourth parameter here details which values are SQL functions and thus should not be quoted or escaped
-	$insert_id = $db->insert( 'theTable', array( '','UNIX_TIMESTAMP()','value3' ), 'col1,col2,col3', 'col2' );
-	
-	// Get back a column
-	$col = $db->getColumn('SELECT col3 FROM theTable');
-	echo "Col3 contains: ".implode(',',$col)."<br />";
-	
-	// Get a hash
-	$hash = $db->getHash('SELECT col3,col1 FROM theTable WHERE col1>?',0);
-	foreach( $hash as $key=>$value ) {
-		echo "$key = $value<br />\n";
-	}
-	
-	// Get a hash of arrays...
-	$hash = $db->getHash('SELECT col3,col1,col2 FROM theTable WHERE col1>?',0);
-	foreach( $hash as $key=>$value ) {
-		echo "$key = $value<br />\n";
-	}
-
-	// Close the connection to the database
-	$db->close();
-
-*/
-
-/*
-DbifDefaultErrorHandler
-=======================================================================================================
-	 The main dbif object can be passed an error handler object
-	 The error handle must have a handle method
-
-	 If no error handler is provided then an instance of this default error handler will be used
-=======================================================================================================
-
+/**
+* DbifDefaultErrorHandler
+*
+* 	 The main dbif object can be passed an error handler object
+* 	 The error handle must have a handleError method
+*
+*	 If no error handler is provided then an instance of this default error handler will be used
 */
 class DbifDefaultErrorHandler {
 	function DbifDefaultErrorHandler() {
 	}
 	
-	/*
-		The error will be one of these values
-		basicMessage contains an error message with a description of the type of error but no details
-		detailedMessage contains the details of the error
-		1 => No query handle defined to execute query
-		2 => Error establishing connection to database	
-		3 => Database reported SQL error in query
-		4 => Error retreiving table meta data
-		5 => Number of placeholders doesn't macth number of value supplied
+	/**
+     * @param int $errorCode The error will be one of these values
+	 *	1 => No query handle defined to execute query
+	 *	2 => Error establishing connection to database	
+	 *	3 => Database reported SQL error in query
+	 *	4 => Error retreiving table meta data
+	 *	5 => Number of placeholders doesn't macth number of value supplied
+	 * @param string $basicMessage Contains an error message with a description of the type of error but no details
+     * @param string $detailedMessage Contains the details of the error
 	*/
 	function handleError($errorCode, $basicMessage, $detailedMessage) {
 		// Ideally the programmer will have defined their own error handler
@@ -114,33 +40,37 @@ class DbifDefaultErrorHandler {
 	}
 }
 
-/*
-DbifQuery
-=======================================================================================================
-	This object handles more complex queries where there is a requirement to be able to pull
-	the results back row by row.
-	
-	This object offers methods to return a row, find meta data about the result set and manipulate
-	the row pointer (i.e. skip rows)
-	
-	This type of object is retruned by Dbif->query()
-=======================================================================================================
 
-*/
+/**
+ * Class DbifQuery
+ * 
+ * Handles database query interactions, providing methods for fetching
+ * rows, columns, and other information from the result set.
+ */
 class DbifQuery {
 
 	var $queryHandle = 0;
 	var $creator = 0;
 	var $resultType;
 	
-	// Constructor
+    /**
+	 * DbifQuery constructor
+	 *
+	 * @param resource $queryHandle The MySQLi query result resource
+	 * @param object $creator The instance that created the DbifQuery object
+	 */
 	function DbifQuery( $queryHandle, $creator ) {
 		$this->queryHandle = $queryHandle;
 		$this->creator = $creator;
 		$this->resultType = $creator->getResultType();
 	}
 
-	function numCols( ) {
+	/**
+     * Retrieves the number of columns in the result set
+     *
+     * @return int|false The number of columns, or false if there is no query handle
+     */
+    function numCols( ) {
 		if (!$this->queryHandle) {
 			$this->creator->errorHandler->handleError(1,"System error - no query handle","No query handle for numCols");
 			return false;
@@ -148,7 +78,12 @@ class DbifQuery {
 		return mysqli_num_fields( $this->queryHandle );
 	}
 
-	function numRows( ) {
+    /**
+     * Retrieves the number of rows in the result set
+     *
+     * @return int|false The number of rows, or false if there is no query handle
+     */
+    function numRows( ) {
 		if (!$this->queryHandle) {
 			$this->creator->errorHandler->handleError(1,"System error - no query handle","No query handle for numRows");
 			return false;
@@ -156,7 +91,13 @@ class DbifQuery {
 		return mysqli_num_rows( $this->queryHandle );
 	}
 
-	function skipRows( $rows ) {
+	/**
+     * Seeks to the specified row in the result set
+     *
+     * @param int $rows The number of rows to skip
+     * @return void
+     */
+    function skipRows( $rows ) {
 		if (!$this->queryHandle) {
 			$this->creator->errorHandler->handleError(1,"System error - no query handle","No query handle for skipRows");
 			return false;
@@ -164,7 +105,14 @@ class DbifQuery {
 		mysqli_data_seek( $this->queryHandle,  $rows );
 	}
 
-	function fetchInto( &$rowData, $resultType = false ) {
+	/**
+     * Fetches a row from the result set into the provided array
+     *
+     * @param array &$rowData A reference to the array in which to store the fetched row
+     * @param int|bool $resultType (optional) The type of result to be fetched, default value is false
+     * @return array|false The fetched row as an array, or false if there is no query handle
+     */
+    function fetchInto( &$rowData, $resultType = false ) {
 		if ($resultType===false) $resultType = $this->resultType;
 		if (!is_array( $rowData )) $rowData = array();
 		if (!$this->queryHandle) {
@@ -175,7 +123,12 @@ class DbifQuery {
 		return( $rowData );
 	}
 
-	function getColumns() {
+	/**
+     * Retrieves an array of column names from the result set
+     *
+     * @return array|false An array of column names, or false if there is no query handle
+     */
+    function getColumns() {
 		if (!$this->queryHandle) {
 			$this->creator->errorHandler->handleError(1,"System error - no query handle","No query handle for getColumns");
 			return false;
@@ -196,64 +149,193 @@ class DbifQuery {
 
 	}
 
+    /**
+     * Retrieves an array of column names from the result set
+     *
+     * @return array An array of column names
+     */
 	function getColumnNames( ) {
 		return $this->creator->getColumnData( $this->queryHandle, 0 );
 	}
 
-	function getColumnLengths( ) {
+	/**
+     * Retrieves an array of column lengths from the result set
+     *
+     * @return array An array of column lengths
+     */
+    function getColumnLengths( ) {
 		return $this->creator->getColumnData( $this->queryHandle, 1 );
 	}
 
-	function getColumnTypes( ) {
+	/**
+     * Retrieves an array of column data types from the result set
+     *
+     * @return array An array of column data types
+     */
+    function getColumnTypes( ) {
 		return $this->creator->getColumnData( $this->queryHandle, 2 );
 	}
 
-	function getColumnFlags( ) {
+	/**
+     * Retrieves an array of column flags from the result set
+     *
+     * @return array An array of column flags
+     */
+    function getColumnFlags( ) {
 		return $this->creator->getColumnData( $this->queryHandle, 3 );
 	}
 
-	function free( ) {
+	/**
+     * Frees the result set associated with the query handle
+     *
+     * @return bool True if the result set was freed, false otherwise
+     */
+    function free( ) {
 		return ((mysqli_free_result( $this->queryHandle ) || (is_object( $this->queryHandle ) && (get_class( $this->queryHandle ) == "mysqli_result"))) ? true : false);
 	}
 
 }
 
 
-/*
-Dbif
-=======================================================================================================
-	This is the main database interface object this provides methods for
-		connnecting to the database
-		queryinig the database with simple queries to get values, rows, columns and hashes back
-		executing inserts
-		running arbitrary update SQL
-=======================================================================================================
+ /*
+ * Class Dbif
+ * 
+ * Database interface class that simplifies interaction with MySQL databases. This class provides methods for
+ *   - connnecting to the database
+ *   - queryinig the database with simple queries to get values, rows, columns and hashes back
+ *   - executing inserts
+ *   - running arbitrary update SQL
+ *
+ * Example Usage
+ *
+ * <code>
+ * 	require_once('Dbif.php');
+ * 
+ * 	// This is not essential - Dbif will use a default (silent) error handler if none is supplied
+ * 	class MyErrorHandler extends DbifDefaultErrorHandler {
+ * 		function handleError($code, $basicMessage, $detailedMessage) {
+ * 			// Log error message and redirect user to error page
+ * 			echo $basicMessage." - ".$detailedMessage;
+ * 		}
+ * 	}
+ * 
+ * 	$errorHandler = new MyErrorHandler();
+ * 	
+ * 	$dbName = 'test';
+ * 	$dbUsername = 'username';
+ * 	$dbPassword = 'password';
+ * 	$dbHost = 'localhost';
+ * 	
+ * 	// Connect to the database
+ * 	$db = new Dbif( $dbName, $dbUsername, $dbPassword, $dbHost, $errorHandler );
+ * 
+ * 	// Check we managed to connect
+ * 	if (!$db->connected()) die("Couldn't connect to database");
+ * 	
+ * 	// Use exec to run arbitrary update SQL 
+ * 	$db->exec('CREATE TEMPORARY TABLE theTable (col1 int unsigned not null primary key auto_increment, col2 int unsigned not null, col3 varchar(255))');
+ * 
+ * 	// Insert some rows into the table
+ * 	for( $i=10; $i; $i-- ) {
+ * 		$db->insert('theTable',array(
+ * 			'col1'	=> '',
+ * 			'col2'	=> 123+$i,
+ * 			'col3'	=> 'wibble'.$i
+ * 		));
+ * 	}
+ * 			
+ * 	$whereValue = 5;
+ * 	$col3Update = "new 'value'";
+ * 	
+ * 	// run a query and get the results one row at a time
+ * 	$query = $db->query('SELECT col1, col2, col3 FROM theTable WHERE col1>?',$whereValue);
+ * 	while( $query->fetchInto($row) ) {
+ * 		echo "$row[0],$row[1],$row[2]<br />\n";
+ * 	}
+ * 	$query->free();
+ * 
+ * 
+ * 	// Perform an update using exec
+ * 	$rowsAffected = $db->exec('UPDATE theTable SET col3=? where col1=?',$col3Update,$whereValue);
+ * 	echo "Update affected $rowsAffected rows<br />\n";
+ * 	
+ * 	// Get a single value back
+ * 	$value = $db->getValue('SELECT col2 FROM theTable WHERE col1=?',$whereValue);
+ * 	echo "Got back value $value<br />\n";
+ * 	
+ * 	// Do another insert
+ * 	// The fourth parameter here details which values are SQL functions and thus should not be quoted or escaped
+ * 	$insert_id = $db->insert( 'theTable', array( '','UNIX_TIMESTAMP()','value3' ), 'col1,col2,col3', 'col2' );
+ * 	
+ * 	// Get back a column
+ * 	$col = $db->getColumn('SELECT col3 FROM theTable');
+ * 	echo "Col3 contains: ".implode(',',$col)."<br />";
+ * 	
+ * 	// Get a hash
+ * 	$hash = $db->getHash('SELECT col3,col1 FROM theTable WHERE col1>?',0);
+ * 	foreach( $hash as $key=>$value ) {
+ * 		echo "$key = $value<br />\n";
+ * 	}
+ * 	
+ * 	// Get a hash of arrays...
+ * 	$hash = $db->getHash('SELECT col3,col1,col2 FROM theTable WHERE col1>?',0);
+ * 	foreach( $hash as $key=>$value ) {
+ * 		echo "$key = $value<br />\n";
+ * 	}
+ * 
+ * 	// Close the connection to the database
+ * 	$db->close();
+ * </code>
+ */
 
-*/
 class Dbif {
 
+    /**
+     * @var object|null $errorHandler Error handler object.
+     */
     var $errorHandler;
    
+    /**
+     * @var bool|mysqli $dbHandle Database connection handle.
+     */
     var $dbHandle = false;
 
     // Allows $DB->insert to be used for INSERT IGNORE, or REPLACE
     var $insertType = 'INSERT';
     var $nextInsertType = 'INSERT';
     
-	// this stores the current mode for pulling back row arrays
-    var $resultType = MYSQLI_BOTH;
-    // this allows for temporarily overriding the result type
-	var $nextResultType=false;
+    /**
+     * @var string $resultType Stores the current mode for pulling back row arrays
+     */
+    private $resultType = MYSQLI_BOTH;
+
+    /**
+     * @var string $nextResultType This allows for temporarily overriding the result type just for the next query
+     */
+	private $nextResultType=false;
 
     // dbName is required for calls to mysql_list_fields
     var $dbName;
 
+    /**
+     * @var string $lastError The last error returned from MySQL
+     */
 	var $lastError = '';
 
-	// if set then the check_sql method of this object is passed a copy of this db handle and any SQL that updates the database
+    /**
+     * @var string|null $changeMonitor If set then the checkSql method of this object is passed a copy of this db handle and any SQL that updates the database
+     */
 	var $changeMonitor;
 
-	// Constructor
+    /**
+     * Dbif constructor.
+     *
+     * @param string $dbName Database name.
+     * @param string $username Database username.
+     * @param string $password Database password.
+     * @param string $host Database host.
+     * @param string|object $errorHandler Error handler object or an empty string.
+     */
 	function Dbif( $dbName, $username='', $password='', $host='', $errorHandler='' ) {
 	
 		// Set up the error handler if none is provided
@@ -284,24 +366,52 @@ class Dbif {
 
 	}
 
+    /**
+     * Get the error handler.
+     *
+     * @return object|null Error handler object.
+     */
 	function getErrorHandler() {
 		return $this->errorHandler;
 	}
 
+    /**
+     * Check if the connection to the database is established.
+     *
+     * @return bool|mysqli True if connected, otherwise false.
+     */
 	function connected() {
 		return $this->dbHandle;
 	}
 	
+    /**
+     * Set the result type for queries to return indexed arrays.
+     *
+     * @param bool $nextQueryOnly Whether to apply this setting only to the next query.
+     * @return int The result type constant.
+     */
 	function returnArray($nextQueryOnly=true) {
 		if ($nextQueryOnly) return( $this->nextResultType= MYSQLI_NUM );
 		return( $this->resultType = MYSQLI_NUM );
 	}
 	
+    /**
+     * Set the result type for queries to return associative arrays.
+     *
+     * @param bool $nextQueryOnly Whether to apply this setting only to the next query.
+     * @return int The result type constant.
+     */
 	function returnHash($nextQueryOnly=true) {
 		if ($nextQueryOnly) return( $this->nextResultType= MYSQLI_ASSOC );
 		return( $this->resultType = MYSQLI_ASSOC );
 	}
 	
+    /**
+     * Set the result type for queries to return both indexed and associative arrays
+     *
+     * @param bool $nextQueryOnly Whether to apply this setting only to the next query.
+     * @return int The result type constant.
+     */
 	function returnBoth($nextQueryOnly=true) {
 		if ($nextQueryOnly) return( $this->nextResultType= MYSQLI_BOTH );
 		return( $this->resultType = MYSQLI_BOTH );
@@ -424,6 +534,11 @@ class Dbif {
 		return mysqli_affected_rows( $this->dbHandle );
 	}
 
+    /**
+     * Execute a query and return the result.
+     *
+     * @return DbifQuery|bool A DbifQuery object on success or false on failure.
+     */
 	function query( ) {
 		$sqlStr = $this->buildSql( func_get_args() );
 
@@ -505,7 +620,7 @@ class Dbif {
 		} else {
 			# if there is a change monitor object then call that
 			if (isset($this->changeMonitor)) {
-				$this->changeMonitor->check_sql($this,$sqlStr);
+				$this->changeMonitor->checkSql($this,$sqlStr);
 			}
 		}
 		return( ((is_null($___mysqli_res = mysqli_insert_id( $this->dbHandle ))) ? false : $___mysqli_res) );
