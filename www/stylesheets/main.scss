@@ -12,6 +12,16 @@ body {
     background: var(--c-bg);
 }
 
+html {
+    min-height: 100%;
+}
+
+body {
+    position: relative;
+    padding-bottom: 200px;
+    min-height: 100vh;
+}
+
 *,
 *:before,
 *:after,
