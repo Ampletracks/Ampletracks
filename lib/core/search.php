@@ -435,6 +435,7 @@ bundle_hash(2)
             $column_names = $this->column_names;
             $num_cols = count($column_names);
 			$row = 0;
+            if (!$skip) $skip=0;
 
             # echo "num rows = $num_rows\n<BR/>";
 			if ( $num_rows == 0 && !$this->extraRow ) {
