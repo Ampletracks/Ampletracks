@@ -808,7 +808,8 @@ class DataField_commentary extends DataField {
             <h2><?=htmlspecialchars($this->question)?></h2>
             <p><?=$this->commentary?></p>
         </div>
-    <? }
+        <?
+    }
 
 }
 
@@ -839,7 +840,8 @@ class DataField_divider extends DataField {
         <div class="questionAndAnswer divider">
             <h2><?=htmlspecialchars($this->question)?></h2>
         </div>
-    <? }
+        <?
+    }
 
 }
 
