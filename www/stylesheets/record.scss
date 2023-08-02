@@ -52,6 +52,12 @@ div.questionAndAnswer.relationship {
     }
 }
 
+div.questionAndAnswer.displayToPublic {
+    div.question {
+        @include backgroundIcon(0.2, 13, 1, left, red);
+    }
+}
+
 .tts-results-holder {
     background-color: var(--c-bg);
     border: 1px solid var(--c-brand-i);
