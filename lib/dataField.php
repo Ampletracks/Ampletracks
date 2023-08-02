@@ -437,8 +437,14 @@ class DataField {
     }
 
     function displayRow( $isPublic = true ) {
+        $extraClasses = [];
+        $title = '';
+        if($this->displayToPublic && !$isPublic) {
+            $extraClasses[] = 'displayToPublic';
+            $title = 'This field is visible to the public';
+        }
         ?>
-        <div class="questionAndAnswer <?=htmlspecialchars($this->getType())?>" <?=$this->getDependencyAttributes()?> >
+        <div class="questionAndAnswer <?=htmlspecialchars($this->getType())?> <?=htmlspecialchars(implode(' ', $extraClasses))?>" <?=$this->getDependencyAttributes()?> <?=$title ? 'title="'.$title.'"' : ''?>>
             <div class="question">
                 <? $this->displayLabel(); ?>
             </div>
