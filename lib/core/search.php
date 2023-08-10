@@ -56,7 +56,7 @@ display( [ scheme=$_WORSPACE['scheme']|"default" ] );
 		#	the search_sql_filename should not start "SELECT "
 		# new search( search_name, table_name, cols, [search_specificer_prefix=<table_name>_], [ db=$DB ] );
 		#######################################
-		function search( $search_name, $arg1=null, $arg2=null, $arg3=null, $arg4=null ) {
+		function __construct( $search_name, $arg1=null, $arg2=null, $arg3=null, $arg4=null ) {
 			$this->name=$search_name;
 			$this->build_search( $arg1, $arg2, $arg3, $arg4 );
 		}

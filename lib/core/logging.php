@@ -5,11 +5,11 @@ if (!defined('LOG_FILE_PERMISSIONS')) define('LOG_FILE_PERMISSIONS',0660);
 class Logger {
 
 	var $logFile;
-	
-	function logger() {
+
+	function __construct() {
 		$this->logFile = false;
 	}
-	
+
 	function log( $info ) {
 		global $_SERVER;
 	

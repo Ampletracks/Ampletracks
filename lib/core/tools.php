@@ -1085,3 +1085,12 @@ if (!function_exists('array_key_first')) {
     function array_key_first(array $array) { foreach ($array as $key => $value) { return $key; } }
 }
 
+// Reinstate the deprecated each function
+if (!function_exists('each')) {
+    function each(&$array) {
+        return [
+            key($array),
+            current($array)
+        ];
+    }
+}

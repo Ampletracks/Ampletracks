@@ -1,9 +1,5 @@
 <?
 
-if (get_magic_quotes_gpc()) {
-	die('PLEASE SWITCH OF MAGIC QUOTES');
-}
-
 // Find to config file
 // ===================================================================
 //

@@ -114,7 +114,6 @@ function getCertificate( $client,$domain ) {
                             echo "Error";
                 $error = 'problem downloading Let\'s Encrypt certificate';
             } else {
-                            echo "copying";
                 // If the order finalized and successfully created a certificate then copy the ceritificate and key file for safe keeping
                 // but ONLY if both certificate and key files are valid
                 global $acmeDir;
@@ -140,7 +139,7 @@ function getCertificate( $client,$domain ) {
                         $keyIsValid = openssl_pkey_get_private($key);
                         $certIsValid = openssl_x509_parse($cert);
                         if ($certIsValid !== false && $keyIsValid !== false ) {
-                            echo "Copying new files into place";
+                            // echo "Copying new files into place";
                             copy( $certFile, $safeDir.'/fullchain.crt' );
                             copy( $keyFile, $safeDir.'/private.pem' );
                         }

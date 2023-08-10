@@ -789,7 +789,7 @@ $ob->showDefault()
         /        displayRows        : number of rows to display (defaults to 1)
         */
 
-        function formOptionbox( $name, $arg1 = '', $arg2 = null, $arg3 = null, $arg4 = '', $arg5 = '' ) {
+        function __construct( $name, $arg1 = '', $arg2 = null, $arg3 = null, $arg4 = '', $arg5 = '' ) {
             global $DB;
             if (is_array($name)) {
                 $this->dbh = isset($name['db'])?$name['db']:$DB;

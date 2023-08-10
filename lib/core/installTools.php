@@ -70,7 +70,7 @@ function upgradeDb($databaseName,$adminUsername,$adminPassword,$username,$passwo
     $errorHandler = new installToolsDbErrorHandler();
     $DB = new Dbif( $databaseName, $adminUsername, $adminPassword, $hostname, $errorHandler);
 
-    if (!$DB->connected()) die("Couldn't connect to database");
+    if (!$DB->connected()) die("Couldn't connect to database: ".$DB->lastError());
 
     $existingTables = array_flip($DB->getTables());
     $pid = getmypid();
@@ -393,12 +393,14 @@ function install($product,$writableDirectories,$tables,$dbSetup,$upgrades) {
         echo "Creating temporary MySQL admin user\n";
         // use the command line to create a temporary database user we can use to create the database
         $commands = [
+            ['mysql -h %s -e "DROP USER IF EXISTS \'%s\'@\'localhost\'"',escapeshellarg(DB_HOST),addslashes($adminUsername)],
             ['mysql -h %s -e "CREATE USER \'%s\'@\'localhost\' IDENTIFIED BY \'%s\'" 2>&1',escapeshellarg(DB_HOST),addslashes($adminUsername),addslashes($adminPassword)],
             ['mysql -h %s -e "GRANT USAGE ON *.* TO \'%s\'@\'localhost\'" 2>&1',escapeshellarg(DB_HOST),addslashes($adminUsername)],
             ['mysql -h %s -e "GRANT GRANT OPTION, SELECT, INSERT, UPDATE, DELETE, CREATE, CREATE VIEW, DROP, INDEX, ALTER, CREATE TEMPORARY TABLES, LOCK TABLES ON \\`%s\\`.* TO \'%s\'@\'localhost\'" 2>&1',escapeshellarg(DB_HOST),DB_NAME,addslashes($adminUsername)],
         ];
         foreach( $commands as $bits ) {
             $cmd = call_user_func_array('sprintf',$bits);
+	        // echo $cmd."\n";
             echo system($cmd);
         }
             

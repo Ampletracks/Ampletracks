@@ -56,8 +56,8 @@ class InputValidator {
 
 	var $spec;
 	var $errors;
-	
-	function InputValidator( $theSpec ) {
+
+	function __construct( $theSpec ) {
 		$this->errors = array();
 		if (is_array($theSpec)) {
 			$this->spec = $theSpec;
