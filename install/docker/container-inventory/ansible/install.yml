@@ -14,14 +14,14 @@
       set_fact:
         base_distro: Debian
         admin_user: admin
-        mysql_config_file_location: /etc/mysql/mariadb.conf.d/50-server.cnf 
+        mysql_config_file_location: /etc/mysql/mariadb.conf.d/50-server.cnf
 
     - name: Set up internal ansible "facts" for Ubuntu
       when: ansible_distribution == "Ubuntu"
       set_fact:
         base_distro: Debian
         admin_user: ubuntu
-        mysql_config_file_location: /etc/mysql/mariadb.conf.d/50-server.cnf 
+        mysql_config_file_location: /etc/mysql/mariadb.conf.d/50-server.cnf
 
     - name: Set up internal ansible "facts" for Fedora
       when: ansible_distribution == "Fedora"
@@ -127,7 +127,7 @@
     
     - name: Start MySQL service
       service:
-        name: mariadb
+        name: mysql
         state: started
 
       # Find the mysqld.sock in a distro-independent way
@@ -198,18 +198,33 @@
           name: "test"
           state: absent
           login_unix_socket: "{{ mysqld_socket.stdout }}"
+        when: install_mysql.changed
 
-      when: install_mysql.changed
+      - name: Check whether sql_mode exists in mysql config
+        lineinfile:
+          path: "{{ mysql_config_file_location  }}"
+          regexp: "^sql_mode"
+          state: absent
+        check_mode: yes
+        changed_when: false
+        register: mode_exists
 
-    - name: Set sql_mode in MySQL config
-      lineinfile:
-        path: "{{ mysql_config_file_location }}"
-        regexp: "^\\s*sql_mode"
-        line: "sql_mode               = NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION"
+      - name: Set sql_mode in MySQL config
+        lineinfile:
+          path: "{{ mysql_config_file_location }}"
+          regexp: "^\\s*sql_mode"
+          line: "sql_mode               = NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION"
+        when: mode_exists.found
+
+      - name: Set sql_mode in MySQL config
+        lineinfile:
+          path: "{{ mysql_config_file_location }}"
+          line: "sql_mode               = NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION"
+          insertafter: "^\\[mysqld\\]$"
+        when: not mode_exists.found
 
     # Install everything first so that the relevant users & groups are created for www etc
-    - name: Install Apache, PHP etc on Debian
-      when: base_distro=="Debian"
+    - name: Install Apache, PHP etc
       apt:
         name: [
           cron,
@@ -430,10 +445,10 @@
         - name: Check if /etc/httpd/sites-available exists
           stat:
             path: "/etc/httpd/sites-available"
-          register: sites_available_data
+          register: sites-available_data
 
         - name: Create /etc/httpd/sites-available
-          when: not sites_available_data.exists
+          when: not sites-available_data.exists
           file:
             path: "/etc/httpd/sites-available"
             state: directory

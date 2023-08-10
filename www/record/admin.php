@@ -535,7 +535,7 @@ function getRecordData( $condition, $conditionValue ) {
             record
             INNER JOIN recordType ON recordType.id=record.typeId
             INNER JOIN recordData ON recordData.dataFieldId=recordType.primaryDataFieldId AND recordData.recordId=record.id
-        WHERE !record.deletedAt AND '.$condition.'
+        WHERE record.lastSavedAt AND !record.deletedAt AND '.$condition.'
         ORDER BY depth DESC
     ',$conditionValue);
 }

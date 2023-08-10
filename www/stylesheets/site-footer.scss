@@ -1,4 +1,7 @@
 .site-footer {
+    position:absolute;
+    width: 100%;
+    bottom:0;
     padding-top: var(--l-block-pad);
     padding-bottom: 1em;
     background: var(--c-brand-e);

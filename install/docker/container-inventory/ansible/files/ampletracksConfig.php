@@ -24,9 +24,6 @@ define('SECRET','{{ site_secret }}');
 define('DB_NAME','ampletracks');
 // The name of the user to be used by the PHP code to access the database - change this if you like
 define('DB_USER','ampletracks');
-// You can also specity the database host if the database is hosted on a separate server to the web application
-// If omitted this defaults to localhost
-// define('DB_HOST','my.database.hostname');
 
 // The name to use for the cookie that keeps users logged in
 define('AUTH_COOKIE_NAME','ampletracks_auth');

@@ -35,14 +35,22 @@
     <div class="answer"><? formTextbox('user_mobile', 20,20); ?></div>
 </div>
 <? if ($canEditLogin) { ?>
-    <div class="questionAndAnswer">
-        <div class="question">Password:</div>
-        <div class="answer"><? formTextbox('password', -20,20,null,'autocomplete="new-password"'); ?></div>
-    </div>
-    <div class="questionAndAnswer">
-        <div class="question">Confirm Password:</div>
-        <div class="answer"><? formTextbox('confirmPassword', -20); ?></div>
-    </div>
+    <? if (ws('encryptedPassword')) {?>
+        <div class="questionAndAnswer">
+            <div class="question">Password:</div>
+            <div class="answer info">Already provided by user</div>
+            <? formHidden('encryptedPassword'); ?>
+        </div>
+    <? } else { ?>
+        <div class="questionAndAnswer">
+            <div class="question">Password:</div>
+            <div class="answer"><? formTextbox('password', -20,20,null,'autocomplete="new-password"'); ?></div>
+        </div>
+        <div class="questionAndAnswer">
+            <div class="question">Confirm Password:</div>
+            <div class="answer"><? formTextbox('confirmPassword', -20); ?></div>
+        </div>
+    <? } ?>
 <? } ?>
 <div class="questionAndAnswer">
     <div class="question">Record types:</div>
