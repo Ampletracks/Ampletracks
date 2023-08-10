@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <?
 
 // Find to config file
