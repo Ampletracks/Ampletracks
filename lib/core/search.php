@@ -145,7 +145,6 @@ display( [ scheme=$_WORSPACE['scheme']|"default" ] );
 			self::$_SEARCH_REQUIRED_TEMPLATES;
 			$which = strtolower($which);
 			if ( !isset(self::$_SEARCH_REQUIRED_TEMPLATES[$which]) ) { 
-                echo "$which"; exit;
 				coreError('Unexpected system error',"Template can only be 'header', 'footer', 'empty' or 'list' - but got :$which");
 				return(0);
 			}
@@ -424,13 +423,12 @@ bundle_hash(2)
 			$eval_str = "
 					global \$WS;
 			";
-			while ( list( $key, $value ) = each( self::$_SEARCH_REQUIRED_TEMPLATES  ) ) {
-			
+            foreach( self::$_SEARCH_REQUIRED_TEMPLATES as $key=>$value ) {
 				# We now compose a function for each of the markup blocks
 				# the names of the functions are stored in $this->function_names
 				$eval_str .= $this->compose_template_function( $value );
 			}
-			$template_function = create_function('$mode, $rowData, $row, $shown, $numCols, $numRows, $search',$eval_str);
+			$template_function = eval( 'return function($mode, $rowData, $row, $shown, $numCols, $numRows, $search){'.$eval_str.';};');
 
             $column_names = $this->column_names;
             $num_cols = count($column_names);
@@ -521,7 +519,7 @@ bundle_hash(2)
 								} else {
 									# if there's lots store a hash of the different values keyed on column name
 									reset( $bundle_col_titles );
-									while ( list($key, $value) = each( $bundle_col_titles ) ) {
+									foreach( $bundle_col_titles as $key=>$value ) {
 										$bundle_data[$bundle_key][$value] = $row_data[$value];
                                         # echo "yy $bundle_key => $value ".$row_data[$value]."<BR />";
  									}
@@ -534,7 +532,7 @@ bundle_hash(2)
 								} else {
 									$sub_cols = array();
 									reset($bundle_col_titles);
-									while( list($key,$value) = each( $bundle_col_titles ) ) {
+									foreach( $bundle_col_titles as $key=>$value ) {
 										$sub_cols[$value] = $row_data[$value];
 									}
 									$bundle_data[] = $sub_cols;

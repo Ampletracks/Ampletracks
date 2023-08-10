@@ -161,7 +161,6 @@ include(VIEWS_DIR.'/header.php');
                 <? if(function_exists('extraButtonsAfter')) extraButtonsAfter('top'); ?>
             </ul>
         <? } ?>
-
         <? if(function_exists('extraHeaderContent')) { ?>
             <? /* TODO change float to something better */ ?>
             <div style="float: right; margin: 30px 10px 0px 0px">
