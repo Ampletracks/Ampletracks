@@ -19,7 +19,7 @@
 *	 If no error handler is provided then an instance of this default error handler will be used
 */
 class DbifDefaultErrorHandler {
-	function DbifDefaultErrorHandler() {
+	function __construct() {
 	}
 	
 	/**
@@ -59,7 +59,7 @@ class DbifQuery {
 	 * @param resource $queryHandle The MySQLi query result resource
 	 * @param object $creator The instance that created the DbifQuery object
 	 */
-	function DbifQuery( $queryHandle, $creator ) {
+	function __construct( $queryHandle, $creator ) {
 		$this->queryHandle = $queryHandle;
 		$this->creator = $creator;
 		$this->resultType = $creator->getResultType();
@@ -336,7 +336,7 @@ class Dbif {
      * @param string $host Database host.
      * @param string|object $errorHandler Error handler object or an empty string.
      */
-	function Dbif( $dbName, $username='', $password='', $host='', $errorHandler='' ) {
+	function __construct( $dbName, $username='', $password='', $host='', $errorHandler='' ) {
 	
 		// Set up the error handler if none is provided
 		if (!is_object($errorHandler)) {
