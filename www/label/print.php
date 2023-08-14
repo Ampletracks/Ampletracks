@@ -73,6 +73,21 @@ class htmlLabels {
     function __construct($layout) {
         $this->layout = $layout;
 
+        $alignmentLookup = [
+            'C' => 'center',
+            'L' => 'left',
+            'R' => 'right',
+        ];
+
+        $borderLookup = function( $borderSpec ){
+            $borders = [0,0,0,0];
+            if(strpos($borderSpec,'T')!==false) $borders[0]='1px';
+            if(strpos($borderSpec,'R')!==false) $borders[1]='1px';
+            if(strpos($borderSpec,'B')!==false) $borders[2]='1px';
+            if(strpos($borderSpec,'L')!==false) $borders[3]='1px';
+            return implode(' ',$borders);
+        };
+
         extract($layout);
 
         if ($logo) {
@@ -137,7 +152,6 @@ class htmlLabels {
                 position:absolute;
                 margin:0;
                 padding:0;
-                text-align: center;
             }
             div.label,a.placeholder {
                 display:block;
@@ -159,7 +173,7 @@ class htmlLabels {
                 div.logo {
                     position: absolute;
                     left: <?=$logoOffset[0]?>mm;
-                    top: <?=$logoOffset[1]?>mm;
+                    top: <?=$logoOffset[1]+1?>mm;
                     background-image: url(<?=$logo?>);
                     background-size: <?=$logoDims[0]?>mm <?=$logoDims[1]?>mm;
                     width: <?=$logoDims[0]?>mm;
@@ -183,11 +197,14 @@ class htmlLabels {
                 div.content_<?=$idx?> {
                     font-family: <?=array_shift($t)?>;
                     font-weight: <?=array_shift($t)=='B'?'bold':'normal'?>;
-                    font-size: <?=array_shift($t)/3?>mm;
+                    font-size: <?=array_shift($t)*0.9?>pt;
                     left:<?=array_shift($t)?>mm;
                     top:<?=array_shift($t)?>mm;
                     width:<?=array_shift($t)?>mm;
-                    height:<?=array_shift($t)?>mm;
+                    line-height:<?=array_shift($t)?>mm;
+                    border: solid black;
+                    border-width:<?=$borderLookup(array_shift($t))?>;
+                    text-align:<?=$alignmentLookup[array_shift($t)]?>;
                 }
             <? } ?>
         </style>
@@ -247,6 +264,32 @@ class pdfLabels {
         $this->pdf = new PDF_MemImage('P','mm','A4');
         $this->pdf->SetAutoPageBreak(false);
         $this->layout = $layout;
+
+        // Add any fonts
+        $styleLookup = [
+            'B' => 'Bold',
+            'BI' => 'BoldItalic',
+            'I' => 'Italic',
+            '' => 'Regular'
+        ];
+
+        $loadedFonts=[];
+        if (isset($this->layout['text']) && count($this->layout['text'])) {
+            foreach ($this->layout['text'] as $idx => $text) {
+                // Map Arial to the free alternative: Arimo
+                if ($text[1]=='Arial') $this->layout['text'][$idx][1]='Arimo';
+            }
+            foreach ($this->layout['text'] as $idx => $text) {
+                $filename = $text[1].'-'.$styleLookup[$text[2]].'.php';
+                if (isset($loadedFonts[$filename])) continue;
+                $loadedFonts[$filename] = true;
+                $fontFile = LIB_DIR.'fpdf/font/'.$filename;
+
+                if (file_exists($fontFile)) {
+                    $this->pdf->AddFont($text[1],$text[2],$filename);
+                }
+            }
+        }
     }
 
     function addPage() {
@@ -286,7 +329,7 @@ class pdfLabels {
             if ($content=='%%code%%') $content = sprintf('%07d:%s',$label->id,$label->securityCode);
             $pdf->SetFont(array_shift($t),array_shift($t),array_shift($t));
             $pdf->setXY($originX+array_shift($t), $originY+array_shift($t));
-            $pdf->MultiCell(array_shift($t),array_shift($t),$content,array_shift($t),'C');
+            $pdf->MultiCell(array_shift($t),array_shift($t),$content,array_shift($t),array_shift($t));
         }
 
         imagedestroy($qrCodeImage);
@@ -307,25 +350,29 @@ if (!$layout) $layout = '3x9';
 $fqdn = preg_replace('!^https?://!','',SITE_URL);
 $fqdn = preg_replace('!/+$!','',$fqdn);
 
+$fqdn = $fqdn;
 if ($layout=='3x9') {
     $layout = [
         'name'          => '3x9',
         'cols'          => 3,
-        'rows'          => 9,
+        'rows'          => 1,
         'topMargin'     => 15,
         'leftMargin'    => 7.75,
         'dims'          => [65,29.6],
         'spacing'       => [0,0],
-        'logoDims'      => [33,7],
-        'logoOffset'    => [28, 3.5],
+        'logoDims'      => [34,7],
+        'logoOffset'    => [27.5, 4.5],
         'qrCodeOffset'  => [2, 2.3],
         'qrCodeSize'    => 26,
         'drawOutline'   => false,
         'text' => [
-            ['Sample ID : Security Code','Arial','',6,24,12.8,36,5,0],
-            ['%%code%%','Courier','',10.5,27.5,15.3,34,4.5,'TB'],
-            ['If found please visit:','Arial','',6,20.5,19.6,37,5,0],
-            [$fqdn,'Arial','B',strlen($fqdn)>14?7.5:8.5,23,23,37,20,0],
+            # font, style, size, x, y, w,h, border
+            ['Sample ID : Security Code','Arial',  '',  6,     27.5,10.8,  36, 5,  0,    'L'],
+            ['%%code%%',                 'Courier','',  10.5,  27.5,14.8,  34, 4.5,'TB', 'L'],
+            ['If found please visit:',   'Arial',  '',  6,     27.5,18.5,  37, 5,  0,    'L'],
+            strlen($fqdn)>20?
+                [$fqdn,                  'Arial',  'B', 4.4,   27.5,23.8,  34, 2,  0,    'L']:
+                [$fqdn,                  'Arial',  'B', 8,     27.2,21.2,  37, 5,  0,    'L'],
         ]
     ];
 } else if ($layout=='Tiny') {
@@ -358,10 +405,10 @@ if ($layout=='3x9') {
         'qrCodeSize'        => 16.5,
         'drawOutline'       => false,
         'text' => [
-            ['Sample ID : Security Code','Arial','',4.1,17,8.4,20,5,0],
-            ['%%code%%','Courier','',5.8,16,10.4,22,3.2,0],
-            ['If found please visit:','Arial','',4.1,15,12.8,20,5,0],
-            [$fqdn,'Arial','B',strlen($fqdn)>14?7.5:8.5,1,16.5,36,6,0],
+            ['Sample ID : Security Code','Arial','',4.1,17,8.4,20,5,0,'C'],
+            ['%%code%%','Courier','',5.8,16,10.4,22,3.2,0,'C'],
+            ['If found please visit:','Arial','',4.1,15,12.8,20,5,0,'C'],
+            [$fqdn,'Arial','B',strlen($fqdn)>14?7.5:8.5,1,16.5,36,6,0,'C'],
         ]
 ];
 }
@@ -369,6 +416,8 @@ if ($layout=='3x9') {
 $layout['fqdn'] = $fqdn;
 
 $logoImage = SITE_BASE_DIR.'/data/images/labelLogo.png';
+if (!file_exists($logoImage)) $logoImage = SITE_BASE_DIR.'/www/images/ampletracksLogo.png';
+#if (!file_exists($logoImage)) $logoImage = SITE_BASE_DIR.'/www/images/brand-logo.png';
 $logo = false;
 if (isset($layout['logoDims']) && file_exists($logoImage)) {
     $logo = imagecreatefrompng($logoImage);
@@ -403,7 +452,7 @@ else $output = new htmlLabels($layout);
 
 $output->addPage();
 for ($col=0; $col<$layout['cols']; $col++) {
-    //if (in_array($col,$skipCols)) continue;
+    // if (in_array($col,$skipCols)) continue;
     for ($row=0; $row<$layout['rows']; $row++) {
         //if (in_array($row,$skipRows)) continue;
         $lastOne = false;

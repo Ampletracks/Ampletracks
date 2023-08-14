@@ -1,7 +1,7 @@
 <?php
 require('makefont/makefont.php');
 
-$fontLibDir = implode( DIRECTORY_SEPARATOR,[__DIR__,'..','..','lib','fpdfFonts','']);
+$fontLibDir = implode( DIRECTORY_SEPARATOR,[__DIR__,'..','..','lib','fpdf','font','']);
 if (!is_dir($fontLibDir)) {
     if (mkdir($fontLibDir)) {
         echo "Created directory for fpdf Fonts: $fontLibDir\n";

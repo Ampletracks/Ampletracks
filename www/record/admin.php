@@ -101,7 +101,7 @@ function postStartup($mode,$id) {
     // This first edit is in effect part of the creation process so we should tell the permissions system that this
     // is still creation, and not editting
     global $permissionsMode;
-    if ($currentProjectId==0 && $lastSavedAt==0 && $createdBy=$USER_ID) {
+    if ($id && $currentProjectId==0 && $lastSavedAt==0 && $createdBy=$USER_ID) {
         $permissionsMode='create';
     }
 }
@@ -298,7 +298,7 @@ function processUpdateAfter( $id, $isNew ) {
 
     $hiddenFields = ws('hiddenFields');
     // Make all the hidden fields ID's into integers
-    $hiddenFields = array_map('round',explode(',',$hiddenFields));
+    $hiddenFields = array_map('intval',explode(',',$hiddenFields));
     // Remove any zeros
     $hiddenFields = array_filter($hiddenFields);
 
