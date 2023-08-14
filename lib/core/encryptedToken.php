@@ -41,6 +41,9 @@ function decryptEncryptedToken($purpose,$encryptedData=null) {
     $nonce = substr($binaryData, 0, SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
     $ciphertext = substr($binaryData, SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
 
+    if (strlen($nonce)!=SODIUM_CRYPTO_SECRETBOX_NONCEBYTES) { $lastError='Invalid token'; return false; }
+    if (strlen($ciphertext)<5) { $lastError='Invalid token'; return false; }
+
     $plaintext = @sodium_crypto_secretbox_open($ciphertext, $nonce, $key);
 
     if (empty($plaintext)) { $lastError='The '.$purpose.' token was not valid'; return false; }

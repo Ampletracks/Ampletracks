@@ -97,6 +97,22 @@ $tables = array(
         'impliedLevel' => " ENUM('global','project','own') NOT NULL",
         'index_level' => "UNIQUE INDEX (`level`,`impliedLevel`)",
     ),
+    'iodRequest' => array(
+        'id'        => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
+        'createdAt' => "INT(10) UNSIGNED NOT NULL",
+        'completedAt' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
+        'deletedAt' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
+        'userData'  => 'TEXT NOT NULL',
+        'email'     => 'VARCHAR(255) NOT NULL',
+        'status'    => 'ENUM("new","sendWelcome","running","deleted","abandoned")',
+        'attempts'  => 'TINYINT UNSIGNED DEFAULT 0',
+        'lastAttemptedAt' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
+        'deleteAt'  => 'INT(10) UNSIGNED NOT NULL DEFAULT 0',
+        'dbName'    => 'VARCHAR(255) NOT NULL',
+        'subDomain'    => 'VARCHAR(255) NOT NULL',
+        'index_email'   => "INDEX (email,status)",
+        'index_status'   => "INDEX (status,completedAt)",
+    ),
     'label' => array(
         'id'                    => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
         'securityCode'          => "CHAR(60)",
@@ -334,7 +350,7 @@ $dbSetup = function() {
     $DB->exec("REPLACE INTO rolePermission (id,roleId,level,entity,recordTypeId,action) VALUES (1,1,'global','superuser',0,'edit')");
     $DB->exec("REPLACE INTO role (id,name,deletedAt) VALUES (1,'superuser',0)");
    
-    if (defined('FIRST_USER_EMAIL')) {
+    if (defined('FIRST_USER_EMAIL') && !empty(FIRST_USER_EMAIL)) {
         $firstUserAlreadyExists = $DB->getValue('SELECT id FROM user WHERE email=? and deletedAt=0',FIRST_USER_EMAIL);
         if (!$firstUserAlreadyExists) {
             echo "Creating first user\n";
@@ -441,5 +457,13 @@ $upgrades = array(
 
 # ======================================================================================
 
+$postSetup = function(){
+    global $DB;
+    if (defined('IOD_ROLE') && IOD_ROLE=='master') {
+        $DB->exec('GRANT RELOAD ON *.* TO ?@"localhost"',DB_USER);
+    }
+};
+
 include( __DIR__.'/../lib/core/installTools.php');
-install('AMPLETRACKS',$writableDirectories,$tables,$dbSetup,$upgrades);
+
+install('AMPLETRACKS',$writableDirectories,$tables,$dbSetup,$upgrades,$postSetup);

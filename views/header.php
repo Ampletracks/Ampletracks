@@ -54,6 +54,9 @@ call_user_func(function () {
         <? globalHeaderMarkup(); ?>
     </head>
     <body class="<?=$ENTITY?> <?=htmlspecialchars($PAGE_NAME)?> <?=isset($extraBodyClasses)?htmlspecialchars(implode(' ',$extraBodyClasses)):''?> ">
+    <? if (defined('IOD_ROLE') && IOD_ROLE=='master' && $USER_ID) { ?>
+    <div style="width: 100%; text-align:center; font-weight: bold; border 2px solid red; background-color: #ffcccc; padding:10px;"><?=cms('THIS INSTANCE IS USED AS THE MODEL FOR INSTANCE-ON-DEMAND INSTANCES - DO NOT ENTER ANY LIVE DATA',1);?></div>
+    <? } ?>
     <header class="site-header">
         <div class="container body-pad toggle-menu">
             <div class="top-row">

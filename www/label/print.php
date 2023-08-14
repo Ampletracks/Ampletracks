@@ -277,7 +277,7 @@ class pdfLabels {
             $pdf->Cell($dims[0],$dims[1],'',0);
         }
 
-        if (isset($logo) && isset($logoDims)) {
+        if (isset($logo) && $logo && isset($logoDims)) {
             $pdf->GDImage($logo, $originX+$logoOffset[0], $originY+$logoOffset[1], $logoDims[0],$logoDims[1] );
         }
 
@@ -305,6 +305,7 @@ $layout = ws('layout');
 if (!$layout) $layout = '3x9';
 
 $fqdn = preg_replace('!^https?://!','',SITE_URL);
+$fqdn = preg_replace('!/+$!','',$fqdn);
 
 if ($layout=='3x9') {
     $layout = [

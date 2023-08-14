@@ -60,8 +60,7 @@ function upgradeDb($databaseName,$adminUsername,$adminPassword,$username,$passwo
     echo `mysql -h $hostnameArg -e "CREATE DATABASE \\\`$databaseName\\\`" 2>&1 | grep -v "database exists" `;
 
     // Create the web app db user
-    echo `mysql -h $hostnameArg -e "REVOKE ALL ON *.* FROM '$username'@'localhost'" 2>&1`;
-    echo `mysql -h $hostnameArg -e "DROP USER '$username'@'localhost'" 2>&1`;
+    echo `mysql -h $hostnameArg -e "DROP USER IF EXISTS '$username'@'localhost'" 2>&1`;
     echo `mysql -h $hostnameArg -e "FLUSH PRIVILEGES" 2>&1`;
     echo `mysql -h $hostnameArg -e "CREATE USER '$username'@'localhost' IDENTIFIED BY '$password'" 2>&1`;
     echo `mysql -h $hostnameArg -e "GRANT USAGE ON *.* TO '$username'@'localhost'" 2>&1`;
@@ -284,7 +283,7 @@ END_USAGE;
     exit;
 }
 
-function install($product,$writableDirectories,$tables,$dbSetup,$upgrades) {
+function install($product,$writableDirectories,$tables,$dbSetup,$upgrades,$postSetup) {
     global $argv,$DB;
 
     // This is used in the usage message and below - so define it once here
@@ -395,7 +394,7 @@ function install($product,$writableDirectories,$tables,$dbSetup,$upgrades) {
         $commands = [
             ['mysql -h %s -e "DROP USER IF EXISTS \'%s\'@\'localhost\'"',escapeshellarg(DB_HOST),addslashes($adminUsername)],
             ['mysql -h %s -e "CREATE USER \'%s\'@\'localhost\' IDENTIFIED BY \'%s\'" 2>&1',escapeshellarg(DB_HOST),addslashes($adminUsername),addslashes($adminPassword)],
-            ['mysql -h %s -e "GRANT USAGE ON *.* TO \'%s\'@\'localhost\'" 2>&1',escapeshellarg(DB_HOST),addslashes($adminUsername)],
+            ['mysql -h %s -e "GRANT USAGE, RELOAD ON *.* TO \'%s\'@\'localhost\' WITH GRANT OPTION" 2>&1',escapeshellarg(DB_HOST),addslashes($adminUsername)],
             ['mysql -h %s -e "GRANT GRANT OPTION, SELECT, INSERT, UPDATE, DELETE, CREATE, CREATE VIEW, DROP, INDEX, ALTER, CREATE TEMPORARY TABLES, LOCK TABLES ON \\`%s\\`.* TO \'%s\'@\'localhost\'" 2>&1',escapeshellarg(DB_HOST),DB_NAME,addslashes($adminUsername)],
         ];
         foreach( $commands as $bits ) {
@@ -429,15 +428,6 @@ function install($product,$writableDirectories,$tables,$dbSetup,$upgrades) {
 
     $DB = upgradeDb(DB_NAME,INSTALL_DB_USER,INSTALL_DB_PASSWORD,DB_USER,DB_PASSWORD,DB_HOST,$tables);
 
-    // Remove the temporary database user (if we created one)
-    if (strlen($adminUsername)) {
-        echo "Removing temporary MySQL admin user\n";
-        $cmd = sprintf('mysql -h %s -e "REVOKE ALL ON *.* FROM \'%s\'@\'localhost\';" 2>&1',escapeshellarg(DB_HOST),addslashes($adminUsername));
-        echo `$cmd`;
-        $cmd = sprintf('mysql -h %s -e "DROP USER \'%s\'@\'localhost\';" 2>&1',escapeshellarg(DB_HOST),addslashes($adminUsername));
-        echo `$cmd`;
-    }
-
     $extraFile = SITE_BASE_DIR.'/scripts/install_'.SITE_NAME.'.php';
     if (file_exists($extraFile)) include( $extraFile );
 
@@ -455,6 +445,21 @@ function install($product,$writableDirectories,$tables,$dbSetup,$upgrades) {
             $currentDbVersion=$version;
         }
     }
+
+    if (is_callable($postSetup)) {
+        echo "Running post-setup routine\n";
+        $postSetup();
+    }
+
+    // Remove the temporary database user (if we created one)
+    if (strlen($adminUsername)) {
+        echo "Removing temporary MySQL admin user\n";
+        $cmd = sprintf('mysql -h %s -e "REVOKE ALL ON *.* FROM \'%s\'@\'localhost\';" 2>&1',escapeshellarg(DB_HOST),addslashes($adminUsername));
+        echo `$cmd`;
+        $cmd = sprintf('mysql -h %s -e "DROP USER \'%s\'@\'localhost\';" 2>&1',escapeshellarg(DB_HOST),addslashes($adminUsername));
+        echo `$cmd`;
+    }
+
 
     echo "All done\n";
 }

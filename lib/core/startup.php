@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 <?
 
 // Find to config file
@@ -16,6 +15,8 @@ if (isset($_SERVER["CONFIG_LOCATION"])) {
 	$configLocation = $_SERVER["CONFIG_LOCATION"];
 } else if (isset($_ENV["CONFIG_LOCATION"])) {
 	$configLocation = $_ENV["CONFIG_LOCATION"];
+} else if (isset($argv[1])) {
+    $configLocation = $argv[1];
 }
 
 if (!isset($configLocation)) { echo "Configuration location not set - aborting"; exit; }
@@ -78,7 +79,8 @@ if (file_exists($dbConfigFilename)) include($dbConfigFilename);
 if (defined('DB_NAME')) {
 	// Connect to DB
 	$errorHandler = new DbErrorHandler();
-	$DB = new Dbif( DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, $errorHandler );
+    $DbHost = defined('DB_HOST')?DB_HOST:'localhost';
+	$DB = new Dbif( DB_NAME, DB_USER, DB_PASSWORD, $DbHost, $errorHandler );
 	if (!$DB->connected()) {
 		$LOGGER->log("Failed to connect to database - aborting\n");
 		exit;

@@ -54,8 +54,8 @@ class label {
     
     function __construct( $data=null, $securityCode=null ) {
         global $DB;
-       
-        $this->siteId = LABEL_SITE_ID; 
+    
+        $this->siteId = defined('LABEL_SITE_ID') ? LABEL_SITE_ID:0;
 
         if (is_string($securityCode)) {
             $this->securityCode = $securityCode;
@@ -148,7 +148,9 @@ class label {
         global $DB;
         $result = false;
 
-        if ($this->siteId == LABEL_SITE_ID) {
+        $thisSiteId = defined('LABEL_SITE_ID') ? LABEL_SITE_ID : 0;
+
+        if ($this->siteId == $thisSiteId) {
             // This label belongs to this site
             list($hashedSecurityCode,$recordId) = $DB->getRow('SELECT securityCode,recordId FROM label WHERE id=?',$this->id);
             if (password_verify($this->securityCode,$hashedSecurityCode)) {
@@ -185,7 +187,9 @@ class label {
     }
     
     function getQrCodeUrl() {
-        return LABEL_QR_CODE_BASE_URL.$this->getCompactId();
+        // If site ID is not defined then return just the Site URL
+        $base = $this->siteId > 0 ? LABEL_QR_CODE_BASE_URL : SITE_URL;
+        return $base.$this->getCompactId();
     }
 
     function getImageQrCode($asDataUri=0, $size=3) {

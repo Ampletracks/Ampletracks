@@ -350,20 +350,25 @@ class Dbif {
 		$this->dbName = false;
 		
 		// Connect to the DB
-		if ( !($this->dbHandle = mysqli_connect($host, $username, $password))) {
+        try {
+	        $this->dbHandle = @mysqli_connect($host, $username, $password);
+        } catch( Exception $e) {
 			$this->lastError = "Couldn't connect to host '$host' using username '$username'";
 			$this->errorHandler->handleError(2,"Error connecting to database",$this->lastError);
-		} else if ( !mysqli_select_db($this->dbHandle, $dbName) ) {
+            return;
+		}
+        try {
+            mysqli_select_db($this->dbHandle, $dbName);
+        } catch( Exception $e) {
 			$this->lastError = "Couldn't select database '$dbName'";
 			$this->errorHandler->handleError(2,"Error selecting database",$this->lastError);
 			((is_null($___mysqli_res = mysqli_close($this->dbHandle))) ? false : $___mysqli_res);
 			$this->dbHandle = false;
-		} else {
-			$this->dbName = $dbName;
-            // make sure we use UTF8
-            ((bool)mysqli_set_charset( $this->dbHandle, "utf8"));
+            return;
 		}
-
+		$this->dbName = $dbName;
+        // make sure we use UTF8
+        ((bool)mysqli_set_charset( $this->dbHandle, "utf8"));
 	}
 
     /**
