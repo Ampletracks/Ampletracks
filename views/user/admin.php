@@ -44,11 +44,11 @@
     <? } else { ?>
         <div class="questionAndAnswer">
             <div class="question">Password:</div>
-            <div class="answer"><? formTextbox('password', -20,20,null,'autocomplete="new-password"'); ?></div>
+            <div class="answer"><? formTextbox('password', -20,200,null,'autocomplete="new-password"'); ?></div>
         </div>
         <div class="questionAndAnswer">
             <div class="question">Confirm Password:</div>
-            <div class="answer"><? formTextbox('confirmPassword', -20); ?></div>
+            <div class="answer"><? formTextbox('confirmPassword', -20,200); ?></div>
         </div>
     <? } ?>
 <? } ?>
