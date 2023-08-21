@@ -213,7 +213,7 @@ class DataField {
 
     function __construct( $params ) {
         if (isset($params['parameters']) && strlen($params['parameters'])) $unserializedParameters = @unserialize( $params['parameters'] );
-        else $unserializedParameters = array();
+        if (!isset($unserializedParameters) || !is_array($unserializedParameters)) $unserializedParameters = array();
         unset( $params['parameters'] );
         $this->params = array_merge($unserializedParameters,$params);
         if (isset($this->params['id'])) $this->id=$this->params['id'];
@@ -224,7 +224,7 @@ class DataField {
         return null;
     }
 
-    function sanitizeParameters( &$parameters, $dataFieldId ) {
+    static function sanitizeParameters( &$parameters, $dataFieldId ) {
     }
 
     function getAnswers() {
@@ -777,7 +777,7 @@ class DataField_textarea extends DataField {
         parent::__construct($params);
     }
 
-    function sanitizeParameters( &$parameters, $dataFieldId ) {
+    static function sanitizeParameters( &$parameters, $dataFieldId ) {
         foreach( array('width','height') as $thing ) {
             $parameters[$thing] = (int)$parameters[$thing];
             if ($parameters[$thing]>500) $parameters[$thing]=500;
@@ -861,7 +861,7 @@ class DataField_integer extends DataField {
         $this->filterSpec['width'] = ((int)$this->max == 0) ? 10 : ceil(log10((int)$this->max));
     }
 
-    function sanitizeParameters( &$parameters, $dataFieldId ) {
+    static function sanitizeParameters( &$parameters, $dataFieldId ) {
         foreach( array('width','max','min') as $thing ) {
             if (strlen($parameters[$thing])) $parameters[$thing] = (int)$parameters[$thing];
             else $parameters[$thing]='';
@@ -1011,7 +1011,7 @@ class DataField_select extends DataField {
         if (is_array($value)) $value = implode('|',$value);
     }
 
-    function sanitizeParameters( &$parameters, $dataFieldId ) {
+    static function sanitizeParameters( &$parameters, $dataFieldId ) {
         // Remove any duplicate options
         if (!isset($parameters['optionValues'])) $parameters['optionValues']=array();
         if (!isset($parameters['optionDefaults'])) $parameters['optionDefaults']=array();
@@ -1216,7 +1216,7 @@ class DataField_date extends DataField {
         parent::__construct($params);
     }
 
-    function sanitizeParameters( &$parameters, $dataFieldId ) {
+    static function sanitizeParameters( &$parameters, $dataFieldId ) {
         // Check that min and max are valid dates
         foreach(['min'=>'not before date','max'=>'not after date'] as $what=>$description) {
             if (!preg_match('/^\s*(\d{4})-(\d{2})-(\d{2})/',$parameters[$what],$matches)) return 'The '.$description.' is not valid';
@@ -1379,7 +1379,7 @@ class DataField_url extends DataField_textbox {
         parent::__construct($params);
     }
 
-    function sanitizeParameters( &$params, $dataFieldId ) {
+    static function sanitizeParameters( &$params, $dataFieldId ) {
         // the array_values effectively re-orders the array if any elements are removed so it will always be zero-based
         if (isset($params['allowedSchemes'])) $params['allowedSchemes'] = array_values(array_filter( $params['allowedSchemes'], function($input) {
             return in_array($input,self::urlSchemes);
@@ -1697,7 +1697,7 @@ class DataField_image extends DataField {
     }
 
 
-    function sanitizeParameters( &$parameters, $dataFieldId ) {
+    static function sanitizeParameters( &$parameters, $dataFieldId ) {
         foreach ( explode(',','thumbnail,preview') as $which ) {
             if (!$parameters[$which.'Width']) $parameters[$which.'Width']=200;
             if (!$parameters[$which.'Height']) $parameters[$which.'Height']=200;
@@ -1829,7 +1829,7 @@ class DataField_typeToSearch extends DataField_textbox {
         parent::__construct($params);
     }
 
-    function sanitizeParameters( &$parameters, $dataFieldId ) {
+    static function sanitizeParameters( &$parameters, $dataFieldId ) {
         // trim off any protocol from searchUrl and make sure it starts with '/'
     }
 

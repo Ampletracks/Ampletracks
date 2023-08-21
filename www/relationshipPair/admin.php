@@ -29,7 +29,6 @@ function processUpdateBefore( $id ) {
     global $DB;
     if ($id) {
 
-        global $WS; dump($WS);
         $updated = false;
         // The only things they are allowed to edit are the max and description, NOT the record types
         foreach (array('forward','backward') as $direction) {
