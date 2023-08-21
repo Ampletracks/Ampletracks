@@ -95,7 +95,7 @@ function getCertificate( $client,$domain ) {
             $status = 'verifying domain ownership';
             foreach($pending as $challenge) {
                 // Let LetsEncrypt verify this challenge.
-                $order->verifyPendingOrderAuthorization($challenge['identifier'], LEOrder::CHALLENGE_TYPE_HTTP);
+                $order->verifyPendingOrderAuthorization($challenge['identifier'], LEOrder::CHALLENGE_TYPE_HTTP, false);
             }
         }
     }
