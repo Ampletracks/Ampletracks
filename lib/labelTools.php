@@ -189,6 +189,8 @@ class label {
     function getQrCodeUrl() {
         // If site ID is not defined then return just the Site URL
         $base = $this->siteId > 0 ? LABEL_QR_CODE_BASE_URL : SITE_URL;
+        if (substr($base,-1)!=='/') $base.='/';
+
         return $base.$this->getCompactId();
     }
 
