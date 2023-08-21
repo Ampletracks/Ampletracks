@@ -109,6 +109,12 @@ include(VIEWS_DIR.'/header.php');
             qrScanner = null;
         }
         
+        <?
+            if (defined('LABEL_SITE_ID') && LABEL_SITE_ID>0) $labelBaseUrl = LABEL_QR_CODE_BASE_URL;
+            else $labelBaseUrl = 'https://'.SITE_NAME;
+        ?>
+        console.log(<?=json_encode($labelBaseUrl)?>);
+
         function foundCode(result,message){
             if (result) {
                 var codeError='';
@@ -123,7 +129,7 @@ include(VIEWS_DIR.'/header.php');
                             window.parent.gotQRCode(result);
                             done();
                         } else {
-                            if ( result.indexOf(<?=json_encode(LABEL_QR_CODE_BASE_URL)?>)!==0 ) {
+                            if ( result.indexOf(<?=json_encode($labelBaseUrl)?>)!==0 ) {
                                 showError('This is not a valid '+<?=json_encode(SITE_NAME)?>+' QR code');
                             } else {
                                 window.setTimeout(function(){
