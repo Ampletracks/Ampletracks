@@ -57,7 +57,7 @@ $cobrandingLogoUrl = getConfig('Cobranding logo url');
                             <? } else { ?>
                                 <label class="form-row transparent">
                                     <span>Email Address:</span>
-                                    <input type="text" name="username" id="loginUsername" placeholder="Email Address" autocomplete="username" />
+                                    <input type="text" name="username" value="<?= htmlspecialchars($_REQUEST['username']??''); ?>" id="loginUsername" placeholder="Email Address" autocomplete="username" />
                                 </label>
 
                                 <label class="form-row transparent">

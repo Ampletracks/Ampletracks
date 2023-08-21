@@ -8,7 +8,9 @@ $INPUTS = array(
         'labelId'   => 'INT',
         'x'         => 'INT',
         'y'         => 'INT',
-        'fileType'  => 'TEXT'
+        'fileType'  => 'TEXT',
+        'test'     => 'INT',
+
     )
 );
 
@@ -121,14 +123,20 @@ class htmlLabels {
 
             window.parent.changeLayout = function( layout ) {
                 <?
-                $url = sprintf('?labelId=%d&securityCode=%s&recordId=%d&x=0&y=0&layout=',ws('labelId'),ws('securityCode'),ws('recordId'));
+                if (!ws('labelId')) {
+                    $url = '?test=1&layout=';
+                } else {
+                    $url = sprintf('?labelId=%d&securityCode=%s&recordId=%d&x=0&y=0&layout=',ws('labelId'),ws('securityCode'),ws('recordId'));
+                }
                 echo "console.log(".json_encode($url)."+layout);";
                 echo "window.location.href=".json_encode($url)."+layout;";
                 ?>
             }
 
-            window.parent.downloadPDF = function() {
-                window.open( window.location.href + '&fileType=pdf' );
+            window.parent.downloadPDF = function(dummy) {
+                let url = window.location.href + '&fileType=pdf';
+                if (!dummy) url = url.replace('test=1','test=0');
+                window.open( url );
             }
         </script>
         <style>
@@ -256,6 +264,8 @@ class pdfLabels {
 
     private $pdf;
     private $layout;
+    private $firstLabelId;
+    private $lastLabelId;
 
     function __construct($layout) {
         require(LIB_DIR.'fpdf/fpdf.php');
@@ -305,6 +315,9 @@ class pdfLabels {
         $originX = $leftMargin + $col * ($dims[0]+$spacing[0]);
         $originY = $topMargin + $row * ($dims[1]+$spacing[1]);
 
+        if ($this->firstLabelId==0 || $label->id < $this->firstLabelId) $this->firstLabelId = $label->id;
+        if ($label->id > $this->lastLabelId) $this->lastLabelId = $label->id;
+
         $qrCodeImage = $label->getImageQrCode(0);
 
         $pdf->setXY($originX, $originY);
@@ -340,7 +353,8 @@ class pdfLabels {
     }
 
     function render(){
-        $this->pdf->Output();
+        $filename = sprintf('%s_labels_%d-%d_%s.pdf',SITE_NAME,$this->firstLabelId,$this->lastLabelId,date('Y-m-d'));
+        $this->pdf->Output('D',$filename);
     }
 }
 
@@ -349,13 +363,13 @@ if (!$layout) $layout = '3x9';
 
 $fqdn = preg_replace('!^https?://!','',SITE_URL);
 $fqdn = preg_replace('!/+$!','',$fqdn);
-
+$fqdn .= 'xxxxxxxxx';
 $fqdn = $fqdn;
 if ($layout=='3x9') {
     $layout = [
         'name'          => '3x9',
         'cols'          => 3,
-        'rows'          => 1,
+        'rows'          => 9,
         'topMargin'     => 15,
         'leftMargin'    => 7.75,
         'dims'          => [65,29.6],
@@ -395,20 +409,22 @@ if ($layout=='3x9') {
         'name'              => '5x13',
         'cols'              => 5,
         'rows'              => 13,
-        'topMargin'         => 12,
-        'leftMargin'        => 5,
-        'dims'              => [40.5,21.1],
+        'topMargin'         => 10,
+        'leftMargin'        => 4,
+        'dims'              => [41,21.3],
         'spacing'           => [0,0],
-        'logoDims'          => [15,4],
-        'logoOffset'        => [19.4, 2],
+        'logoDims'          => [17,6],
+        'logoOffset'        => [18, 2.2],
         'qrCodeOffset'      => [0.6, 0.6],
         'qrCodeSize'        => 16.5,
         'drawOutline'       => false,
         'text' => [
-            ['Sample ID : Security Code','Arial','',4.1,17,8.4,20,5,0,'C'],
-            ['%%code%%','Courier','',5.8,16,10.4,22,3.2,0,'C'],
-            ['If found please visit:','Arial','',4.1,15,12.8,20,5,0,'C'],
-            [$fqdn,'Arial','B',strlen($fqdn)>14?7.5:8.5,1,16.5,36,6,0,'C'],
+            ['Sample ID : Security Code','Arial',   '', 4.1,  17,5.4,    20, 5,  0,'L'],
+            ['%%code%%',                 'Courier', '', 5.8,  17,8.9,    22, 3.2,0,'L'],
+            ['If found please visit:',   'Arial',   '', 4.1,  17,11.7,   20, 5,  0,'L'],
+            strlen($fqdn)>20?
+                [$fqdn,                  'Arial',   'B',5.5,  1.1,15.0,  36, 6,  0,'L']:
+                [$fqdn,                  'Arial',   'B',8.5,  1.1,15.0,  36, 6,  0,'L'],
         ]
 ];
 }
@@ -461,8 +477,9 @@ for ($col=0; $col<$layout['cols']; $col++) {
             if (isset($labels["$col,$row"])) $output->addLabel( $labels["$col,$row"], $col, $row );
             else $output->addPlaceholder( $col, $row );
         } else {
-            if (ws('fileType')=='pdf') $label = new label();
-            else $label = new label('dummy');
+            if (ws('test')>0) $label = new label('dummy');
+            else $label = new label();
+
             $output->addLabel( $label, $col, $row );
         }
 

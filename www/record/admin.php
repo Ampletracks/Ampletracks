@@ -268,8 +268,7 @@ function processInputs($mode,$id) {
 
 function processUpdateBefore( $id ) {
     global $WS, $DB, $USER_ID;
-    
-    if ($id==0) {
+    if (empty($id)) {
         if (!ws('record_typeId')) ws('record_typeId',getPrimaryFilter());
 		
         if (ws('parentId')) ws('record_parentId',(int)ws('parentId'));
@@ -278,6 +277,7 @@ function processUpdateBefore( $id ) {
 		ws('record_createdAt',time());
     } else {
         ws('record_lastSavedAt',time());
+
         // Check they are setting the ownerId and projectId to values they are allowed to choose
         global $ownerSelect, $projectSelect;
         if (isset($WS['record_ownerId']) && !in_array($WS['record_ownerId'],$ownerSelect->options)) {

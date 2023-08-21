@@ -33,7 +33,11 @@ include(VIEWS_DIR.'/header.php');
         })
         $('button.downloadPDF').on('click',function(){
             // This function is defined in the iframe
-            downloadPDF();
+            downloadPDF(false);
+        })
+        $('button.downloadTest').on('click',function(){
+            // This function is defined in the iframe
+            downloadPDF(true);
         })
 
     });
@@ -50,8 +54,8 @@ include(VIEWS_DIR.'/header.php');
     </form>
     <br />
     <button class="btn close">Close</button>
-    <button class="btn print">Print</button>
-    <button class="btn downloadPDF">Download PDF</button>
+    <button class="btn downloadTest">Download Test Sheet</button>
+    <button class="btn downloadPDF">Download Labels</button>
     <? if (ws('labelId')) { ?>
         <button class="btn downloadPNG">Download PNG</button>
     <? } ?>
@@ -59,10 +63,12 @@ include(VIEWS_DIR.'/header.php');
         <h2 style="text-align:center; display: block; width:100%">Preview</h2>
         <? if (ws('labelId')) { ?>
             <p>Click the empty slots below to move the label to a different position on the page</p>
+            <iframe name="pagePreview" src="print.php?labelId=<?wsp('labelId')?>&securityCode=<?wsp('securityCode')?>"></iframe>
         <? } else { ?>
-            <p>A preview using dummy labels is shown below. Please note that generating a full page of labels for download will take a minute or two</p>
+            <p style="max-width:800px; margin: auto; text-align:left;">A preview using dummy labels is shown below. Please note that generating a full page of labels for download will take a minute or two</p>
+            <p style="max-width:800px; margin: auto; text-align:left;">TIP: Before generating and printing real labels try the "Download Test Sheet" button first, print these, then hold the test sheet behind the sheet of blank labels and hold both sheets up to a bright light. This will enable you to see if the labels are correctly positioned without wasting a sheet of lables.</p>
+            <iframe name="pagePreview" src="print.php?test=1"></iframe>
         <? } ?>
-        <iframe name="pagePreview" src="print.php?labelId=<?wsp('labelId')?>&securityCode=<?wsp('securityCode')?>"></iframe>
     </div>
 
 </div>

@@ -369,6 +369,11 @@ $(function(){
 		self.remove();
 		return false;
 	});
+
+    $('body').on('click','.flashMessage.notify',function(){
+      $(this).fadeOut();
+    });
+
 	
 /*!
   Non-Sucking Autogrow 1.1.6

@@ -45,6 +45,8 @@ function processInputs($mode, $id) {
     if (isset($WS['password'])) {
         if (strlen($WS['password']) && isset($WS['confirmPassword']) && $WS['password']===$WS['confirmPassword']) {
             $WS['user_password']=password_hash($WS['password'],PASSWORD_DEFAULT);
+            ws('password','');
+            ws('confirmPassword','');
         } else unset($WS['user_password']);
     }
 

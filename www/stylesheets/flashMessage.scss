@@ -1,0 +1,77 @@
+div.flashMessage.notify {
+    cursor: pointer;
+    width: 25%;
+    background-color: #6ab96a;
+    color: #fff;
+    position: fixed;
+    top: 20px;
+    text-align: center;
+    padding: 1rem 1rem;
+    margin-bottom: 1rem;
+    margin-left: 50vw;
+    transform: translateX(-50%);
+    border: 10px solid white;
+    border-radius: .25rem;
+    animation-duration: 50s;
+    animation-name: flashMessageAnimation;
+    left: -9999px;
+    opacity: 0;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+    z-index: 100;
+
+    &.success {
+        color: #0f5132;
+        background-color: #d1e7dd;
+    }
+
+    &.info {
+        color: #084298;
+        background-color: #cfe2ff;
+    }
+    &.warning {
+        color: #664d03;
+        background-color: #fff3cd;
+    }
+    &.error {
+        color: #842029;
+        background-color: #f8d7da;
+    }
+
+    div.notify.permanent {
+        opacity: 1;
+        left: auto;
+        bottom: auto;
+        top: auto;
+        width: auto;
+        animation-name: none;
+        animation-duration: 0;
+        position: relative;
+        display: block;
+    }
+}
+    
+@keyframes flashMessageAnimation {
+    0% {
+      opacity: 0;
+      left: 40px;
+    }
+    2% {
+      opacity: 1;
+      left: 40px;
+    }
+    96% {
+      opacity: 1;
+      left: 40px;
+    }
+    98% {
+      opacity: 0;
+      left: 40px;
+    }
+    99% {
+      opacity: 0;
+      left: -9999px;
+    }
+}
+

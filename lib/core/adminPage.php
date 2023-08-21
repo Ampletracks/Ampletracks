@@ -227,7 +227,7 @@ include(VIEWS_DIR.'/header.php');
 </script>
 
 <? if (ws('mode')=='update') { ?>
-    <div class="notify">
+    <div class="notify flashMessage">
         <?=cms('Changes saved',0)?>
     </div>
 <? } ?>
