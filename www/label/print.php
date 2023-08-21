@@ -363,7 +363,6 @@ if (!$layout) $layout = '3x9';
 
 $fqdn = preg_replace('!^https?://!','',SITE_URL);
 $fqdn = preg_replace('!/+$!','',$fqdn);
-$fqdn .= 'xxxxxxxxx';
 $fqdn = $fqdn;
 if ($layout=='3x9') {
     $layout = [
@@ -419,9 +418,9 @@ if ($layout=='3x9') {
         'qrCodeSize'        => 16.5,
         'drawOutline'       => false,
         'text' => [
-            ['Sample ID : Security Code','Arial',   '', 4.1,  17,5.4,    20, 5,  0,'L'],
-            ['%%code%%',                 'Courier', '', 5.8,  17,8.9,    22, 3.2,0,'L'],
-            ['If found please visit:',   'Arial',   '', 4.1,  17,11.7,   20, 5,  0,'L'],
+            ['Sample ID : Security Code','Arial',   '', 4.1,  17,7.8,    20, 5,  0,'L'],
+            ['%%code%%',                 'Courier', '', 5.8,  17,10.9,   22, 3.2,0,'L'],
+            ['If found please visit:',   'Arial',   '', 4.1,  17,12.1,   20, 5,  0,'L'],
             strlen($fqdn)>20?
                 [$fqdn,                  'Arial',   'B',5.5,  1.1,15.0,  36, 6,  0,'L']:
                 [$fqdn,                  'Arial',   'B',8.5,  1.1,15.0,  36, 6,  0,'L'],
