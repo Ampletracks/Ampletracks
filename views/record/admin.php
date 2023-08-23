@@ -56,7 +56,7 @@ global $parentName;
 <a style="display: none;" id="showGraphButton" href="#">View Graph</a>
 <div class="layout">
     <div class="sidebar graph-holder">
-        <iframe id="graph" src="graph.php?id=<?=wsp('id')?>&width=500&height=500" style="width: 500px; height: 500px"></iframe>
+        <iframe id="graph" src="graph.php?id=<?=wsp('id')?>&width=500&height=500"></iframe>
         <div id="hideGraphButton">Hide Graph</div>
         <div id="maximizeGraphButton">Maximise Graph</div>
         <div id="minimizeGraphButton" style="display:none">Minimise Graph</div>

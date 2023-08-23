@@ -80,3 +80,32 @@ $mq-max-width: 1440px;
     background-color: var(--c-brand-d);
 }
 
+@mixin responsive($what,$narrow:'null',$medium:'null',$wide:'null') {
+    $widthNarrowMax: 750;
+    $widthMediumMax: 1200;
+
+    @if $what == wide {
+        @media (min-width: ($mq-tablet-max+1px)) {
+            @content;
+        }
+    } @else if $what == medium {
+        @media (min-width: ($mq-mobile-max+1px)) and (max-width: $mq-tablet-max) {
+            @content;
+        }
+    } @else if $what == narrow {
+        @media (max-width: $mq-mobile-max) {
+            @content;
+        }
+    } @else {
+        @media (max-width: $mq-mobile-max) {
+            #{$what}:$narrow;
+        }
+        @media (min-width: ($mq-mobile-max+1px)) and (max-width: $mq-tablet-max) {
+            #{$what}:$medium;
+        }
+        @media (min-width: ($mq-tablet-max+1px)) {
+            #{$what}:$wide;
+        }
+    }
+}
+

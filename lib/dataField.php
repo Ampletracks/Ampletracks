@@ -1426,7 +1426,7 @@ class DataField_url extends DataField_textbox {
             return 'The URL must begin with one of: '.implode (' ', preg_filter('/$/', '://', $this->allowedSchemes));
         }
 
-        if (!filter_var( $value, FILTER_VALIDATE_URL, FILTER_FLAG_SCHEME_REQUIRED )) {
+        if (!filter_var( $value, FILTER_VALIDATE_URL )) {
             return 'The URL supplied is not valid - please supply a valid URL';
         }
 

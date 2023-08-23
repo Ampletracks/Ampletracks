@@ -78,21 +78,28 @@ function postStartup($mode,$id) {
             SELECT CONCAT(firstname," ",lastName) AS name,id FROM user WHERE deletedAt=0 ORDER BY name
         ');
     } else {
-        // Allow them to pick only people in the same project(s) as them
-        $ownerSelect->addLookup('
-            SELECT
-                CONCAT(firstname," ",lastName) AS name,id
-            FROM user
-            WHERE
-                deletedAt=0 AND
-                id IN (
-                    SELECT up2.userId FROM userProject up1
-                    INNER JOIN userProject up2 ON up2.projectId=up1.projectId
-                    WHERE up1.userId=?
-                    UNION SELECT ?
-                )
-            ORDER BY name
-        ',$USER_ID,$currentOwnerId);
+        // see if they have project wide edit rights for records of this type
+        // we do this by setting the ownerId to zero in the canDo() call
+        if ( canDo('edit', 0,$currentProjectId, $permissionsEntity )) {
+            // Allow them to pick only people in the same project(s) as them
+            $ownerSelect->addLookup('
+                SELECT
+                    CONCAT(firstname," ",lastName) AS name,id
+                FROM user
+                WHERE
+                    deletedAt=0 AND
+                    id IN (
+                        SELECT up2.userId FROM userProject up1
+                        INNER JOIN userProject up2 ON up2.projectId=up1.projectId
+                        WHERE up1.userId=?
+                        UNION SELECT ?
+                    )
+                ORDER BY name
+            ',$USER_ID,$currentOwnerId);
+        } else {
+            global $USER_FIRST_NAME, $USER_LAST_NAME;
+            $ownerSelect->addOption($USER_FIRST_NAME.' '.$USER_LAST_NAME,$USER_ID);
+        }
     }
     // When creating new records set the default owner to be the person who is logged in
     if (!$id) ws('record_ownerId',$USER_ID);

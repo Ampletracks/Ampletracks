@@ -74,6 +74,13 @@ a.openUrl {
     // Force the open URL button onto a new line
     margin-right: 100%;
 }
+
+iframe#graph {
+    @include responsive(width,100%,100%,500px);
+    @include responsive(height,50vh,50vh,500px);
+}
+
+
 // OLD STUFF
 //div.recordMetadata {
 //    margin: 20px 0 0 0;

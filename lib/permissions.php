@@ -291,7 +291,8 @@ function canDo( ) {
     $entityId=false;
     $entity='';
     $userId=0;
-    
+    $rowData=false; 
+
     if (is_array($param2)) {
         // We have been called with ($action, $rowData, $entity=null, $userId=null)
         $rowData = $param2;
@@ -365,7 +366,7 @@ function canDo( ) {
             'userId' => $userId,
             'projectId' => getUserProjects( $userId )[0]
         ];
-    } else {
+    } else if ($rowData===false && $entityId) {
         // Use the relevant SQL to load the corresponding ownerId and projectId
         // We use the substr below to chop the :<recordTypeId> off the end
         $sql = $entityOwnershipLookupSql[ substr($entity,0,13) ];
