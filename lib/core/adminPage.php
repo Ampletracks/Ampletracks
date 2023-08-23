@@ -217,6 +217,9 @@ if (!isset($heading)) {
 if (!isset($extraBodyClasses)) $extraBodyClasses=array();
 $extraBodyClasses = array_merge( $extraBodyClasses, array('checkExit'));
 
+if(ws('mode') == 'update') {
+    addUserNotice(cms('Changes saved',0), 'success');
+}
 include(VIEWS_DIR.'/header.php');
 ?>
 <script>
@@ -225,12 +228,6 @@ include(VIEWS_DIR.'/header.php');
     cms.checkExitStart = '<?=addSlashes(cms('Are you sure you want to leave this page - all the changes since',0))?>';
     cms.checkExitEnd = '<?=addSlashes(cms('will be lost',0))?>';
 </script>
-
-<? if (ws('mode')=='update') { ?>
-    <div class="notify flashMessage">
-        <?=cms('Changes saved',0)?>
-    </div>
-<? } ?>
 
 <h1><?= $heading ?></h1>
 

@@ -938,76 +938,36 @@ if(!function_exists('hash_equals')) {
     }
 }
 
-function addUserNotice( $details ) {
+function addUserNotice( $notice, $type = '' ) {
     if (session_id() == "") session_start();
+    if (!isset($_SESSION['userNotices'])) $_SESSION['userNotices'] = [];
+
+    $noticeData = [
+        'notice' => $notice,
+        'type' => $type,
+    ];
     
-    if (!isset($_SESSION['userNotices'])) $_SESSION['userNotices']=array();
-    
-    $_SESSION['userNotices'][] = $details;
+    // md5() key prevents duplicates if we've jumped with a 'location' header before displaying notices
+    $_SESSION['userNotices'][md5(serialize($notice))] = $noticeData;
 }
 
 function displayUserNotices() {
     if (session_id() == "") session_start();
     if (!isset($_SESSION['userNotices']) || !is_array($_SESSION['userNotices'])) return;
 
-    $defaults = array(
-        'duration'     => 10,
-        'title'     => '',
-        'message'   => '',
-        'titleIsHtml'    => 0,
-        'messageIsHtml'  => 0,
-    );
 
-    echo '<div class="userNotice">';
-
-    foreach ($_SESSION['userNotices'] as $notice ) {
-        $notice = array_merge($defaults,$notice);
-        if (!$notice['titleIsHtml']) $notice['title'] = htmlspecialchars($notice['title']);
-        if (!$notice['messageIsHtml']) $notice['message'] = htmlspecialchars($notice['message']);
+    if(count($_SESSION['userNotices'])) {
         ?>
-        <div class="notice" duration="<?=htmlspecialchars($notice['duration'])?>">
-            <? if (strlen($notice['title'])) { ?><h2><?=$notice['title']?></h2><? } ?>
-            <p><?=$notice['message']?></p>
+        <div class="notify flashMessage">
+            <? foreach ($_SESSION['userNotices'] as $noticeData ) { ?>
+                <div class="<?=$noticeData['type']?>">
+                    <?=$noticeData['notice']?>
+                </div>
+            <? } ?>
         </div>
         <?
     }
-    $_SESSION['userNotices'] = array();
-    ?>
-    </div>
-    <script>
-        $(function(){
-            //$('header div.userNotice').slideUp('slow');
-            function hideUserNotice( self ) {
-                self.slideUp('slow',function() {
-                    let parent = self.parent();
-                    // Get rid of the container if this is the last message
-                    if (!parent.find('div:visible').length) parent.remove();
-                });
-            }
-
-            // Make them disappear automatically
-            $('main div.userNotice .notice').each(function(){
-                var self = $(this);
-                var duration = self.attr('duration');
-                if (duration>0) {
-                    window.setTimeout(function(){
-                        if (self.is(':visible')) {
-                            hideUserNotice(self);
-                        }
-                    },duration*1000);
-                }
-            });
-            
-            $('main div.userNotice .notice').on('click',function(e) {
-                var self = $(this);
-                var parent = self.parent();
-                let right = self.outerWidth()-e.offsetX;
-                let top = e.offsetY;
-                if (right<30 && top<30) hideUserNotice(self);
-            });
-        });
-    </script>
-    <?
+    $_SESSION['userNotices'] = [];
 }
 
 // polyfill for random_bytes if we're not running on PHP 7

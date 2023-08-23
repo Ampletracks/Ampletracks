@@ -21,7 +21,13 @@
         Value:
     </div>
     <div class="answer">
-        <?= formTextbox('configuration_value',30,4096)?>
+        <?
+        if(strtolower(trim(ws('configuration_name'))) == 'timezone') {
+            timezoneSelect('configuration_value');
+        } else {
+            formTextbox('configuration_value',30,4096);
+        }
+        ?>
     </div>
 </div>
 

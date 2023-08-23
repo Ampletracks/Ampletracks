@@ -17,3 +17,12 @@ require_once("tools.php");
 require_once("svgIcons.php");
 require_once("auth.php");
 require_once("permissions.php");
+
+$settingsTimezone = getConfig('Timezone');
+if($settingsTimezone) {
+    if(in_array($settingsTimezone, timezone_identifiers_list())) {
+        date_default_timezone_set($settingsTimezone);
+    } else {
+        addUserNotice("The Timezone configuration value \"$settingsTimezone\" is invalid", 'warning');
+    }
+}
