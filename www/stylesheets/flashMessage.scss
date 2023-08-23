@@ -1,17 +1,12 @@
 div.flashMessage.notify {
     cursor: pointer;
     width: 25%;
-    background-color: #6ab96a;
-    color: #fff;
     position: fixed;
     top: 20px;
     text-align: center;
-    padding: 1rem 1rem;
     margin-bottom: 1rem;
     margin-left: 50vw;
     transform: translateX(-50%);
-    border: 10px solid white;
-    border-radius: .25rem;
     animation-duration: 50s;
     animation-name: flashMessageAnimation;
     left: -9999px;
@@ -21,22 +16,36 @@ div.flashMessage.notify {
     line-height: 1.5;
     z-index: 100;
 
-    &.success {
-        color: #0f5132;
-        background-color: #d1e7dd;
+    div {
+        color: #fff;
+        background-color: #6ab96a;
+        padding: 1rem 1rem;
+        border: 10px solid white;
+        border-radius: .25rem;
+
+        &.success {
+            color: #0f5132;
+            background-color: #d1e7dd;
+        }
+
+        &.info {
+            color: #084298;
+            background-color: #cfe2ff;
+        }
+
+        &.warning {
+            color: #664d03;
+            background-color: #fff3cd;
+        }
+
+        &.error {
+            color: #842029;
+            background-color: #f8d7da;
+        }
     }
 
-    &.info {
-        color: #084298;
-        background-color: #cfe2ff;
-    }
-    &.warning {
-        color: #664d03;
-        background-color: #fff3cd;
-    }
-    &.error {
-        color: #842029;
-        background-color: #f8d7da;
+    div + div {
+        border-top: 0;
     }
 
     div.notify.permanent {
