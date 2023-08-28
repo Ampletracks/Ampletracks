@@ -60,7 +60,8 @@ if (!isset($_GET['id']) || strlen($_GET['id'])<12) {
                         LEFT JOIN label ON label.recordId=record.id
                     WHERE
                         record.typeId IN (?) AND
-                        record.deletedAt=0
+                        record.deletedAt=0 AND
+                        record.lastSavedAt>0
                     GROUP BY record.id
                     ORDER BY lastAccess DESC
                     LIMIT 100
