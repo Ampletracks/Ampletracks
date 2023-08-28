@@ -1,4 +1,15 @@
 <?
+/*
+  Add a line like this to cron to use Instance on Demand:
+  * * * * * cd /var/www/<ampletracks base directory>/scripts; /usr/bin/php iodRunner.php /var/www/<ampletracks base directory>/config/<ampletracks config file>.php
+  You should replace the following in the line above with suitable values:
+    - <ampletracks base directory>
+    - <ampletracks config file>
+
+  N.B. Instance on demand relies on using MyISAM tables, or configuring innodb to use separate files per database (See File-Per-Table Tablespaces in MySQL documentation)
+*/
+
+$MAX_ATTEMPTS = 500;
 
 $requireLogin = false;
 
@@ -12,14 +23,15 @@ function error($msg) {
 }
 
 function retryLater($id) {
-    global $DB;
-    $DB->exec('UPDATE iodRequest SET lastAttemptedAt=UNIX_TIMESTAMP(), attempts=attempts+1 WHERE id=?',$id);
+    global $DB, $MAX_ATTEMPTS;
+    $updated = $DB->exec('UPDATE iodRequest SET lastAttemptedAt=UNIX_TIMESTAMP(), attempts=attempts+1 WHERE id=? AND attempts<=?',$id,$MAX_ATTEMPTS);
+    if (!$updated) alert(sprintf('Instance on Demand job %d reached maximum retry limit',$id));
 }
 
 if (php_sapi_name() != 'cli') error( "This script can only run from CLI" );
 
 // Use named locks to ensure that only one copy of this script is running at a time
-$result = $DB->exec('SELECT GET_LOCK("iodRequest",20)');
+$result = $DB->getValue('SELECT GET_LOCK("iodRequest",5)');
 if (!$result) error("Couldn't get iodRequest lock - another {$argv[0]} process must be running");
 
 list($notUsed,$mysqlDataDir) = $DB->getRow('SHOW VARIABLES LIKE "datadir"');
@@ -31,7 +43,7 @@ if (!$EMAIL) error("Email isn't setup for this instance");
 
 while (true) {
     // Delete any old unactioned requests - people will already have given up on these
-    $DB->exec('UPDATE iodRequest SET status="abandoned" WHERE createdAt<UNIX_TIMESTAMP()-86400');
+    $DB->exec('UPDATE iodRequest SET status="abandoned" WHERE status="new" AND createdAt<UNIX_TIMESTAMP()-86400*2');
 
     // Double check we haven't reached the limit for today
     $createdToday = $DB->getValue('SELECT COUNT(*) FROM iodRequest WHERE deletedAt=0 AND createdAt>UNIX_TIMESTAMP()-86400');
@@ -46,8 +58,8 @@ while (true) {
         SET lastAttemptedAt=0
         WHERE
             lastAttemptedAt < UNIX_TIMESTAMP()-3600 AND
-            attempts<5
-    ');
+            attempts<=?
+    ',$MAX_ATTEMPTS);
 
         
     $newRequests = $DB->getHash('
@@ -60,7 +72,6 @@ while (true) {
     ');
 
     foreach($newRequests as $id=>$requestData) {
-        // copy the data underlying database
         $requestData = json_decode($requestData,true);
         if (!is_array($requestData) || !isset($requestData['email'])) {
             $LOGGER->log('Email was missing from IOD request ID:'.$id);
@@ -79,6 +90,7 @@ while (true) {
                 'dbName'=>$newDbName,
                 'subDomain'=>$siteSubdomain,
             ]); 
+            // copy underlying database
             $DB->exec('FLUSH TABLES WITH READ LOCK');
             $cmd = sprintf(
                 'cp -a %s %s',
@@ -116,12 +128,19 @@ while (true) {
             }
         }
 
-        // Send the welcome email
-        $DB->update('iodRequest',['id'=>$id],['attempts'=>0,'lastAttemptedAt'=>0,'status'=>'sendWelcome']);
+        if (defined('IOD_LIFETIME') && IOD_LIFETIME>0) $deleteAt = time()+IOD_LIFETIME;
+        else $deleteAt = 0;
+
+        $DB->update('iodRequest',['id'=>$id],[
+            'attempts'          => 0,
+            'lastAttemptedAt'   => 0,
+            'status'            => 'sendWelcome',
+            'deleteAt'          => $deleteAt
+        ]);
     }
 
     $emailsToSend = $DB->getHash('
-        SELECT id,userData
+        SELECT id,userData,deleteAt
         FROM iodRequest
         WHERE
             deletedAt=0 AND
@@ -129,15 +148,15 @@ while (true) {
             lastAttemptedAt=0
     ');
 
-    foreach( $emailsToSend as $id=>$requestData ) {
-        $requestData = json_decode($requestData,true);
+    foreach( $emailsToSend as $id=>$row ) {
+        $requestData = json_decode($row['userData'],true);
         if (!is_array($requestData) || !isset($requestData['email'])) {
             $LOGGER->log('Email was missing from IOD request ID:'.$id);
             continue;
         }
 
-        if (defined('IOD_LIFETIME') && IOD_LIFETIME>0) {
-            $requestData['deleteAt']=time()+IOD_LIFETIME;
+        if ($row['deleteAt']>0) {
+            $requestData['deleteAt']=$row['deleteAt'];
             enrichRowData($requestData);
         } else {
             $requestData['deleteAtDate'] = 'never';
@@ -157,7 +176,6 @@ while (true) {
             $retryLater($id);
         } else {
             $DB->update('iodRequest',['id'=>$id],[
-                'deleteAt'=>$requestData['deleteAt'],
                 'lastAttemptedAt'=>0,
                 'attempts'=>0,
                 'status'=>'running'
@@ -165,5 +183,68 @@ while (true) {
         }
     }
 
-    exit;
+    $dbsToDelete = $DB->getHash('
+        SELECT id,userData,dbName
+        FROM iodRequest
+        WHERE
+            deleteAt>0 AND deleteAt<UNIX_TIMESTAMP() AND
+            status="running" AND
+            lastAttemptedAt=0
+    ');
+
+    foreach( $dbsToDelete as $id=>$row ) {
+        $dbName = $row['dbName'];
+        $requestData = json_decode($row['userData'],true);
+        if (!is_array($requestData) || !isset($requestData['email'])) {
+            $LOGGER->log('Email was missing from IOD request ID:'.$id);
+            continue;
+        }
+
+        $DB->exec('FLUSH TABLES WITH READ LOCK');
+        $dbDir = $mysqlDataDir.$dbName;
+
+        // Deliberately NOT doing an "rm -rf" here because that feels too risky
+        // First delete the files in the directory
+        $toDelete = glob($dbDir.DIRECTORY_SEPARATOR.'*.{MYI,myi,MYD,myd,FRM,frm,IBD,ibd,OPT,opt}',GLOB_BRACE);
+        foreach( $toDelete as $file ) {
+            unlink($file);
+        }
+        // Then delete the directory
+        $cmd = sprintf(
+            'rmdir %s',
+            escapeshellarg($dbDir)
+        );
+        system($cmd);
+
+        $DB->exec('UNLOCK TABLES');
+
+        if (is_dir($dbDir)) {
+            $LOGGER->log('Failed to delete IoD database directory:'.$dbDir);
+            retryLater($id);
+            continue;
+        }
+
+        // Delete the DB user for this instance
+        $username = $dbName;
+        echo `mysql -e "DROP USER IF EXISTS '$username'@'localhost'" 2>&1`;
+
+        $sendResult = $EMAIL->send([
+            'template' => 'iod-deleted',
+            'to' => [$requestData['email']],
+            'priority' => 'medium',
+            'mergeData' => $requestData
+        ]);
+
+        if (!$sendResult) {
+            $LOGGER->log(implode(' & ',$EMAIL->errors()));
+        } 
+        $DB->update('iodRequest',['id'=>$id],[
+            'deletedAt'=>time(),
+            'lastAttemptedAt'=>0,
+            'attempts'=>0,
+            'status'=>'deleted'
+        ]);
+    }
+
+    sleep(10);
 }

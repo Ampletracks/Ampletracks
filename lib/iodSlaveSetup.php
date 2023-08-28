@@ -33,3 +33,8 @@ IOD_DOMAIN => IOD domain suffix
     define('SITE_URL','https://'.$domainName.'/');
     define('SITE_NAME',$domainName);
 })();
+
+function onDbConnectFailure($dbName,$dbUser,$dbPassword,$dbHost) {
+    echo "The ampletracks demonstration site you are trying to delete has expired and been deleted";
+    exit;
+}
