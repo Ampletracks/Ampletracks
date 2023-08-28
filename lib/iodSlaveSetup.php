@@ -35,6 +35,6 @@ IOD_DOMAIN => IOD domain suffix
 })();
 
 function onDbConnectFailure($dbName,$dbUser,$dbPassword,$dbHost) {
-    echo "The ampletracks demonstration site you are trying to delete has expired and been deleted";
+    echo "The ampletracks demonstration site you are trying to access has expired and been deleted";
     exit;
 }

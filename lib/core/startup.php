@@ -82,8 +82,12 @@ if (defined('DB_NAME')) {
     $DbHost = defined('DB_HOST')?DB_HOST:'localhost';
 	$DB = new Dbif( DB_NAME, DB_USER, DB_PASSWORD, $DbHost, $errorHandler );
 	if (!$DB->connected()) {
-        if (functionExists('onDbConnectFailure')) onDbConnectFailure(DB_NAME, DB_USER, DB_PASSWORD, $DbHost);
-        else $LOGGER->log("Failed to connect to database - aborting\n");
+        if (function_exists('onDbConnectFailure')) onDbConnectFailure(DB_NAME, DB_USER, DB_PASSWORD, $DbHost);
+        else {
+            $errorHandler->handleError(2,"Error connecting to database",$DB->lastError());
+            $LOGGER->log("Failed to connect to database - aborting\n");
+            echo "ERROR: Cannot connect to database";
+        }
 		exit;
 	}
 }

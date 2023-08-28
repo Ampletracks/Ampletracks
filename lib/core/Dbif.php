@@ -354,14 +354,12 @@ class Dbif {
 	        $this->dbHandle = @mysqli_connect($host, $username, $password);
         } catch( Exception $e) {
 			$this->lastError = "Couldn't connect to host '$host' using username '$username'";
-			$this->errorHandler->handleError(2,"Error connecting to database",$this->lastError);
             return;
 		}
         try {
             mysqli_select_db($this->dbHandle, $dbName);
         } catch( Exception $e) {
 			$this->lastError = "Couldn't select database '$dbName'";
-			$this->errorHandler->handleError(2,"Error selecting database",$this->lastError);
 			((is_null($___mysqli_res = mysqli_close($this->dbHandle))) ? false : $___mysqli_res);
 			$this->dbHandle = false;
             return;
