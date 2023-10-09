@@ -548,7 +548,7 @@ function getRecordData( $condition, $conditionValue ) {
 }
 
 function prepareDisplay( $id ) {
-    global $DB, $extraScripts, $heading, $title;
+    global $DB, $extraScripts, $heading, $title, $USER_ID;
     
     $extraScripts[] = '/javascript/dependentInputs.js';
     $extraScripts[] = '/javascript/jodit/jodit.js';
@@ -624,6 +624,13 @@ function prepareDisplay( $id ) {
 			fromRecordTypeId = ? AND
 			!relationshipPair.deletedAt
 	',$recordTypeId);
+
+    // At this point we can be pretty sure the user is actually viewing this record (as opposed to cloning, deleting etc)
+    $DB->insert('recordAccessLog',[
+        'userId' => $USER_ID,
+        'recordId' => $id,
+        'accessedAt' => time(),
+    ]);
 }
 
 $editMode=false;

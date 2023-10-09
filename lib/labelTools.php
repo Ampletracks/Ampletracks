@@ -140,6 +140,7 @@ class label {
             $siteId = (($bits['byte1'] & 15) << 8) | $bits['byte2'];
         }
         $shiftedSecurityCode = strtoupper(base_convert( (int)$bits['securityCode'], 10, strlen(LABEL_SECURITY_CODE_KEYSPACE) ));
+        $shiftedSecurityCode = str_pad($shiftedSecurityCode,LABEL_SECURITY_CODE_LENGTH,'0',STR_PAD_LEFT);
         $securityCode = strtr( $shiftedSecurityCode,'0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ', LABEL_SECURITY_CODE_KEYSPACE );
         return array( $bits['id'], $securityCode, $siteId );
     }
@@ -172,6 +173,8 @@ class label {
             if ($status ==200 ) $result = true;
             else $this->redirectUrl = false;
         }
+
+        
         if (!$result) {
             $this->error = 'Invalid security code';
             $this->id=0;

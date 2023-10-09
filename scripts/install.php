@@ -243,6 +243,15 @@ $tables = array(
         'index_dataFieldId' => "INDEX(`dataFieldId`,`data`(128))",
         'index_userId' => "INDEX(`userId`,`recordId`)",
     ),
+    'recordAccessLog' => array(
+        'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
+        'recordId' => "INT(10) UNSIGNED NOT NULL",
+        'userId' => "INT(10) UNSIGNED NOT NULL",
+        'accessedAt' => "INT(10) UNSIGNED NOT NULL",
+        'index_userId' => "INDEX(`userId`,`accessedAt`)",
+        'index_recordId' => "INDEX(`recordId`,`userId`)",
+        'index_accessedAt' => "INDEX(`accessedAt`,`recordId`)",
+    ),
     'recordType' => array(
         'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
         'name' => "VARCHAR(255) NOT NULL",
