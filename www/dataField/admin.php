@@ -22,9 +22,10 @@ function processUpdateBefore( $id ) {
     global $DB,$WS,$recordTypeId;
 
     if ($id) {
-        list( $recordTypeId, $currentPosition ) = $DB->getRow('SELECT recordTypeId, orderId FROM dataField WHERE id=?',$id);
+        list( $recordTypeId, $currentPosition,$currentQuestion ) = $DB->getRow('SELECT recordTypeId, orderId, question FROM dataField WHERE id=?',$id);
     } else {
         $currentPosition=0;
+        $currentQuestion=null;
         // populate the recordType ID if this is a new Field
         $recordTypeId=getPrimaryFilter();
         ws('dataField_recordTypeId',$recordTypeId);
@@ -74,6 +75,11 @@ function processUpdateBefore( $id ) {
     
     // Mysql gets upset if we try and set the ENUM to '' so if this is the case do not change this field
     if (!strlen(ws('dataField_dependencyCombinator'))) unset($WS['dataField_dependencyCombinator']);
+
+    if (isset($WS['dataField_question']) && ( is_null($currentQuestion) || strtolower(trim($WS['dataField_question']))!==strtolower(trim($currentQuestion)))) {
+        // Question has changed! make a note of that
+        ws('dataField_questionLastChangedAt',time());
+    }
 }
 
 function processUpdateAfter( $id ) {

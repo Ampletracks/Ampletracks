@@ -2,6 +2,9 @@
 
 include_once(CORE_DIR.'/formAsyncUpload.php');
 
+define( 'DATAFIELD_SYSTEM_DEFAULT',1 );
+define( 'DATAFIELD_USER_DEFAULT',2 );
+
 class DataField {
 
     const typeLookup = array(
@@ -31,8 +34,9 @@ class DataField {
     static $answers;
     static $parentAnswers;
     static $inheritedFields;
-    static $parameterPrefix='fieldParameters_';
-
+    static $parameterPrefix = 'fieldParameters_';
+    private $userDefaultAnswers = false;
+    
     static function buildAllForRecord( $id, $extraSql=[] ) {
         global $DB;
 
@@ -229,6 +233,139 @@ class DataField {
 
     function getAnswers() {
         return self::$answers;
+    }    
+
+    function getUserDefault() {
+        global $USER_ID,$DB;
+
+        if ( $this->userDefaultAnswers === false ) {
+            $recordTypeId = $this->params['recordTypeId'];
+
+            $query = $DB->query('
+                SELECT 
+                    dataField.id,
+                    userDefaultAnswer.answer,
+                    userDefaultAnswerCache.userDefaultAnswerId,
+                    IFNULL( userDefaultAnswerCache.savedAt <= dataField.questionLastChangedAt, 1 ) AS questionChanged,
+                    userDefaultAnswerCache.savedAt <= user.defaultsLastChangedAt AS defaultsChanged
+                FROM dataField
+                INNER JOIN user ON user.id = ?
+                INNER JOIN dataFieldType ON dataFieldType.id = dataField.typeId
+                LEFT JOIN userDefaultAnswerCache ON userDefaultAnswerCache.userId=user.id AND userDefaultAnswerCache.dataFieldId=dataField.id
+                LEFT JOIN userDefaultAnswer ON userDefaultAnswer.id=userDefaultAnswerCache.userDefaultAnswerId
+                WHERE
+                    dataField.deletedAt=0 AND
+                    dataFieldType.hasValue>0 AND
+                    dataField.recordTypeId=?
+            ', $USER_ID, $recordTypeId );
+            echo $USER_ID."  ".$recordTypeId;
+
+            $dataFieldsNeedingRecheck = [];
+            $cacheHits = 0;
+
+            while( $query->fetchInto($cacheData) ) {
+                // If the defaults changed then all bets are off
+                if ($cacheData['defaultsChanged']>0) {
+                    $cacheHits = 0;
+                    break;
+                }
+                // If the question changed then only this dataField needs re-checking
+                // The query will also set this to true if there is no current cached value
+                if ($cacheData['questionChanged']>0) {
+                    $dataFieldsNeedingRecheck[] = $cacheData['id'];
+                } else {
+
+                    // Hooray - we got a cache hit! Load this into the static cache of this object
+                    $cacheHits++;
+                    // If the userDefaultAnswerId is 0 that means we're cache a "no matching default answer" result
+                    // so in that case store a null
+                    $this->userDefaultAnswers[$cacheData['id']] = $cacheData['userDefaultAnswerId']==0 ? null : $cacheData['answer'];
+                }
+            }
+
+            // If we didn't get any cache hits then basically we need to rebuild the whole cache
+            if (!$cacheHits) $dataFieldsNeedingRecheck = [];
+
+            // There is the possibility that $dataFieldsNeedingRecheck might be too big to for the "IN()" expression
+            // This is very unlikely to happen so just truncate $dataFieldsNeedingRecheck
+            array_splice( $dataFieldsNeedingRecheck, 200 );
+
+            if ( !empty($dataFieldsNeedingRecheck) || $cacheHits==0 ) {
+                // Need to recheck some - or maybe Aall
+                $dataFieldWhere = '';
+                if ( !empty($dataFieldsNeedingRecheck) ) {
+                    foreach( $dataFieldsNeedingRecheck as $id ) {
+                        $dataFieldWhere .= (int)$id.',';
+                    }
+                    $dataFieldWhere = 'AND dataField.id IN ( '.$dataFieldWhere.'0 )';
+                }
+
+                // Clear out existing cache entries
+                $DB->exec('
+                    DELETE userDefaultAnswerCache.* FROM userDefaultAnswerCache
+                    INNER JOIN dataField ON dataField.id = userDefaultAnswerCache.dataFieldId
+                    WHERE userDefaultAnswerCache.userId=? AND dataField.recordTypeId=? '.$dataFieldWhere
+                    ,$USER_ID, $recordTypeId
+                );
+                echo $dataFieldWhere;
+                // Load the user defaults
+                $DB->returnHash();
+                $userDefaultAnswers = $DB->getHash('
+                    SELECT
+                        id,matchType,LOWER(TRIM(question)) AS question,answer
+                    FROM
+                        userDefaultAnswer
+                    WHERE
+                        userId=?
+                    ORDER BY orderId ASC
+                ',$USER_ID);
+
+                // Load all the datafields
+                $DB->returnHash();
+                $query = $DB->query('
+                    SELECT
+                        dataField.id,
+                        LOWER(TRIM(dataField.question)) AS question
+                    FROM 
+                        dataField
+                        INNER JOIN dataFieldType ON dataFieldType.id=dataField.typeId
+                    WHERE
+                        dataField.deletedAt=0 AND dataField.recordTypeId=? AND dataFieldType.hasValue>0 
+                        '.$dataFieldWhere.'
+                ',$recordTypeId);
+
+                # Iterate over all of the questions for the current record type
+                while( $query->fetchInto($dataField) ) {
+                    $matchingDefaultAnswerId=0;
+                    # Iterate over all of the userDefault Answers
+                    foreach($userDefaultAnswers as $defaultAnswerId => $defaultAnswerData ) {
+                        if ($defaultAnswerData['matchType']=='exact') {
+                            $result = ( $defaultAnswerData['question'] == $dataField['question'] );
+                        } else if ($defaultAnswerData['matchType']=='anywhere') {
+                            $result = ( strpos( $dataField['question'], $defaultAnswerData['question'] ) !== false );
+                        } else {
+                            $result = preg_match( '/'.str_replace('/','\/',$defaultAnswerData['question']).'/i', $dataField['question'] );
+                        }
+                        if ($result) {
+                            $matchingDefaultAnswerId = $defaultAnswerId;
+                            $this->userDefaultAnswers[$dataField['id']] = $defaultAnswerData['answer'];
+                            break;
+                        }
+                    }
+                    $DB->insert('userDefaultAnswerCache',[
+                        'userId'                => $USER_ID,
+                        'userDefaultAnswerId'   => $matchingDefaultAnswerId,
+                        'dataFieldId'           => $dataField['id'],
+                        'savedAt'               => time()
+                    ]);
+                }
+            }
+        }
+        
+        // The only way that $this->userDefaultAnswers[$this->id] can be unset is if someone adds a question WHILST this page is rendering
+        // It could happen so handle that here.
+        if (!isset($this->userDefaultAnswers[$this->id])) return null;
+        else return $this->userDefaultAnswers[$this->id];
     }
 
     function getAnswer($dataFieldId=0) {
@@ -236,11 +373,16 @@ class DataField {
         if (isset(self::$answers[$dataFieldId])) {
             $answer = self::$answers[$dataFieldId];
             $this->unpackFromStorage( $answer );
-            return $answer;
         }
         else {
-            if ($this->default) {
-                $this->defaulted = true;
+            // See if there is a user-specific default for this value
+            // otherwise use the system default
+            $userDefault = $this->getUserDefault( );
+            if (!is_null($userDefault)) {
+                $this->defaulted = DATAFIELD_USER_DEFAULT;
+                return $userDefault;
+            } else if ($this->default) {
+                $this->defaulted = DATAFIELD_SYSTEM_DEFAULT;
                 return $this->default;
             }
             else return null;
@@ -250,6 +392,7 @@ class DataField {
     function displayDefaultWarning() {
         if ($this->defaulted) echo '<div class="warning defaultValueUsed">'.cms('The default value has been used to populate this field').'</div>';
     }
+
     function getParentAnswer($dataFieldId=0) {
         if (!$dataFieldId) $dataFieldId=$this->params['id'];
         if (isset(self::$parentAnswers[$dataFieldId])) {
@@ -918,7 +1061,7 @@ class DataField_integer extends DataField {
 
     function displayInput() {
         $inputName = $this->inputName();
-        formInteger( $inputName, $this->min, $this->max, 1, $this->getAnswer() );
+        formInteger( $inputName, $this->min, $this->max, 1, (int)$this->getAnswer() );
         $this->displayUnit();
         $this->versionLink();
         inputError($inputName);
@@ -954,7 +1097,7 @@ class DataField_float extends DataField_integer {
 
     function displayInput() {
         $inputName = $this->inputName();
-        formTextbox($inputName,10,200,$this->getAnswer());
+        formTextbox($inputName,10,200,(float)$this->getAnswer());
         $this->displayUnit();
         $this->versionLink();
         inputError($inputName);

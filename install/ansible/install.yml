@@ -457,6 +457,12 @@
         name: apache2
         state: restarted
 
+    - name: Restart MySQL(MariaDB)
+      when: base_distro=="Debian"
+      service:
+        name: mariadb
+        state: restarted
+
     - name: Restart httpd for RedHat
       when: base_distro=="RedHat"
       service:

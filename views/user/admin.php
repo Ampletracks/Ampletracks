@@ -87,3 +87,37 @@
         <? } ?>
     </div>
 </div>
+
+<? if (ws('id')) { ?>
+    <h2>Defaults Answers</h2>
+    <?
+        $defaultAnswerList->display(true);
+    ?>
+
+    <script>
+        function renumber() {
+            var pos=1;
+            $('table.userDefaultsList tbody tr').each(function(){
+                $(this).data('pos',pos++);
+            });
+        }
+        $(function(){
+            renumber();
+            $('table.userDefaultsList tbody').sortable({
+                update:function(e,ui){
+                    let newPos = ui.item.prevAll().length;
+                    newPos += newPos<ui.item.data('pos') ? 1 : 2;
+                    renumber();
+                    $.post('admin.php',{
+                        mode                        : 'userDefaultSort',
+                        id                          : <?=json_encode(ws('id'));?>,
+                        userDefaultAnswer_id        : ui.item.data('id'),
+                        userDefaultAnswer_orderId   : newPos
+                    },function(data){
+                        if (data!='OK') $.alertable.alert(data);
+                    })
+                }
+            });
+        });
+    </script>
+<? } ?>

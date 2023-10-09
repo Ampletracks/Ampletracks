@@ -1,7 +1,7 @@
 <?
 
 call_user_func(function () {
-    global $DB, $USER_ID, $USER_FIRST_NAME, $title, $PAGE_NAME, $ENTITY, $extraBodyClasses, $extraStylesheets, $extraScripts, $noJS, $primaryFilterIdField;
+    global $DB, $USER_ID, $USER_FIRST_NAME, $title, $PAGE_NAME, $ENTITY, $extraBodyClasses, $extraStylesheets, $extraScripts, $noJS, $primaryFilterIdField, $cobrandingLogoUrl;
 
     if (!isset($extraStylesheets)) $extraStylesheets=array();
     if (!is_array($extraStylesheets)) $extraStylesheets=array($extraStylesheets);
@@ -13,7 +13,7 @@ call_user_func(function () {
     }
 
     $favicon = getConfig('Shortcut Icon');
-    $cobrandingLogoUrl = getConfig('Cobranding logo URL');
+    if (!isset($cobrandingLogoUrl)) $cobrandingLogoUrl = getConfig('Cobranding logo URL');
     ?>
     <!DOCTYPE html>
     <html lang="en" class="no-js">

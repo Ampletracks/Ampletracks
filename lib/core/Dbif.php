@@ -785,7 +785,7 @@ class Dbif {
 		} else {
 			# column spec is some kind of array/hash
 			reset( $column_spec );
-			foreach ($column_spec as $key=>$value) {
+            foreach ($column_spec as $key=>$value) {
 				if ( ereg('^[0-9]+$',$key) ) {
 					# this is part of a plane old array
 					# there is no mapping between CGI field name and column name to be done

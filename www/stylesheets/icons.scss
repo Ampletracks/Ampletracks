@@ -7,8 +7,12 @@
 	*/
 	@if $color==blue {
 		filter: invert(52%) sepia(28%) saturate(3444%) hue-rotate(193deg) brightness(103%) contrast(101%);
+	} @else if $color==green {
+		filter: invert(32%) sepia(82%) saturate(320%) hue-rotate(64deg) brightness(92%) contrast(92%);
 	} @else if $color==darkGreen {
 		filter: invert(28%) sepia(91%) saturate(1049%) hue-rotate(103deg) brightness(96%) contrast(94%);
+	} @else if $color==orange {
+        filter: invert(68%) sepia(91%) saturate(3885%) hue-rotate(360deg) brightness(104%) contrast(105%);
 	} @else if $color==red {
 		filter: invert(10%) sepia(83%) saturate(7434%) hue-rotate(21deg) brightness(93%) contrast(128%);
 	} @else if $color==white {

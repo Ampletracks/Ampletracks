@@ -74,7 +74,7 @@ $cobrandingLogoUrl = getConfig('Cobranding logo url');
 
 
                             <label class="form-row checkbox transparent">
-                                <input type="checkbox" name="persistLogin" id="persistLoginCheckbox">
+                                <input type="checkbox" name="persistLogin" id="persistLoginCheckbox" value="<?=$persistLoginToken?>">
                                 <span>Keep me logged in for next 7 days</span>
                             </label>
 
@@ -109,8 +109,6 @@ $cobrandingLogoUrl = getConfig('Cobranding logo url');
             </div>
 
             <div class="scanLabel" style="display: none">
-                <h1><?=cms('Login: Scan Label Header',0,'Scan A Label')?></h1>
-
                 <iframe class="scanQRCode" src="" ></iframe>
             </div>
 

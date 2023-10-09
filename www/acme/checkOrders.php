@@ -175,7 +175,14 @@ if ( $timeSinceLastRun > $twelveHours ) {
 }
 $calledFromBrowser = isset($_SERVER['HTTP_USER_AGENT']) && !preg_match('/wget/i',$_SERVER['HTTP_USER_AGENT']);
 
-$acmeDir = DATA_DIR.'/acme/';
+$environment = LEClient::LE_PRODUCTION;
+if (defined('ACME_USE_STAGING_ENVIRONMENT') && ACME_USE_STAGING_ENVIRONMENT) {
+    $environment = LEClient::LE_STAGING;
+    $acmeDir = DATA_DIR.'/acme_staging/';
+} else {
+    $acmeDir = DATA_DIR.'/acme/';
+}
+
 if(!is_writable($acmeDir)) {
     mkdir($acmeDir);
     if(!is_writable($acmeDir)) {
@@ -189,8 +196,6 @@ if(!is_writable($acmeDir)) {
 $crtFile = $acmeDir.'/certificate.crt';
 $certificatePresent = file_exists($crtFile);
 
-$environment = LEClient::LE_PRODUCTION;
-if (defined('ACME_USE_STAGING_ENVIRONMENT') && ACME_USE_STAGING_ENVIRONMENT) $environment = LEClient::LE_STAGING;
 $client = new LEClient([ACME_ACCOUNT_EMAIL], $environment, false, $acmeDir);
 
 $domain = preg_replace('!.*?//(.*?)($|/.*)!', '$1', SITE_URL);

@@ -211,7 +211,10 @@ div.answer {
     div.note {
         font-size: 85%;
         opacity: 0.7;
+        // Force the note onto a new row
+        width: 100%;
     }
+
 }
 
 div.picklistHolder {

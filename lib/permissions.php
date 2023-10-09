@@ -50,8 +50,10 @@ function compareUserPermissions( $userB, $userA=0 ) {
     return 'same';
 }
 
-
-function getUserAccessibleRecordTypes( $userId = 0, $action='list' ) {
+# Use $neverEmpty=true when you want to use the result of this in an "IN (?)" query
+#  in this case if the user has no accessible record types then an array like this will be returned: [0]
+#  This will never match any valid record type Ids
+function getUserAccessibleRecordTypes( $userId = 0, $action='list', $neverEmpty=false ) {
     global $USER_ID, $DB;
     if (!$userId) $userId=$USER_ID;
 
@@ -59,7 +61,7 @@ function getUserAccessibleRecordTypes( $userId = 0, $action='list' ) {
         SELECT id FROM recordType WHERE deletedAt=0
     ');
 
-    return $DB->getColumn('
+    $return = $DB->getColumn('
         SELECT DISTINCT
             rolePermission.recordTypeId
         FROM
@@ -72,6 +74,10 @@ function getUserAccessibleRecordTypes( $userId = 0, $action='list' ) {
             userRole.userId=? AND
             impliedAction.action=?
     ',$userId,$action);
+
+    if ($neverEmpty && !count($return)) $return = [0];
+    
+    return $return;
 }
 
 function getUserProjects( $userId ) {

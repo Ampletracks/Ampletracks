@@ -10,6 +10,7 @@ body {
     -moz-osx-font-smoothing: antialiased;
     font-smoothing: antialiased;
     background: var(--c-bg);
+    font-size: var(--f-body-size);
 }
 
 html {
@@ -145,6 +146,13 @@ div.alertable-message div.title {
     margin-bottom: 0.4em;
     font-size: 120%;
 }
+
+iframe.scanQRCode {
+    width: 90vw;
+    height: 150vh;
+    margin: 0 5vw;
+    border: none;
+} 
 
 @import 'typography.scss';
 @import 'layout.scss';

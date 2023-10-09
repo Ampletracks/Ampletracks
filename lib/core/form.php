@@ -501,6 +501,9 @@ function formTypeToSearchSupport() {
                 z-index: 3;
                 display: none;
                 position: absolute;
+                background-color: inherit;
+                border: inherit;
+                border: 1px solid #ccc;
             }
 
             .tts-results-holder .tts-results-wrapper {
@@ -509,6 +512,8 @@ function formTypeToSearchSupport() {
 
             .tts-results-holder .tts-results-list {
                 margin: 2px 0;
+                list-style-type:none;
+                padding: 0 10px;
             }
 
             .tts-results-holder .tts-results-list li {
@@ -531,7 +536,7 @@ function formTypeToSearchSupport() {
 
                     for(let resIdx in results) {
                         let details;
-                        // The results can either be and array of objects each with "value" and "item" keys
+                        // The results can either be an array of objects each with "value" and "item" keys
                         // ...or a hash with keys used for the return value and the value used for what to display
                         // ...or just a flat array in which case the same value is displayed and returned
                         if (typeof(results[resIdx])=='object') details=results[resIdx];

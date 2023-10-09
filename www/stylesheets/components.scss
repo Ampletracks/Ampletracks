@@ -192,28 +192,20 @@ hr.contentStart {
     }
 }
 
-.info {
-    display: flex;
-    align-items: center;;
-    font-size: 80%;
-    font-weight: 700;
-    color: var(--c-brand-m);
-    margin-top: 0.1em;
-    margin-bottom: 0.5em;
-
-    // Pseudo icon.
-    &:before {
-        content: "i";
-        display: block;
-        flex-basis: 1.5em;
-        flex-shrink: 0;
-        width: 1.5em;
-        height: 1.5em;
-        line-height: 1.5;
-        margin-right: 0.6em;
-        text-align: center;
-        color: white;
-        background-color: var(--c-brand-m);
-        border-radius: 50%;
-    }
+div.warning {
+    font-size: 90%;
+    opacity: 0.7;
+    // Force the warning onto a new row
+    width: 100%;
+    @include backgroundIcon(0.25, 8, 20, left,orange);
 }
+
+div.info {
+    font-size: 90%;
+    line-height: 1.5em;
+    // Force the warning onto a new row
+    width: 100%;
+    color: var(--c-brand-m);
+    @include backgroundIcon(0.25, 7, 9, left,green);
+}
+

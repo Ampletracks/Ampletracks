@@ -8,11 +8,53 @@ $INPUTS = array(
         'roleIds' => 'INT ARRAY',
         'projectIds' => 'INT ARRAY',
         'encryptedPassword' => 'TEXT',
+        'userDefaultAnswer_question' => 'TEXT TRIM',
+        'userDefaultAnswer_answer' => 'TEXT TRIM',
+        'userDefaultAnswer_matchType' => 'TEXT TRIM',
+    ),
+    'deleteDefaultAnswer' => array(
+        'userDefaultAnswer_id' => 'INT'
+    ),
+    'questionNameSearch' => array(
+        'ttsSearch' => 'TEXT'
+    ),
+    'userDefaultSort' => array(
+        'id' => 'INT',
+        'userDefaultAnswer_id' => 'INT',
+        'userDefaultAnswer_orderId' => 'INT'
     )
 );
 
 function processInputs($mode, $id) {
-    global $WS, $USER_ID;
+    global $WS, $USER_ID, $DB;
+
+    if ($mode=='userDefaultSort') {
+        $newPos=ws('userDefaultAnswer_orderId')*10-5;
+        $DB->exec('UPDATE userDefaultAnswer SET orderId=? WHERE userId=? AND id=?',$newPos,$id, ws('userDefaultAnswer_id'));
+        reorderUserDefaults($id);
+        echo 'OK';
+        exit;
+    }
+
+    if ($mode=='questionNameSearch') {
+        $results = $DB->getColumn('
+            SELECT DISTINCT dataField.question
+            FROM dataField
+                    INNER JOIN dataFieldType ON dataFieldType.id=dataField.typeId
+            WHERE
+                dataField.deletedAt=0 AND
+                dataFieldType.name IN ("Integer","Textbox","Textarea","Select","Email Address","URL","Float","Type To Search","Suggested Textbox") AND
+                # Only include record types this user is allowed to edit
+                dataField.recordTypeId IN (?) AND
+                dataField.question LIKE ?
+            ',
+            getUserAccessibleRecordTypes($id,'edit',true),
+            '%'.ws('ttsSearch').'%'
+        );
+
+        echo json_encode($results);
+        exit;
+    }
 
     if ($mode=='request') {
         include(CORE_DIR.'encryptedToken.php');
@@ -34,6 +76,21 @@ function processInputs($mode, $id) {
         return;
     }
 
+    if ($mode=='deleteDefaultAnswer') {
+
+        if (!ws('userDefaultAnswer_id')) echo "The answer to delete was not specified";
+        else if (canDo('edit',$id)) {
+            $DB->delete('userDefaultAnswer',[
+                'userId'=>$id,
+                'id'=>ws('userDefaultAnswer_id')
+            ]);
+            defaultsChanged($id);
+            echo "OK";
+        } else {
+            echo "You don't have permission to edit this user";
+        }
+        exit;
+    }
     if (!$canEditLogin) {
         unset($WS['user_email']);
         unset($WS['password']);
@@ -98,6 +155,20 @@ function buildSelectors($userId) {
     }
 }
 
+function defaultsChanged($userId) {
+    global $DB;
+    $DB->update('user',['id'=>$userId],[
+        'defaultsLastChangedAt' => time()
+    ]);
+}
+
+function reorderUserDefaults($userId) {
+    global $DB;
+    $DB->exec('SET @orderId:=0');
+    $updated = $DB->exec('UPDATE userDefaultAnswer SET orderId = @orderId:=@orderId+10 WHERE userId=? ORDER BY orderId ASC', $userId);
+    if ($updated) defaultsChanged($userId);
+}
+
 function processUpdateAfter($id) {
     global $DB;
 
@@ -113,13 +184,65 @@ function processUpdateAfter($id) {
         $DB->oneToManyUpdate( 'user'.ucFirst($thing),'userId',$id,$thing.'Id',$ids );
     }
 
+    if (ws('userDefaultAnswer_answer') && ws('userDefaultAnswer_question') && ws('userDefaultAnswer_matchType')) {
+        global $WS;
+        ws('userDefaultAnswer_userId',$id);
+        ws('userDefaultAnswer_orderId',9999);
+        $DB->autoInsert('userDefaultAnswer');
+        reorderUserDefaults($id);
+    }
+
 }
 
 function prepareDisplay($id) {
+    global $extraScripts;
+
     ws('user_password','');
 
     // (Re)build the selectors to reflect any changes
     buildSelectors($id);
+
+    global $heading,$USER_ID;
+    if ($id==$USER_ID) $heading="My settings";
+
+    include(CORE_DIR.'/search.php');
+    global $defaultAnswerList;
+    $defaultAnswerList = new search('user/defaultAnswerList',['
+        SELECT
+            id, orderId, question, matchType, answer, userId
+        FROM
+            userDefaultAnswer
+        WHERE
+            userDefaultAnswer.userId=?
+        ORDER BY orderId ASC
+    ',$id]);
+
+    global $defaultAnswerMatchTypeLookup, $defaultAnswerMatchType;
+    $defaultAnswerMatchTypeLookup = [
+        'exact' => 'Exact match',
+        'anywhere' => 'Anywhere in field name',
+        'regexp' => 'Regular expression'
+    ];
+    $defaultAnswerMatchType = new formOptionbox('userDefaultAnswer_matchType',array_flip($defaultAnswerMatchTypeLookup));
+
+    global $defaultAnswerQuestionList;
+    $defaultAnswerQuestionList = new formOptionbox('userDefaultAnswer_question');
+    $defaultAnswerQuestionList->addLookup('
+        SELECT DISTINCT
+            dataField.question
+        FROM dataField
+            INNER JOIN dataFieldType ON dataFieldType.id=dataField.typeId
+        WHERE
+            dataField.deletedAt=0 AND
+            dataFieldType.name IN ("Integer","Textbox","Textarea","Select","Email Address","URL","Float","Type To Search","Suggested Textbox") AND
+            # Only include record types this user is allowed to edit
+            dataField.recordTypeId IN (?)
+    ',getUserAccessibleRecordTypes($id,'edit',true));
+
+
+    // The following is required to support drag and drop of user defaults for ordering
+    $extraScripts = array('/javascript/jquery-ui.justDraggable.min.js');
+
 }
 
 include( '../../lib/core/adminPage.php' );
