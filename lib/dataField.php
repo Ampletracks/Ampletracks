@@ -25,6 +25,8 @@ class DataField {
         15 => "Suggested Textbox",
     );
 
+    static $saveDefaultJavascriptDisplayed = false;
+
     // Default filter spec - may be overridden later
     protected $filterSpec = array( 'width'=>10,'filter'=>['ct']);
 
@@ -255,10 +257,10 @@ class DataField {
                 LEFT JOIN userDefaultAnswer ON userDefaultAnswer.id=userDefaultAnswerCache.userDefaultAnswerId
                 WHERE
                     dataField.deletedAt=0 AND
+                    dataField.allowUserDefault>0 AND
                     dataFieldType.hasValue>0 AND
                     dataField.recordTypeId=?
             ', $USER_ID, $recordTypeId );
-            echo $USER_ID."  ".$recordTypeId;
 
             $dataFieldsNeedingRecheck = [];
             $cacheHits = 0;
@@ -307,7 +309,7 @@ class DataField {
                     WHERE userDefaultAnswerCache.userId=? AND dataField.recordTypeId=? '.$dataFieldWhere
                     ,$USER_ID, $recordTypeId
                 );
-                echo $dataFieldWhere;
+
                 // Load the user defaults
                 $DB->returnHash();
                 $userDefaultAnswers = $DB->getHash('
@@ -330,7 +332,10 @@ class DataField {
                         dataField
                         INNER JOIN dataFieldType ON dataFieldType.id=dataField.typeId
                     WHERE
-                        dataField.deletedAt=0 AND dataField.recordTypeId=? AND dataFieldType.hasValue>0 
+                        dataField.deletedAt=0 AND
+                        dataField.allowUserDefault AND
+                        dataField.recordTypeId=? AND
+                        dataFieldType.hasValue>0
                         '.$dataFieldWhere.'
                 ',$recordTypeId);
 
@@ -390,8 +395,43 @@ class DataField {
         }
     }
 
+    static function saveDefaultJavascriptDisplay() {
+        if (self::$saveDefaultJavascriptDisplayed) return;
+        self::$saveDefaultJavascriptDisplayed=true;
+        ?>
+        <script>
+            $(function(){
+                let inputChangeHandler = function(){
+                    let self = $(this);
+                    let message = self.parent().find('.saveDefault');
+                    console.log(message);
+                    if (self.val().trim().length) {
+                        message.show();
+                    } else {
+                        message.hide();
+                    }
+                };
+                $('div.saveDefault').parent().find(':input.dataField')
+                .on('change',inputChangeHandler)
+                .each( inputChangeHandler );
+            });
+        </script>
+    <? }
+    
     function displayDefaultWarning() {
-        if ($this->defaulted) echo '<div class="warning defaultValueUsed">'.cms('The default value has been used to populate this field').'</div>';
+        if ($this->defaulted) echo '<div class="info defaultValueUsed">'.cms('The default value has been used to populate this field').'</div>';
+        else if ($this->params['allowUserDefault']) {
+            if (!self::$saveDefaultJavascriptDisplayed) self::saveDefaultJavascriptDisplay();
+            printf('<div class="saveDefault"><input type="checkbox" name="saveDefault[%d]" value="1">&nbsp;%s</div>',
+                $this->params['id'],
+                cms('Save this value as default for this question')
+            );
+        }
+    }
+
+    function saveDefault($value) {
+        echo "--$value--";
+        exit;
     }
 
     function getParentAnswer($dataFieldId=0) {
@@ -559,7 +599,7 @@ class DataField {
         return $isEmpty;
     }
 
-    function save( $value, $hidden, $inherited = null, $fromRecordId = null ) {
+    function save( $value, $hidden, $inherited = null, $fromRecordId = null, $saveDefault ) {
         global $DB, $USER_ID;
         if (!isset($this->params['recordId'])) return 'Can\'t save data field because the record ID is not set';
         if ($this->childLocked) return 'Can\'t save data field as it is immutable and locked by a child value';
@@ -581,6 +621,8 @@ class DataField {
         }
 
         $this->packForStorage( $value );
+
+        if ($saveDefault) $this->saveDefault( $value );
 
         // Only save if...
         // ... the answer is valid OR
@@ -913,7 +955,7 @@ class DataField_textbox extends DataField {
 
     function displayInput() {
         $inputName = $this->inputName();
-        formTextbox($inputName,$this->width,$this->maxLength,$this->getAnswer(),'class="'.htmlspecialchars($this->getType()).'" placeholder="'.htmlspecialchars($this->hint).'"');
+        formTextbox($inputName,$this->width,$this->maxLength,$this->getAnswer(),'class="dataField '.htmlspecialchars($this->getType()).'" placeholder="'.htmlspecialchars($this->hint).'"');
         $this->displayUnit();
         $this->versionLink();
         inputError($inputName);
@@ -995,7 +1037,7 @@ class DataField_textarea extends DataField {
 
     function displayInput() {
         $inputName = $this->inputName();
-        formTextarea($inputName,$this->width,$this->height,$this->getAnswer(),'class="'.htmlspecialchars($this->getType()).'placeholder="'.htmlspecialchars($this->hint).'"');
+        formTextarea($inputName,$this->width,$this->height,$this->getAnswer(),'class="dataField '.htmlspecialchars($this->getType()).'placeholder="'.htmlspecialchars($this->hint).'"');
         $this->versionLink();
         inputError($inputName);
         $this->displayDefaultWarning();
@@ -1076,7 +1118,7 @@ class DataField_integer extends DataField {
 
     function displayInput() {
         $inputName = $this->inputName();
-        formInteger( $inputName, $this->min, $this->max, 1, (int)$this->getAnswer() );
+        formInteger( $inputName, $this->min, $this->max, 1, (int)$this->getAnswer(), 'class="dataField integer"' );
         $this->displayUnit();
         $this->versionLink();
         inputError($inputName);
@@ -1112,7 +1154,7 @@ class DataField_float extends DataField_integer {
 
     function displayInput() {
         $inputName = $this->inputName();
-        formTextbox($inputName,10,200,(float)$this->getAnswer());
+        formTextbox($inputName,10,200,(float)$this->getAnswer(), 'class="dataField integer"');
         $this->displayUnit();
         $this->versionLink();
         inputError($inputName);
@@ -1330,6 +1372,8 @@ class DataField_select extends DataField {
         $answer = $this->getAnswer();
 
         $optionBox = new formOptionbox( $inputName );
+
+        $optionBox->setExtra('class="dataField select"');
         if ($this->prompt && $this->subtype=='dropdown') $optionBox->addOption($this->prompt,'');
         $optionBox->addOptions(array_combine($this->optionValues,$this->optionValues));
         if ($this->subtype=='checkboxes' || $this->subtype=='picker') {
@@ -1421,7 +1465,7 @@ class DataField_date extends DataField {
     function displayInput() {
         $inputName = $this->inputName();
         if ($this->defaultToToday) $this->default = time();
-        formDate($inputName,$this->getAnswer(),$this->min,$this->max);
+        formDate($inputName,$this->getAnswer(),$this->min,$this->max, 'class="dataField date"');
         $this->versionLink();
         inputError($inputName);
         $this->displayDefaultWarning();
@@ -1512,7 +1556,7 @@ class DataField_emailAddress extends DataField {
 
     function displayInput() {
         $inputName = $this->inputName();
-        formEmail($inputName, $this->width, '', $this->getAnswer(), 'class="'.htmlspecialchars($this->getType()).'" placeholder="'.htmlspecialchars($this->hint).'"');
+        formEmail($inputName, $this->width, '', $this->getAnswer(), 'class="dataField '.htmlspecialchars($this->getType()).'" placeholder="'.htmlspecialchars($this->hint).'"');
         $this->versionLink();
         inputError($inputName);
         $this->displayDefaultWarning();
@@ -1688,7 +1732,7 @@ class DataField_upload extends DataField {
         $this->upload->setState('maxSize',isset($this->params['maxSize'])?$this->params['maxSize']:0);
     }
 
-    function save($value,$hidden, $inherited=NULL, $fromRecordId = NULL) {
+    function save($value,$hidden, $inherited=NULL, $fromRecordId=NULL, $saveDefault=NULL) {
         $result = $this->upload->store();
 
         if ($result === true) {
@@ -1929,7 +1973,7 @@ class DataField_image extends DataField {
         $this->upload->setState('settingsLastChangedAt',$lastChanged);
     }
 
-    function save($value,$hidden, $inherited=NULL, $fromRecordId=NULL) {
+    function save($value,$hidden, $inherited=NULL, $fromRecordId=NULL, $saveDefault=NULL) {
         $result = $this->upload->store();
 
         if ($result === true) {
@@ -2017,7 +2061,7 @@ class DataField_typeToSearch extends DataField_textbox {
         $answer = $this->getAnswer();
         ?>
         <div class="tts-holder" id="tts-<?= self::$nextId ?>">
-            <input type="text" class="tts-search" autocomplete="off" tts-id="<?= self::$nextId ?>" tts-url="<?= htmlspecialchars($searchUrl) ?>" tts-show-no-results="<?= (int)$this->showNoResults ?>" size="<?= $this->width ?>" <?= $textboxName ?> value="<?= htmlspecialchars($this->getAnswer()) ?>">
+            <input type="text" class="dataField tts-search" autocomplete="off" tts-id="<?= self::$nextId ?>" tts-url="<?= htmlspecialchars($searchUrl) ?>" tts-show-no-results="<?= (int)$this->showNoResults ?>" size="<?= $this->width ?>" <?= $textboxName ?> value="<?= htmlspecialchars($this->getAnswer()) ?>">
             <div class="tts-results-holder" id="tts-results-<?= self::$nextId ?>">
                 <div class="tts-results-wrapper">
                     <ul class="tts-results-list"></ul>

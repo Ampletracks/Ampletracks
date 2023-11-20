@@ -43,6 +43,7 @@ function processInputs($mode, $id) {
                     INNER JOIN dataFieldType ON dataFieldType.id=dataField.typeId
             WHERE
                 dataField.deletedAt=0 AND
+                dataField.allowUserDefault AND
                 dataFieldType.name IN ("Integer","Textbox","Textarea","Select","Email Address","URL","Float","Type To Search","Suggested Textbox") AND
                 # Only include record types this user is allowed to edit
                 dataField.recordTypeId IN (?) AND

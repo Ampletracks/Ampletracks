@@ -327,37 +327,55 @@ $(function(){
 		})
 	}
 
+      console.log('HELLO');
+    $('form input[type=submit]').on('click',function() {
+      console.log('HELLO');
+      // Chrome does a stupid thing where it tries (and fails) to flag validation warnings
+      // against invisible fields - this stops the form from submitting
+      // To fix this we remove all the "required" attributes from any hidden form fields
+      console.log('hello');
+      self.find(':input[min],:input[max]').each(function(){
+        console.log('foo');
+        let self = $(this);
+        if (self.is(':hidden') || self.parents(':hidden').length) {
+           console.log('disabling');
+          self.attr('min',false).attr('max',false);
+        }
+      });
+    });
+
     $('form').on('submit',function() {
-        var self = $(this);
+      var self = $(this);
 
-		// If the form has told us too then rename and invisible fields on submit
-		if (self.hasClass('renameInvisibleFieldsOnSubmit')) {
-	        var fields = self.find('input,select,textarea').not('[type=HIDDEN],[type=hidden]');
-			fields.filter(':hidden').each(function(){
-				if (this.name.match(/^hidden:/)) return;
-				this.name='hidden:'+this.name;
-			});
-			fields.filter(':visible').each(function(){
-				this.name=this.name.replace(/^hidden:/,'');
-			});
-		}
-		
-		// Make all unselected checkboxes return the value '' instead of not being submitted at all
-		// We used to change their value to '' and check them but this caused problems when the user pressed "back"
-		//     because the browser would remember the final state and show the page with them all checked.
-		// So what we do instead is create hidden form fields with the same name and add these to the form
-		// The same goes for multiple select box options which aren't selected
 
-        // First get rid of any dynamically generated hidden form fields from previous page loads (in case the user uses the back button)
-        self.find('input.unselectedCheckboxFix:hidden').remove();
-        self.find('input:checkbox:not([name^="filter_"]),select[multiple]:not([name^="filter_"])').not(':checked').each(function() {
-            var self = $(this);
-            var form = $(this.form);
-            if (self.is('select') && self.find('option:selected').length) return;
-            var input = $('<input type="text" ></input>').addClass('unselectedCheckboxFix').css({'position':'absolute','margin-left':'-1000px'}).prop('name',this.name).val('');
-            // put the new input immediately after the one it is standing in for so that the overall order of the form fields is not messed up
-            self.after(input);
+      // If the form has told us too then rename and invisible fields on submit
+      if (self.hasClass('renameInvisibleFieldsOnSubmit')) {
+            var fields = self.find('input,select,textarea').not('[type=HIDDEN],[type=hidden]');
+        fields.filter(':hidden').each(function(){
+          if (this.name.match(/^hidden:/)) return;
+          this.name='hidden:'+this.name;
         });
+        fields.filter(':visible').each(function(){
+          this.name=this.name.replace(/^hidden:/,'');
+        });
+      }
+      
+      // Make all unselected checkboxes return the value '' instead of not being submitted at all
+      // We used to change their value to '' and check them but this caused problems when the user pressed "back"
+      //     because the browser would remember the final state and show the page with them all checked.
+      // So what we do instead is create hidden form fields with the same name and add these to the form
+      // The same goes for multiple select box options which aren't selected
+
+      // First get rid of any dynamically generated hidden form fields from previous page loads (in case the user uses the back button)
+      self.find('input.unselectedCheckboxFix:hidden').remove();
+      self.find('input:checkbox:not([name^="filter_"]),select[multiple]:not([name^="filter_"])').not(':checked').each(function() {
+          var self = $(this);
+          var form = $(this.form);
+          if (self.is('select') && self.find('option:selected').length) return;
+          var input = $('<input type="text" ></input>').addClass('unselectedCheckboxFix').css({'position':'absolute','margin-left':'-1000px'}).prop('name',this.name).val('');
+          // put the new input immediately after the one it is standing in for so that the overall order of the form fields is not messed up
+          self.after(input);
+      });
 
     });
  

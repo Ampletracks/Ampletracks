@@ -59,6 +59,7 @@ $tables = array(
         'deletedAt' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
         'parameters' => "TEXT NOT NULL DEFAULT ''",
         'logChanges' => "ENUM ('no','basic','detailed') DEFAULT 'detailed'",
+        'allowUserDefault' => "TINYINT(3) UNSIGNED NOT NULL DEFAULT 0",
         'inheritance' => "ENUM('normal','none','default','immutable') DEFAULT 'none'",
         'dependencyCombinator' => "ENUM ('and','or') DEFAULT 'and'",
         'questionLastChangedAt' =>  "INT(10) UNSIGNED NOT NULL DEFAULT 0",
@@ -468,6 +469,10 @@ $upgrades = array(
         foreach( $needUpdating as $id=>$name) {
             $DB->update('dataField',['id'=>$id],['exportName'=>toCamelCase($name)]);
         }
+    },
+    6 => function() {
+        global $DB;
+        $DB->exec('UPDATE dataField SET allowUserDefault=1 WHERE typeId IN (SELECT id FROM dataFieldType WHERE hasValue)');
     },
 
     // =====================================================================================================

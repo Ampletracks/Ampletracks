@@ -85,6 +85,14 @@
     </div>
     <div class="questionAndAnswer">
         <div class="question">
+            <?=cms('Data Field: Allow user default',0,'Allow user default')?>:
+        </div>
+        <div class="answer">
+            <? formYesNo('dataField_allowUserDefault',false,false,false); ?>
+        </div>
+    </div>
+    <div class="questionAndAnswer">
+        <div class="question">
             <?=cms('Data Field: Inheritance',0,'Inheritance')?>:
         </div>
         <div class="answer">

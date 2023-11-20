@@ -9,6 +9,7 @@ $INPUTS = array(
     ),
     'update' => array(
         'dataField'     		=> 'ARRAY ANY',
+        'saveDefault'     		=> 'ARRAY INT',
         'dataFieldInherited' 	=> 'ARRAY INT',
         'relationshipLinkId'	=> 'INT',
         'toRecordId'			=> 'INT',
@@ -309,13 +310,17 @@ function processUpdateAfter( $id, $isNew ) {
     // Remove any zeros
     $hiddenFields = array_filter($hiddenFields);
 
+    $saveDefault = ws('saveDefault');
+    forceArray($saveDefault);
     $recordData =  ws('dataField');
     forceArray($recordData);
     $recordInherited = ws('dataFieldInherited');
     forceArray($recordInherited);
-
+    
     global $parentAnswers;
 
+    dump($saveDefault);
+    exit;
     foreach( $dataFields as $dataFieldId=>$dataField) {
         $hidden = in_array($dataFieldId,$hiddenFields);        
         $inherited = isset($recordInherited[$dataFieldId]) ? $recordInherited[$dataFieldId] : 0;
@@ -332,7 +337,7 @@ function processUpdateAfter( $id, $isNew ) {
         } else {
             $value = isset($recordData[$dataFieldId]) ? $recordData[$dataFieldId] : '';
         }
-        $result = $dataField->save( $value, $hidden, $inherited );
+        $result = $dataField->save( $value, $hidden, $inherited, null, isset($saveDefault[$dataFieldId]) );
         if ($result!==true) inputError('dataField['.$dataFieldId.']',$result);
         else DataField::doInheritance($dataFieldId, $value, $id);
     }
