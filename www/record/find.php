@@ -37,7 +37,7 @@ if (!isset($_GET['id']) || strlen($_GET['id'])<12) {
             $recordTypes = $DB->getHash('SELECT id, name FROM recordType WHERE deletedAt=0');
             $recordTypeSelect = new formOptionbox('record_typeId',['-- Select record type --'=>'']);
             foreach( $recordTypes AS $recordTypeId=>$recordType ) {
-                if (!canDo('create',0,"recordType:$recordTypeId")) continue;
+                if (!canDo('create',0,"recordTypeId:$recordTypeId")) continue;
                 $canCreateRecord=true; 
                 $recordTypeSelect->addOption($recordType, $recordTypeId);
             }
