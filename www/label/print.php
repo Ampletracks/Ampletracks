@@ -18,12 +18,16 @@ include('../../lib/core/startup.php');
 include(LIB_DIR.'/labelTools.php');
 
 if (ws('mode')=='preview') {
-    $labelSelect = new formOptionbox('layout', [
+    $labelOptions = [
         'A4 3x9'=>'3x9',
         'A4 5x13: Avery B7651-50'=>'5x13',
         'A4 8x11: Tiny'=>'Tiny',
+    ];
 
-    ]);
+    foreach($labelOptions as $option => $value) {
+        $labelOptions[$option.' (single label)'] = $value.' (single)';
+    }
+    $labelSelect = new formOptionbox('layout', $labelOptions);
     $labelSelect->setExtra('onChange="changeLayout(this.value)" class="dontExpand"');
 
     include(VIEWS_DIR.'/label/preview.php');
@@ -361,6 +365,13 @@ class pdfLabels {
 $layout = ws('layout');
 if (!$layout) $layout = '3x9';
 
+$single = false;
+if (strrpos($layout,' (single)')>0) {
+    $layout = str_replace(' (single)','',$layout);
+    $single = true;
+}
+
+
 $fqdn = preg_replace('!^https?://!','',SITE_URL);
 $fqdn = preg_replace('!/+$!','',$fqdn);
 $fqdn = $fqdn;
@@ -426,6 +437,11 @@ if ($layout=='3x9') {
                 [$fqdn,                  'Arial',   'B',8.5,  1.1,15.0,  36, 6,  0,'L'],
         ]
 ];
+}
+
+if ($single) {
+    $layout['cols'] = 1;
+    $layout['rows'] = 1;
 }
 
 $layout['fqdn'] = $fqdn;
