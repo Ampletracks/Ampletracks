@@ -89,7 +89,7 @@
 </div>
 
 <? if (ws('id')) { ?>
-    <h2>Defaults Answers</h2>
+    <h2>Default Answers</h2>
     <?
         $defaultAnswerList->display(true);
     ?>

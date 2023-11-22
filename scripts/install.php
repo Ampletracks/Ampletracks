@@ -293,7 +293,7 @@ $tables = array(
         'matchType' => "ENUM('exact','anywhere','regexp') DEFAULT 'exact'",
         'answer' => "VARCHAR(255) NOT NULL",
         'orderId' => "SMALLINT UNSIGNED NOT NULL DEFAULT 9999",
-        'index_userId' => "UNIQUE INDEX (`userId`,`question`,`answer`)",
+        'index_userId' => "UNIQUE INDEX (`userId`,`question`(100),`answer`(100))",
     ),
     'userDefaultAnswerCache' => array(
         'userId' => "INT(10) UNSIGNED NOT NULL",
