@@ -163,6 +163,7 @@ class label {
             $fqdn = $DB->getValue('SELECT site.fqdn FROM site WHERE id=?',$this->siteId);
             $this->redirectUrl = 'https://'.$fqdn.'/record/find.php?id='.$_GET['id'];
 
+            /*
             $ch = curl_init();
             curl_setopt ($ch, CURLOPT_URL, $this->redirectUrl);
             curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);
@@ -171,6 +172,8 @@ class label {
             $status = curl_getinfo($ch,CURLINFO_RESPONSE_CODE);
             if ($status ==200 ) $result = true;
             else $this->redirectUrl = false;
+            */
+            $result=true;
         }
         if (!$result) {
             $this->error = 'Invalid security code';
