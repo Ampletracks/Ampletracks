@@ -90,4 +90,5 @@ include(VIEWS_DIR.'/header.php');
         } ?>
     </div>
 <? } ?>
+<br />
 <? include(VIEWS_DIR.'/footer.php'); ?>

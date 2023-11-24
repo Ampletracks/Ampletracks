@@ -373,6 +373,7 @@ class DataField {
         if (isset(self::$answers[$dataFieldId])) {
             $answer = self::$answers[$dataFieldId];
             $this->unpackFromStorage( $answer );
+            return $answer;
         }
         else {
             // See if there is a user-specific default for this value
@@ -425,13 +426,19 @@ class DataField {
     }
 
     function displayPublicValue() {
-        echo htmlspecialchars($this->getAnswer());
-        $this->displayUnit();
+        $answer = htmlspecialchars($this->getAnswer());
+        // Don't display defaulted answers
+        if ($this->defaulted || $answer==='') {
+            echo '<i>no value provided</i>';
+        } else {
+            echo $answer;
+            $this->displayUnit();
+        }
     }
 
     function displayRow( $isPublic = true ) {
         ?>
-        <div class="questionAndAnswer <?=htmlspecialchars($this->getType())?>" <?=$this->getDependencyAttributes()?> >
+        <div class="questionAndAnswer <?=$isPublic?'publicView':''?> <?=htmlspecialchars($this->getType())?>" <?=$this->getDependencyAttributes()?> >
             <div class="question">
                 <? $this->displayLabel(); ?>
             </div>
