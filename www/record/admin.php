@@ -48,6 +48,25 @@ function postStartup($mode,$id) {
         global $DB;
         list( $recordTypeId, $currentProjectId, $currentOwnerId, $createdBy, $lastSavedAt ) = $DB->getRow('SELECT typeId,projectId,ownerId,createdBy,lastSavedAt FROM record WHERE id=?',$id);
         $permissionsEntity = 'recordTypeId:'.$recordTypeId;
+
+        if(ws('mode') == 'logEditAccess') {
+            // Update a 'view' access from this user in the last couple of seconds as it's probably from
+            // initially hitting the page with '#edit' on the end
+            $updated = $DB->exec('
+                UPDATE userRecordAccess
+                SET accessType = "edit"
+                WHERE userId = ?
+                AND recordId = ?
+                AND accessedAt >= ?
+            ', $USER_ID, $id, time() - 2);
+            if(!$updated) {
+                $DB->insert('userRecordAccess', ['userId' => $USER_ID, 'recordId' => $id, 'accessType' => 'edit', 'accessedAt' => time()]);
+            }
+            echo 'OK';
+            exit;
+        } else {
+            $DB->insert('userRecordAccess', ['userId' => $USER_ID, 'recordId' => $id, 'accessType' => 'view', 'accessedAt' => time()]);
+        }
     } else {
         $permissionsEntity = 'recordTypeId:'.ws('record_typeId');
         $currentOwnerId = 0;

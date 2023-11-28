@@ -319,6 +319,14 @@ $tables = array(
         'index_userId' => "INDEX (`userId`,`recordTypeId`)",
         'index_recordTypeId' => "INDEX (`recordTypeId`)",
     ),
+    'userRecordAccess' => array(
+        'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
+        'userId' => "INT(10) UNSIGNED NOT NULL",
+        'recordId' => "INT(10) UNSIGNED NOT NULL",
+        'accessType' => "ENUM('view','edit')",
+        'accessedAt' => "INT(10) UNSIGNED NOT NULL",
+        'index_recordId' => "INDEX (`recordId`,`userId`)",
+    ),
     'userRole' => array(
         'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
         'userId' => "INT(10) UNSIGNED NOT NULL",

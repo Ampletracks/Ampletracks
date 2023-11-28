@@ -510,6 +510,14 @@ formHidden('hiddenFields');
         // Put a set of buttons at the top of the page
         $('.btn-list.bottom').clone().removeClass('bottom').addClass('top').prependTo('#dataEntryForm');
 
+        function notifyEdit() {
+            <? if(ws('id')) { ?>
+                const id = <?=(int)ws('id')?>;
+                $.post('admin.php', {mode: 'logEditAccess', id: <?=(int)ws('id')?>});
+            <? } ?>
+            return false;
+        }
+
         if (!<?=json_encode($editMode)?> && !parseHashParameters().hasOwnProperty('edit')) {
             // Start off with all the inputs disabled
             editMode = false;
@@ -532,6 +540,7 @@ formHidden('hiddenFields');
                     saveButtons.show();
                     editButton.hide();
                     inheritanceStartupChecks();
+                    notifyEdit();
                     return false;
                 });
             <? } ?>
@@ -541,6 +550,8 @@ formHidden('hiddenFields');
             showOnEdit.hide();
             inputs.prop('disabled',true);
             saveButtons.hide();
+        } else {
+            notifyEdit();
         }
 
     });
