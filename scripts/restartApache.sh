@@ -1,6 +1,7 @@
 #!/bin/bash
 
-certificate=../data/acme/certificate.crt
+# can't just use ../ here because this will break if the scripts directory is symlinked
+certificate=`dirname \`pwd\``/data/acme/certificate.crt
 
 # Check if apache2 is installed
 if command -v apache2 >/dev/null 2>&1; then
