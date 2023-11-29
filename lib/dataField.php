@@ -438,7 +438,7 @@ class DataField {
 
     function displayRow( $isPublic = true ) {
         ?>
-        <div class="questionAndAnswer <?=$isPublic?'publicView':''?> <?=htmlspecialchars($this->getType())?>" <?=$this->getDependencyAttributes()?> >
+        <div class="questionAndAnswer <?=htmlspecialchars($this->getType())?>" <?=$this->getDependencyAttributes()?> >
             <div class="question">
                 <? $this->displayLabel(); ?>
             </div>
