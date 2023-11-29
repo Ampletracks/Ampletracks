@@ -46,7 +46,7 @@ function shareLinkJavascript() {
             let self = $(this);
             var message = $('<div class="notify flashMessage"></div>');
             let error = function() {
-                message.addClass('error').text('Sorry - there was an unexpected error whilst retreiving the link');
+                message.append('<div class="error">Sorry - there was an unexpected error whilst retrieving the link</div>');
                 $('body').append(message);
             };
 
@@ -56,7 +56,7 @@ function shareLinkJavascript() {
                     error();
                 } else {
                     navigator.clipboard.writeText(data.url).then( function(){
-                        message.text('Share link copied to clipboard');
+                        message.append('<div class="success">Share link copied to clipboard</div>');
                         $('body').append(message);
                     });
                 };
