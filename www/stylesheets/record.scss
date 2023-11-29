@@ -94,3 +94,18 @@ div.answer div.saveDefault {
     color: var(--c-brand-a);
     flex-basis: 100%;
 }
+
+div.questionAndAnswerContainer.publicView {
+    div.question {
+        font-weight: bold;
+    }
+    span.unit {
+        background-color: inherit;
+        border: inherit;
+        padding: 0px 10px;
+    }
+}
+
+body.record.admin main a.getShareLink {
+    float: right;
+}

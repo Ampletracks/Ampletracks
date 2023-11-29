@@ -49,6 +49,17 @@ $(function(){
 });
 </script>
 <?
+
+include(LIB_DIR.'/shareLinkTools.php');
+shareLinkJavascript();
+?>
+<a href="admin.php?mode=getShareLink&id=<?=$id?>" class="getShareLink">Share link</a>
+<script>
+    console.log($('ul.btn-list.top'));
+    $(function(){$('a.getShareLink').detach().insertBefore('h1');});
+</script>
+<?
+
 formHidden('parentId');
 $parentId = (int)ws(ws('id')?'record_parentId':'parentId');
 global $parentName;

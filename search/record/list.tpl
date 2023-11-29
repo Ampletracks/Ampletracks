@@ -1,6 +1,9 @@
 <TEMPLATE NAME="COMMON">
     <?
     global $fieldsToDisplay,$builtInFieldsToDisplay,$entityName,$filters;
+
+    include_once(LIB_DIR.'/shareLinkTools.php');
+    shareLinkJavascript();
     ?>
 </TEMPLATE>
 
@@ -82,6 +85,9 @@
             if (canDo('edit',$rowData['id'],$permissionsEntity)) {
                 ?><a href="/label/print.php?recordId=@@id@@">Generate new label</a><?
             }
+			if (canDo('view',$rowData['id'],$permissionsEntity)) {
+				?><a class="getShareLink" href="admin.php?id=@@id@@&mode=getShareLink">Get Share Link</a><?
+			}
 			$content = ob_get_clean();
 			echo substr_count($content,'href')>1 ? '<td class="actions">'.$content.'</td>' : '<td class="noActionsMenu">'.$content.'</td>';
 		?>

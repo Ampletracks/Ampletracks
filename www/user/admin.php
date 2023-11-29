@@ -119,6 +119,7 @@ function buildSelectors($userId) {
         $userThingTable = 'user'.ucfirst($thing);
 
         $limitSql = '';
+        $orderSql = '';
         $allowedIds = null;
         if ($thing=='recordType') {
             // There is no point showing recordTypes on this list that the user being editted isn't allowed to see
@@ -141,6 +142,12 @@ function buildSelectors($userId) {
             $limitSql = " AND {$thing}.id IN (".implode(',',$allowedIds).')';
         }
 
+        if ($thing=='project') {
+            $orderSql = 'ORDER BY userProject.orderId ASC';
+        } else {
+            $orderSql = "ORDER BY {$thing}.name";
+        }
+
         ${"{$thing}Select"} = new formPicklist( $thing.'Ids', array("
             SELECT
                 {$thing}.name AS `option`,
@@ -152,6 +159,7 @@ function buildSelectors($userId) {
             WHERE
                 {$thing}.deletedAt=0
                 {$limitSql}
+                {$orderSql}
         ",$userId));
     }
 }
@@ -170,11 +178,11 @@ function reorderUserDefaults($userId) {
     if ($updated) defaultsChanged($userId);
 }
 
-function processUpdateAfter($id) {
+function processUpdateAfter($userId) {
     global $DB;
 
     // Build the selectors so that we can use them to validate the changes
-    buildSelectors($id);
+    buildSelectors($userId);
 
     foreach (['role','recordType','project'] as $thing) {
         $ids = ws($thing.'Ids');
@@ -182,15 +190,24 @@ function processUpdateAfter($id) {
         global ${"{$thing}Select"};
         $ids = array_intersect( $ids, ${"{$thing}Select"}->options );
 
-        $DB->oneToManyUpdate( 'user'.ucFirst($thing),'userId',$id,$thing.'Id',$ids );
+        $DB->oneToManyUpdate( 'user'.ucFirst($thing),'userId',$userId,$thing.'Id',$ids );
+
+        if ($thing=='project' && count($ids)) {
+            // Update the project order to match that supplied
+            $DB->exec('
+                UPDATE userProject
+                SET orderId=field(projectId,?)
+                WHERE userId=?
+            ',$ids,$userId);
+        }
     }
 
     if (ws('userDefaultAnswer_answer') && ws('userDefaultAnswer_question') && ws('userDefaultAnswer_matchType')) {
         global $WS;
-        ws('userDefaultAnswer_userId',$id);
+        ws('userDefaultAnswer_userId',$userId);
         ws('userDefaultAnswer_orderId',9999);
         $DB->autoInsert('userDefaultAnswer');
-        reorderUserDefaults($id);
+        reorderUserDefaults($userId);
     }
 
 }

@@ -17,6 +17,11 @@ function formLabel($for,$label,$contentCallback) {
     }
 }
 
+function formAddClassToExtra( &$extra, $class ) {
+    $class = htmlspecialchars($class);
+    $extra = preg_replace('/(class\s*=\s*["\'])/','\\1'.$class.' ',$extra, 1, $replaced);
+    if (!$replaced) $extra .= ' class="'.$class.'"';
+}
 
 function formColour( $name, $default=null, $extra='' ) {
     $type = 'color';
@@ -37,9 +42,7 @@ function formInteger( $name, $min=null, $max=null, $step=null, $default=null, $e
     if (is_null($step)) $step=1;
     else $step=round($step);
 
-    $extra = preg_replace('/(class\s*=\s*["\'])/','\\1integer ',$extra, 1, $replaced);
-    if (!$replaced) $extra .= ' class="integer"';
-
+    formAddClassToExtra( $extra, 'integer' );
     formFloat( $name, $min, $max, $step, $default, $extra );
 }
 
@@ -63,7 +66,8 @@ function formDate( $name, $default=0, $min=0, $max=0, $extra='' ) {
     static $jsDone = false;
 
     if (isset( $WS[$name] ) && $WS[$name]>0 ) $value = (int)$WS[$name];
-    else $value = (int)$default;
+    else if ((int)$default>0) $value = (int)$default;
+    else $value='';
 
     if ($min<1) $min = '1970-1-1';
     else $min = date('Y-m-d',$min);
@@ -71,9 +75,11 @@ function formDate( $name, $default=0, $min=0, $max=0, $extra='' ) {
     if ($max<1) $max = '2038-1-1';
     else $max = date('Y-m-d',$max);
 
-    $extra .=' unixtime="'.$value.'" class="coreDateField" min="'.$min.'" max="'.$max.'"';
+    $extra .=' unixtime="'.$value.'" min="'.$min.'" max="'.$max.'"';
+    formAddClassToExtra( $extra, 'coreDateField' );
 
-    formBox( 'date', $name, '', '', [$default], $extra );
+    if ($value) $value = date('Y-m-d',$value);
+    formBox( 'date', $name, '', '', [$value], $extra );
     if (!$jsDone) {
         ?><script>
         $(function(){
@@ -704,6 +710,7 @@ function formTypeToSearch( $options ) {
             tts-url="<?= htmlspecialchars($url) ?>"
             tts-include-add-new="<?= htmlspecialchars($includeAddNew) ?>"
             tts-show-no-results="<?= (int)$showNoResults ?>"
+            autocomplete="off"
             <?= $textboxName.$idAttribute.' '.$extra ?>
         >
         <div class="tts-results-holder" id="tts-results-<?=$nextId ?>">

@@ -327,26 +327,39 @@ $(function(){
 		})
 	}
 
-      console.log('HELLO');
-    $('form input[type=submit]').on('click',function() {
-      console.log('HELLO');
+    var validationRestoreInputs = [];
+
+    $('body').on('click','form :button[type=submit]',function() {
       // Chrome does a stupid thing where it tries (and fails) to flag validation warnings
       // against invisible fields - this stops the form from submitting
-      // To fix this we remove all the "required" attributes from any hidden form fields
-      console.log('hello');
-      self.find(':input[min],:input[max]').each(function(){
-        console.log('foo');
+      // To fix this we remove the max and min attributes from any hidden fields
+      // BUT.... if form submission fails we need to put them back
+      // This is tricky because there is no specific event that fires when a form FAILS to submit
+      // However it looks like the blur event will fire on the submit event if the form fails
+      // So when that fires we put everything back
+
+      $(this).closest('form').find(':input[min],:input[max]').each(function(){
         let self = $(this);
-        if (self.is(':hidden') || self.parents(':hidden').length) {
-           console.log('disabling');
+        if (self.closest(':hidden').length) {
+          self.data('min',self.attr('min'));
+          self.data('max',self.attr('max'));
           self.attr('min',false).attr('max',false);
+          validationRestoreInputs.push(self);
         }
       });
     });
 
+    $('body').on('blur','form :button[type=submit]',function() {
+      for( let input of validationRestoreInputs ) {
+          input.attr('min',input.data('min'));
+          input.attr('max',input.data('max'));
+          console.log('restored:',input);
+      }
+      validationRestoreInputs=[];
+    });
+    
     $('form').on('submit',function() {
       var self = $(this);
-
 
       // If the form has told us too then rename and invisible fields on submit
       if (self.hasClass('renameInvisibleFieldsOnSubmit')) {

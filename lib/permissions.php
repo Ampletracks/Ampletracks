@@ -424,6 +424,7 @@ function addUserAccessLimits( $options=[] ) {
         'project'       => 'project.id',
         'record'        => 'record.projectId',
         'recordType'    => 'recordType.projectId',
+        'recordDataVer' => 'record.projectId',
         'role'          => '',
     ];
     
@@ -439,6 +440,7 @@ function addUserAccessLimits( $options=[] ) {
         'project'       => '',
         'record'        => 'record.ownerId',
         'recordType'    => '',
+        'recordDataVer' => 'record.ownerId',
         'role'          => '',
     ];
     
@@ -455,7 +457,7 @@ function addUserAccessLimits( $options=[] ) {
 
     $permissions = getUserPermissionsForEntity( $entity, $userId );
 
-    // if they are a superuse then don't impose any limits
+    // if they are a superuser then don't impose any limits
     if (isset($permissions['superuser'])) return true;
 
     // If they have no list permissions in relation to this entity then return false

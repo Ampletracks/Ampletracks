@@ -74,6 +74,9 @@
                 <?=cms('Only assign to others projects you have yourself info',0,'You can only give to others projects which are already assigned to you') ?>
             </div>
         <? } ?>
+        <div class="info">
+            <?=cms('The first project selected will be the default project used when this user is creating new records',0) ?>
+        </div>
     </div>
 </div>
 <div class="questionAndAnswer">

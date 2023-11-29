@@ -215,7 +215,7 @@ if (!isset($heading)) {
 }
 
 if (!isset($extraBodyClasses)) $extraBodyClasses=array();
-$extraBodyClasses = array_merge( $extraBodyClasses, array('checkExit'));
+$extraBodyClasses = array_merge( $extraBodyClasses, array('admin','checkExit'));
 
 if(ws('mode') == 'update') {
     addUserNotice(cms('Changes saved',0), 'success');

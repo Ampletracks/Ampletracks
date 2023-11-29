@@ -706,6 +706,8 @@ class Dbif {
 	
 	function update( $table_name, $where_data, $update_data ) {
 	
+        // If $where_data is a whole number then we assume that $where_data is ['id'=>$where_data]
+        if (is_numeric($where_data) && $where_data==(int)$where_data) $where_data = ['id'=>$where_data];
 		if (!count($where_data) || !count($update_data)) return false;
 		
 		$sql = "UPDATE `$table_name` SET ";

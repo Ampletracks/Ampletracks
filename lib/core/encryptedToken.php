@@ -19,11 +19,12 @@ function createEncryptedToken($purpose,$data) {
     $nonce = random_bytes(SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
     $ciphertext = sodium_crypto_secretbox($plaintext, $nonce, $key);
 
-    $encryptedData = base64_encode($nonce . $ciphertext);
+    $encryptedData = base64URLEncode($nonce . $ciphertext);
 
     return $encryptedData;
 }
 
+# set the purpose to "getErrors" to retrieve previous error
 function decryptEncryptedToken($purpose,$encryptedData=null) {
     static $lastError=false;
 
@@ -32,7 +33,7 @@ function decryptEncryptedToken($purpose,$encryptedData=null) {
 
     if (empty($encryptedData)){ $lastError='The '.$purpose.' token was not supplied'; return false; }
 
-    $binaryData = @base64_decode($encryptedData);
+    $binaryData = @base64URLDecode($encryptedData);
     if (empty($binaryData)) { $lastError='The '.$purpose.' token could not be decrypted'; return false; }
 
     $key = @base64_decode(systemData($purpose.'EncryptionKey'));

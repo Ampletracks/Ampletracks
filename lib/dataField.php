@@ -240,6 +240,9 @@ class DataField {
     function getUserDefault() {
         global $USER_ID,$DB;
 
+        // See if this field is allowed to be defaulted - if not return null
+        if (!$this->params['allowUserDefault']) return null;
+
         if ( $this->userDefaultAnswers === false ) {
             $recordTypeId = $this->params['recordTypeId'];
 
@@ -375,7 +378,7 @@ class DataField {
 
     function getAnswer($dataFieldId=0) {
         if (!$dataFieldId) $dataFieldId=$this->params['id'];
-        if (isset(self::$answers[$dataFieldId])) {
+        if (isset(self::$answers[$dataFieldId]) && self::$answers[$dataFieldId]!=='' ) {
             $answer = self::$answers[$dataFieldId];
             $this->unpackFromStorage( $answer );
             return $answer;
@@ -404,7 +407,6 @@ class DataField {
                 let inputChangeHandler = function(){
                     let self = $(this);
                     let message = self.parent().find('.saveDefault');
-                    console.log(message);
                     if (self.val().trim().length) {
                         message.show();
                     } else {
@@ -420,18 +422,16 @@ class DataField {
     
     function displayDefaultWarning() {
         if ($this->defaulted) echo '<div class="info defaultValueUsed">'.cms('The default value has been used to populate this field').'</div>';
-        else if ($this->params['allowUserDefault']) {
+        else if ($this->params['allowUserDefault'] && is_null($this->getUserDefault())) {
+            // We only want to offer the user the option of saving a default value IF
+            // 1. this field is enabled for defaulting and
+            // 2. it doesn't currently have a default
             if (!self::$saveDefaultJavascriptDisplayed) self::saveDefaultJavascriptDisplay();
             printf('<div class="saveDefault"><input type="checkbox" name="saveDefault[%d]" value="1">&nbsp;%s</div>',
                 $this->params['id'],
                 cms('Save this value as default for this question')
             );
         }
-    }
-
-    function saveDefault($value) {
-        echo "--$value--";
-        exit;
     }
 
     function getParentAnswer($dataFieldId=0) {
@@ -599,7 +599,7 @@ class DataField {
         return $isEmpty;
     }
 
-    function save( $value, $hidden, $inherited = null, $fromRecordId = null, $saveDefault ) {
+    function save( $value, $hidden, $inherited = null, $fromRecordId = null ) {
         global $DB, $USER_ID;
         if (!isset($this->params['recordId'])) return 'Can\'t save data field because the record ID is not set';
         if ($this->childLocked) return 'Can\'t save data field as it is immutable and locked by a child value';
@@ -621,8 +621,6 @@ class DataField {
         }
 
         $this->packForStorage( $value );
-
-        if ($saveDefault) $this->saveDefault( $value );
 
         // Only save if...
         // ... the answer is valid OR
@@ -1732,7 +1730,7 @@ class DataField_upload extends DataField {
         $this->upload->setState('maxSize',isset($this->params['maxSize'])?$this->params['maxSize']:0);
     }
 
-    function save($value,$hidden, $inherited=NULL, $fromRecordId=NULL, $saveDefault=NULL) {
+    function save($value,$hidden, $inherited=NULL, $fromRecordId=NULL) {
         $result = $this->upload->store();
 
         if ($result === true) {
@@ -1973,7 +1971,7 @@ class DataField_image extends DataField {
         $this->upload->setState('settingsLastChangedAt',$lastChanged);
     }
 
-    function save($value,$hidden, $inherited=NULL, $fromRecordId=NULL, $saveDefault=NULL) {
+    function save($value,$hidden, $inherited=NULL, $fromRecordId=NULL ) {
         $result = $this->upload->store();
 
         if ($result === true) {
@@ -2057,20 +2055,15 @@ class DataField_typeToSearch extends DataField_textbox {
             $searchUrl .= '?'.$extraQueryParams;
         }
 
-        $textboxName = $this->hiddenInput ? '' : 'name="'.$inputName.'"';
-        $answer = $this->getAnswer();
-        ?>
-        <div class="tts-holder" id="tts-<?= self::$nextId ?>">
-            <input type="text" class="dataField tts-search" autocomplete="off" tts-id="<?= self::$nextId ?>" tts-url="<?= htmlspecialchars($searchUrl) ?>" tts-show-no-results="<?= (int)$this->showNoResults ?>" size="<?= $this->width ?>" <?= $textboxName ?> value="<?= htmlspecialchars($this->getAnswer()) ?>">
-            <div class="tts-results-holder" id="tts-results-<?= self::$nextId ?>">
-                <div class="tts-results-wrapper">
-                    <ul class="tts-results-list"></ul>
-                </div>
-            </div>
-            <? if($this->hiddenInput) formHidden(array('name' => $inputName, 'extra' => 'class="tts-value"')); ?>
-        </div>
-        <?
-        if(self::$nextId == 0) formTypeToSearchSupport();
+        formTypeToSearch([
+            'class' => 'dataField',
+            'url' => $searchUrl,
+            'showNoResults' => $this->showNoResults,
+            'size' => $this->width,
+            'default' => $this->getAnswer(),
+            'hidden' => $this->hiddenInput,
+            'name' => $inputName
+        ]);
 
         $this->displayUnit();
         $this->versionLink();

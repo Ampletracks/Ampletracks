@@ -20,6 +20,8 @@ $listSql = '
         recordDataVersion.userId
     FROM
         recordDataVersion
+        # This next join required for permissions check
+        INNER JOIN record ON record.id=recordDataVersion.recordId
         LEFT JOIN dataField ON dataField.id=recordDataVersion.dataFieldId
         LEFT JOIN user ON user.id=recordDataVersion.userId
     WHERE
@@ -29,8 +31,8 @@ $listSql = '
 ';
 
 function extraButtonsBefore() {
-    if (ws('filter_recordIdEq')) { ?>
-        <a href="/record/admin.php?id=<?=(int)ws('filter_recordIdEq')?>" class="button">Back</a>
+    if (ws('filter_recordId_eq')) { ?>
+        <a class="btn" href="/record/admin.php?id=<?=(int)ws('filter_recordId_eq')?>" class="button">Back</a>
     <? }
 }
 

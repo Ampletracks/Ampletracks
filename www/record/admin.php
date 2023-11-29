@@ -29,7 +29,7 @@ $INPUTS = array(
 
 function postStartup($mode,$id) {
     include( LIB_DIR.'/dataField.php');
-    global $dontProcessUploads, $USER_ID;
+    global $DB, $dontProcessUploads, $USER_ID;
 
     if ($id==0) {
         if (!ws('record_typeId')) ws('record_typeId',getPrimaryFilter());
@@ -102,8 +102,13 @@ function postStartup($mode,$id) {
             $ownerSelect->addOption($USER_FIRST_NAME.' '.$USER_LAST_NAME,$USER_ID);
         }
     }
-    // When creating new records set the default owner to be the person who is logged in
-    if (!$id) ws('record_ownerId',$USER_ID);
+
+    // When creating new records...
+    // ... set the default owner to be the person who is logged in
+    // ... and set the project to the first project on their list - but don't do this when we create the empty shell record - do it at the second stage just below
+    if (!$id) {
+        ws('record_ownerId',$USER_ID);
+    }
 
     // Record creation is a two-stage process - first the empty shell record is created, then this shell is editted
     // This first edit is in effect part of the creation process so we should tell the permissions system that this
@@ -111,6 +116,17 @@ function postStartup($mode,$id) {
     global $permissionsMode;
     if ($id && $currentProjectId==0 && $lastSavedAt==0 && $createdBy=$USER_ID) {
         $permissionsMode='create';
+
+        // This is the point at which we need to set the default project
+        // Get the default project for this user
+        $userDefaultProject = $DB->getValue('
+            SELECT projectId
+            FROM userProject
+            WHERE userId=?
+            ORDER BY orderId ASC
+            LIMIT 1
+        ',$USER_ID);
+        $projectSelect->setDefault($userDefaultProject);
     }
 }
 
@@ -246,7 +262,18 @@ function processInputs($mode,$id) {
         header('Location: admin.php?id='.$newRecordId);
         exit;
     }
-	
+
+    if ($mode=='getShareLink' && $id) {
+        header('Content-type: application/json');
+        include_once(LIB_DIR.'/shareLinkTools.php');
+        $url = getShareLink($id);
+        echo json_encode([
+            'status' => 'OK',
+            'url' => $url
+        ]);
+        exit;
+    }
+
     if (!$id && $mode!=='update') {
         $redirect = 'admin.php?mode=update&parentId='.(int)ws('parentId');
         if (ws('labelId')) $redirect.='&labelId='.(int)ws('labelId');
@@ -298,7 +325,7 @@ function processUpdateBefore( $id ) {
 }
 
 function processUpdateAfter( $id, $isNew ) {
-    global $DB, $dataFields, $editMode;
+    global $DB, $USER_ID, $dataFields, $editMode;
     
     $editMode=true;
     
@@ -319,8 +346,9 @@ function processUpdateAfter( $id, $isNew ) {
     
     global $parentAnswers;
 
-    dump($saveDefault);
-    exit;
+    $saveDefault = array_filter($saveDefault);
+    $defaultsChanged = 0;
+
     foreach( $dataFields as $dataFieldId=>$dataField) {
         $hidden = in_array($dataFieldId,$hiddenFields);        
         $inherited = isset($recordInherited[$dataFieldId]) ? $recordInherited[$dataFieldId] : 0;
@@ -337,9 +365,23 @@ function processUpdateAfter( $id, $isNew ) {
         } else {
             $value = isset($recordData[$dataFieldId]) ? $recordData[$dataFieldId] : '';
         }
-        $result = $dataField->save( $value, $hidden, $inherited, null, isset($saveDefault[$dataFieldId]) );
+        if (isset($saveDefault[$dataFieldId]) && strlen($dataField->question)) {
+            // see if this already existsA
+            $DB->setInsertType('REPLACE');
+            $defaultsChanged += (int)$DB->insert('userDefaultAnswer',[
+                'userId' => $USER_ID,
+                'question' => $dataField->question,
+                'matchType' => 'exact',
+                'answer' => $value,
+            ]);
+        }
+        $result = $dataField->save( $value, $hidden, $inherited, null );
         if ($result!==true) inputError('dataField['.$dataFieldId.']',$result);
         else DataField::doInheritance($dataFieldId, $value, $id);
+    }
+
+    if ($defaultsChanged) {
+        $DB->update('user',['id'=>$USER_ID],['defaultsLastChangedAt' => time()]);
     }
 
     // Handle label adding
