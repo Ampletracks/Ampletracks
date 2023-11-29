@@ -39,6 +39,8 @@ function checkShareLink($token) {
 }
 
 function shareLinkJavascript() {
+    static $done=false;
+    if ($done) return;
     ?>
     <script>
     $(function(){
@@ -51,7 +53,6 @@ function shareLinkJavascript() {
             };
 
             $.get(self.attr('href'), function(data){
-                console.log(data);
                 if (!data.url) {
                     error();
                 } else {
@@ -66,4 +67,5 @@ function shareLinkJavascript() {
     });
     </script>
     <?
+    $done=true;
 }

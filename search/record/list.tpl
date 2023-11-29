@@ -1,13 +1,14 @@
 <TEMPLATE NAME="COMMON">
     <?
     global $fieldsToDisplay,$builtInFieldsToDisplay,$entityName,$filters;
-
-    include_once(LIB_DIR.'/shareLinkTools.php');
-    shareLinkJavascript();
     ?>
 </TEMPLATE>
 
 <TEMPLATE NAME="HEADER">
+    <?
+    include_once(LIB_DIR.'/shareLinkTools.php');
+    shareLinkJavascript();
+    ?>
     <table class="main data-table record">
         <thead>
             <tr>
