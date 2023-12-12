@@ -55,6 +55,29 @@ if (isset($_GET['token'])) {
                     $canCreateRecord=true; 
                     $recordTypeSelect->addOption($recordType, $recordTypeId);
                 }
+
+                $recentRecordSelect = null;
+                if($USER_ID) {
+                    $recentRecordSelect = new formOptionbox('id', ['-- Recently viewed records --' => '']);
+                    $recentRecordQuery = $DB->query('
+                        SELECT record.id, name.data AS name
+                        FROM record
+                        INNER JOIN userRecordAccess ON userRecordAccess.recordId = record.id AND userRecordAccess.userId = ?
+                        INNER JOIN recordData AS name ON name.recordId = record.id
+                        INNER JOIN dataField ON dataField.id = name.dataFieldId AND dataField.orderId = 1
+                        GROUP BY record.id
+                        ORDER BY MAX(userRecordAccess.accessedAt) DESC
+                    ', $USER_ID);
+                    $editableRecords = [];
+                    $recordData = [];
+                    while($recentRecordQuery->fetchInto($recordData) && count($editableRecords) < 5) {
+                        if(canDo('edit', $recordData['id'])) {
+                            $editableRecords[$recordData['name']] = $recordData['id'];
+                        }
+                    }
+                    $recentRecordSelect->addOptions($editableRecords);
+                    $recentRecordSelect->setExtra('id="recentRecordSelect"');
+                }
             } else {
                 $recordId = $label->recordId;
             }
@@ -86,15 +109,35 @@ include(VIEWS_DIR.'/header.php');
 <? if ($error) { ?>
     <p class="error"><?=cms('Public record preview: error',1,'There was a problem retrieving data about this item')?></p>
     <p class="error"><?=htmlspecialchars($error)?></p>
-    <? if ($USER_ID && $canCreateRecord) { ?>
-        <form method="post" action="/record/admin.php">
-            <? formHidden('labelId',$label->id); ?>
-            Create a record now and associate it with this label<br />
-            <? $recordTypeSelect->display() ?>
-            <input type="submit" value="Create new record" />
-        </form>
-    <? } ?> 
-<? } else { ?>
+    <? if ($USER_ID) {
+        if($canCreateRecord) { ?>
+            <form method="post" action="/record/admin.php">
+                <? formHidden('labelId',$label->id); ?>
+                Create a record now and associate it with this label<br />
+                <? $recordTypeSelect->display() ?>
+                <input type="submit" value="Create new record" />
+            </form>
+        <? }
+        if($recentRecordSelect instanceof formOptionbox && count($recentRecordSelect->getOptions()) > 1) { ?>
+            <form method="post" action="/record/admin.php" id="associateLabelForm">
+                <? formHidden('labelId', $label->id); ?>
+                Associate this label with a recently viewed record<br>
+                <? $recentRecordSelect->display(); ?>
+                <input type="submit" value="Associate" />
+            </form>
+            <script>
+                $(function () {
+                    $('#associateLabelForm').on('submit', function () {
+                        if(!$('#recentRecordSelect').val()) {
+                            window.alert('Please choose a recently viewed record');
+                            return false;
+                        }
+                    });
+                });
+            </script>
+        <? }
+    }
+} else { ?>
     <p class="introduction"><?=cms('Public record preview: introduction',1,'The publicly avaiable data relating to this item is shown below')?></p>
     <? if (strlen(trim($previewMessage))) { ?>
         <p class="introduction"><?=nl2br(htmlspecialchars($previewMessage))?></p>

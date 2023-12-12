@@ -293,12 +293,17 @@ function processInputs($mode,$id) {
         exit;
     }
 
-    if (!$id && $mode!=='update') {
-        $redirect = 'admin.php?mode=update&parentId='.(int)ws('parentId');
-        if (ws('labelId')) $redirect.='&labelId='.(int)ws('labelId');
-        if (ws('record_typeId')) $redirect.='&record_typeId='.(int)ws('record_typeId');
-        header('Location: '.$redirect);
-        exit;
+    if ($mode!=='update') {
+        if(!$id) {
+            $redirect = 'admin.php?mode=update&parentId='.(int)ws('parentId');
+            if (ws('labelId')) $redirect.='&labelId='.(int)ws('labelId');
+            if (ws('record_typeId')) $redirect.='&record_typeId='.(int)ws('record_typeId');
+            header('Location: '.$redirect);
+            exit;
+        } else if(ws('labelId')) {
+            header('Location: admin.php?mode=update&id='.(int)ws('id').'&labelId='.(int)ws('labelId'));
+            exit;
+        }
     }
 
     if($id) ws('parentId', $DB->getValue('SELECT parentId FROM record WHERE id = ?', $id));

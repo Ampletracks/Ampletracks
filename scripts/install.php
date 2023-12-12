@@ -325,6 +325,7 @@ $tables = array(
         'recordId' => "INT(10) UNSIGNED NOT NULL",
         'accessType' => "ENUM('view','edit')",
         'accessedAt' => "INT(10) UNSIGNED NOT NULL",
+        'index_userId' => "INDEX (`userId`,`recordId`)",
         'index_recordId' => "INDEX (`recordId`,`userId`)",
     ),
     'userRole' => array(
