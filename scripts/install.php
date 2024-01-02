@@ -248,6 +248,7 @@ $tables = array(
     'recordType' => array(
         'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
         'name' => "VARCHAR(255) NOT NULL",
+        'colour' => "CHAR(7) DEFAULT ''",
         'publicPreviewMessage' => "MEDIUMTEXT NOT NULL",
         'primaryDataFieldId' => "INT(10) UNSIGNED NOT NULL",
         'builtInFieldsToDisplay' => "VARCHAR(255) NOT NULL DEFAULT 'id|labelId|project|path|relationships'",

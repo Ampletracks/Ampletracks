@@ -6,7 +6,9 @@ function postStartup() {
 
 $listSql = '
     SELECT
-        recordType.id, recordType.name,
+        recordType.id,
+        recordType.name,
+        recordType.colour,
         dataField.name AS primaryDataField
     FROM
         recordType

@@ -28,7 +28,9 @@ $labelImage = new recordTypeLabelImage( $rowData['id'] );
 			<div class=&quot;deleteWarningBox&quot;>@@name@@</div>" href="admin.php?mode=delete&id=@@id@@">Delete</a>
 		</td>
 		<td><? $labelImage->display() ?></td>
-		<td>@@name@@</td>
+		<td>@@name@@
+            <div style="width:1em; height:1em; background-color:@@colour@@;float:right;display: inline-block;"></div>
+        </td>
         <? if (!strlen($rowData['primaryDataField'])) { ?>
             <td class="error">
                 <div class="error"><?=cms('Record Type List: Primary data field not defined',1,'The primary data field is not defined or has been deleted. This is a serious issue and will cause all sorts of problems.')?></div>

@@ -13,6 +13,21 @@
                 </div>
             </div>
 
+            <div class="questionAndAnswer half">
+                <div class="question">
+                    <?=cms('Record Type: Colour',0,'Colour')?>:
+                </div>
+                <div class="answer">
+                    <? formTextBox('recordType_colour',50,200,null,'data-coloris'); ?>
+                    <? inputError('recordType_colour'); ?>
+                    <script>
+                        Coloris({
+                            alpha: false
+                        });
+                    </script>
+                </div>
+            </div>
+
 <? if (ws('id')) { ?>
             <div class="questionAndAnswer half">
                 <div class="question">
