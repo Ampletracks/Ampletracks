@@ -113,4 +113,6 @@ function prepareDisplay( $id ) {
     ',$id));    
 }
 
+$extraScripts = [ '../javascript/coloris/coloris.min.js' ];
+$extraStylesheets = [ '../javascript/coloris/coloris.min.css' ];
 include( '../../lib/core/adminPage.php' );
