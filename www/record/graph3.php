@@ -28,9 +28,6 @@ $nodeQuerySql = '
 ';
 
 function returnAjax( $nodes, $edges ) {
-    foreach( $nodes as &$node ) {
-        $node['color'] = preg_match('/^#[0-9A-F]{3,}$/',$node['color']) ? $node['color'] : '#114411';
-    }
     header('Content-type: application/json');
     echo json_encode([
         'edges' => $edges,
@@ -128,28 +125,15 @@ if ($id && $mode=='extrinsic') {
     exit;
 }
 ?>
-<html>
-<head>
-<link rel="stylesheet" type="text/css" href="/stylesheets/nodeInfoPanel.css">
-<link rel="stylesheet" type="text/css" href="/stylesheets/main.css">
 <style>
     html, body {
         margin: 0;
         padding: 0;
     }
-
-    #graphInfoPopup {
-        position: absolute;
-        top:0;
-        left:0;
-        background: #fee;
-        min-width: 100px;
-        min-height: 100px;
-    }
-
     #loading,#graph_familial,#graph_extrinsic {
         width: 100%;
         height: 100%;
+        border: 1px solid red;
         position: absolute;
         box-sizing:border-box;
         left: 0;
@@ -183,6 +167,66 @@ if ($id && $mode=='extrinsic') {
         font-size: 150%;
     }
 
+    /* Start of Pure CSS Throbber */
+    /* Courtesy of https://cssloaders.github.io/  */
+    /*
+    MIT License
+    Copyright (c) 2020 Vineeth.TR
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+    */
+
+    .loader {
+        width: 48px;
+        height: 48px;
+        background: #FFF;
+        border-radius: 50%;
+        display: inline-block;
+        position: relative;
+        box-sizing: border-box;
+        animation: rotation 1s linear infinite;
+    }
+
+    .loader::after {
+        content: '';  
+        box-sizing: border-box;
+        position: absolute;
+        left: 6px;
+        top: 10px;
+        width: 12px;
+        height: 12px;
+        color: #FF3D00;
+        background: currentColor;
+        border-radius: 50%;
+        box-shadow: 25px 2px, 10px 22px;
+    }
+
+    @keyframes rotation {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+   /* End of Pure CSS Throbber */
  
 </style>
 <script src="/javascript/jquery.min.js"></script>
@@ -206,61 +250,10 @@ $(function(){
 
     const doubleClickTime = 200;
 
-    // For the info. pop-up we need to either bring this up in this window if we're running full screen,
-    // or if we're in an iframe then we need to create the pop-up in the parent
-    // Get a jquery which points to either this window or the parent
-    var runningInIframe = false;
-    var parentJquery = false;
-    var nodeInfoPanel;
-
-    function inIframe () {
-        try {
-            return window.self !== window.top;
-        } catch (e) {
-            return true;
-        }
-    }
-
-    if (inIframe()) {
-    console.log('in iframe');
-        runningInIframe = true;
-        parentJquery = window.parent.jQuery;
-    }
-    var nodeInfoPanel = ( runningInIframe ? parentJquery: jQuery )('<div id="nodeInfoPanel"></div>').hide().appendTo('body');
-    if (runningInIframe) {
-        nodeInfoPanel.css('position','absolute');
-    }
-    
-    function loadInfoPanel( url ) {
-        if (runningInIframe) {
-
-            let graphHolder = parentJquery('.graph-holder iframe');
-            // Ensure graphHolder has a relative position
-            //graphHolder.css('position', 'relative');
-
-            // Calculate graphHolder's bottom and left positions
-            var graphHolderOffset = graphHolder.offset();
-            var graphHolderBottom = graphHolderOffset.top + graphHolder.outerHeight(); // outerHeight includes padding and border
-            var graphHolderLeft = graphHolderOffset.left;
-            nodeInfoPanel.css({
-                top: graphHolderBottom+'px',
-                left: graphHolderLeft+'px',
-                width: graphHolder.width()
-            });
-        }
-        nodeInfoPanel.html('<span class="throbber"></span>').addClass('loading').show();
-        nodeInfoPanel.load(url,{},function(){
-            nodeInfoPanel.removeClass('loading');
-            $('<button class="closeButton">CLOSE</button>').prependTo(nodeInfoPanel).on('click',function(){
-                nodeInfoPanel.hide();
-            });
-        });
-    }
-
     function clickHandler(params) {
+        console.log('click');
+        console.log(params);
         let network = networks[mode].network;
-
-        // Handle clicks on node links (a.k.a. edges)
         if ( params.nodes.length==0 && params.edges.length>0 ) {
             let edgeId = params.edges[0];
             let edgeOptions = loadedEdges[edgeId];
@@ -275,12 +268,7 @@ $(function(){
             }
         }
 
-        // See if they just clicked on the background - not a node
-        if (!params.nodes || params.nodes.length==0) {
-            // hide the node info panel
-            nodeInfoPanel.hide();
-            return false;
-        }
+        if (!params.nodes || params.nodes.length==0) return false;
 
         lastClickNode = params.nodes[0];
         focus( network, lastClickNode );
@@ -293,11 +281,6 @@ $(function(){
             console.log('Ignoring second click event');
             return;
         }
-
-        // In both single and double click scenarios - and in familial, or extrinsic mode we want to
-        // Load the info about the clicked node
-        // loadInfoPanel('../record/admin.php?id='+lastClickNode+'&mode=infoPanel');
-        nodeInfoPanel.hide();
 
         // In familial mode we can move straight away
         if (mode=='familial') {
@@ -346,15 +329,9 @@ $(function(){
                     maximum: 150
                 },
                 shape: 'box',
-                mass: 1,
-                borderWidth: 0,
-                margin: 8,
-                chosen: {
-                    node: function(values, id, selected, hovering){
-                        values.borderWidth = 3;
-                        values.borderColor = '#F05500';
-                    }
-                }
+                mass: 2,
+                borderWidth: 2,
+                borderWidthSelected: 3,
             },
             layout: {
                 randomSeed: 1
@@ -366,17 +343,6 @@ $(function(){
                 incomplete: {
                     shapeProperties: { borderDashes: [4,3] }
                 }
-            },
-            physics: {
-                solver: 'forceAtlas2Based',
-                maxVelocity: 50,
-                minVelocity: 2,
-                forceAtlas2Based: {
-                    gravitationalConstant: -500,
-                    avoidOverlap: 1,
-                    springLength: 60,
-                    springConstant: 0.8,
-                },
             }
         };
 
@@ -385,7 +351,9 @@ $(function(){
                 direction: 'UD'
             };
         } else {
-            
+            options.physics = {
+                //solver: 'forceAtlas2Based'
+            }
         }
 
         let container = $('#graph_'+mode);
@@ -417,8 +385,7 @@ $(function(){
             network.body.data.edges.remove(edgeId);
             let edgeData = loadedEdges[edgeId][0];
             let label = edgeData.label;
-            // If we want to we can add (x/n) to show how many relationships are not shown
-            // if (loadedEdges[edgeId].length>1) label += ' ('+edgeData.count+'/'+loadedEdges[edgeId].length+')';
+            if (loadedEdges[edgeId].length>1) label += ' ('+edgeData.count+'/'+loadedEdges[edgeId].length+')';
             let title = '';
             for (const edge of loadedEdges[edgeId]) {
                 let labelEscaped = $('<p>').text(edge.label).html();
@@ -621,11 +588,7 @@ $(function(){
         network.selectNodes([recordId],true);
     }
 
-    function loadGraph( recordId, newMode, startup ) {
-
-        // Don't show the info panel when we initially load on the record editting page because
-        // All the information about the current node will already be displayed on the page
-        if (!startup || !runningInIframe) loadInfoPanel('../record/admin.php?id='+recordId+'&mode=infoPanel');
+    function loadGraph( recordId, newMode ) {
 
         // If we are just jumping to another node in the same family tree then there is no need to load anything
         // we can simply recentre the graph on the selected node
@@ -642,9 +605,7 @@ $(function(){
                 id: recordId
             },
             dataType: 'json',
-            success: function( data, status ) {
-                renderGraph( recordId, data, newMode );
-            }
+            success: function( data, status ) { renderGraph( recordId, data, newMode ); }
         });
     }
 
@@ -655,17 +616,15 @@ $(function(){
 
     setupGraph('familial');
     setupGraph('extrinsic');
-    loadGraph( initialRecordId, params.get('render')=='extrinsic'?'extrinsic':'familial', true );
-
+    loadGraph( initialRecordId, params.get('render')=='familial'?'familial':'extrinsic' );
 });
 
+
+
 </script>
-</head>
-<body class="graph">
-    <div id="graph_extrinsic" ></div>
-    <div id="graph_familial" ></div>
-    <div id="loading" style="display: none">
-        <span class="throbber"></span>
-    </div>
-</body>
-</html>
+
+<div id="graph_extrinsic" ></div>
+<div id="graph_familial" ></div>
+<div id="loading" style="display: none">
+    <span class="loader"></span>
+</div>
