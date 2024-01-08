@@ -148,7 +148,7 @@ global $parentName;
         # =============================================================================================
 
         if(count($newRelationshipTypeSelect->options) > 1) { ?>
-            <section>
+            <section class="relationships">
                 <h2 id="relationshipsHeading">
                     Relationships
                     <span class="count relationshipCount"></span>
@@ -184,11 +184,14 @@ global $parentName;
                             var hashParameters = parseHashParameters();
 
                             function loadRelationships() {
-                                $('<div></div>').insertAfter('#relationshipsHeading').load('admin.php?mode=showRelationships&id=<?=(int)$id?>', function () {
+                                $('<div></div>').insertAfter('#relationshipsHeading').load('admin.php?mode=showRelationships&id=<?=(int)$id?>',{}, function () {
                                     if(!editMode) {
                                         $(this).find('button.delete').hide();
                                     } else {
-                                        $('div.relationship.list, div.relationship.empty').remove();
+                                        // BenJ 20240108
+                                        // I don't know why we would want to remove the list of relationships in edit mode
+                                        // Commenting this out until we remember why!
+                                        //$('div.relationship.list, div.relationship.empty').remove();
                                     }
                                     $(this).children().unwrap();
                                 });
@@ -222,7 +225,7 @@ global $parentName;
 
                             var findPartnerRelationshipLinkId = $('#findPartnerRelationshipLinkId');
 
-                            $('div.questionAndAnswerContainer').on('click','div.relationship button.delete',function(e){
+                            $('section.relationships').on('click','div.relationship button.delete',function(e){
                                 var self = $(e.target);
                                 self.closest('div.questionAndAnswer').remove();
                                 $.post('admin.php',{
