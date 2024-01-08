@@ -423,7 +423,8 @@ function processUpdateAfter( $id, $isNew ) {
 				INNER JOIN relationshipLink reciprocalRelationshipLink ON
 					reciprocalRelationshipLink.relationshipPairId=relationshipLink.relationshipPairId AND
 					reciprocalRelationshipLink.fromRecordTypeId=relationshipLink.toRecordTypeId AND
-					reciprocalRelationshipLink.toRecordTypeId=relationshipLink.fromRecordTypeId
+					reciprocalRelationshipLink.toRecordTypeId=relationshipLink.fromRecordTypeId AND
+                    reciprocalRelationshipLink.id <> relationshipLink.id
 			WHERE
 				relationshipLink.id=? AND relationshipLink.fromRecordTypeId=? AND relationshipLink.toRecordTypeId=?
 		',$relationshipLinkId, ws('record_typeId'),$toRecordTypeId);
