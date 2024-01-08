@@ -6,20 +6,20 @@
     </tr>
     <tr class="descriptions">
         <td class="backward description">
-            <small>desription</small><br />
+            Description<br />
             <? formTextarea('backwardDescription',20,1,null,'class="autoexpandHeight"'); ?></td>
         <td class="backward max">
             <small>max</small><br />
             x&nbsp;<?formInteger('backwardMax',1,1000000,null,null,'style="width:5em"')?>
         </td>
-        <td class="arrow up" style="vertical-align: middle; line-height: 80%; font-size:50px">&#129045;</td>
-        <td class="arrow down" style="vertical-align: middle; line-height: 80%; font-size:50px">&#129047;</td>
+        <td class="arrow up"></td>
+        <td class="arrow down"></td>
         <td class="forward max">
             <small>max</small><br />
             <?formInteger('forwardMax',1,1000000,null,null,'style="width:5em"')?>&nbsp;x
         </td>
         <td class="forward description">
-            <small>desription</small><br />
+            Description<br />
             <? formTextarea('forwardDescription',20,1,null,'class="autoexpandHeight"'); ?>
         </td>
     </tr>

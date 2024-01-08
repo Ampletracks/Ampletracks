@@ -1,3 +1,5 @@
+@import 'icons.scss';
+
 table.relationship {
 
     border-spacing: 5px;
@@ -5,10 +7,12 @@ table.relationship {
     margin: 20px 20px;
 
     tr.descriptions {
+        background: none;
 
         td {
             vertical-align: middle;
             padding: 5px 0px 10px 0px;
+            border: none;
             small { font-size: 14px; }
         }
 
@@ -20,6 +24,9 @@ table.relationship {
         }
 
         td.max {
+            width: 1%;
+            white-space: nowrap;
+            padding: 5px;
             input {
                 // Hide the arrows....
                 /* Chrome, Safari, Edge, Opera */
@@ -41,18 +48,27 @@ table.relationship {
             font-size: 15px;
         }
 
-        td.arrow.up {
-            padding: 0 0 0 5px;
-        }
-        td.arrow.down {
-            padding: 0 5px 0 0;
+        td.arrow {
+            width: 1%;
+            background: rgba(255,255,255,255);
+            border: 1px solid;
+            &.up {
+                @include backgroundIcon(1, 15, 16, left, black);
+                border-width: 0 1px 0 0;
+            }
+            &.down {
+                @include backgroundIcon(1, 2, 17, right, black);
+                border-width: 0 0 0 1px;
+            }
+            
         }
     } 
 
-    tr.from.recordType, tr.to.recordType {
+    tr.recordType, tr.recordType {
         td {
             padding: 10px;
             background-color: #ccd;
+            border-radius: 10px;
 
             font-size: 130%;
             select {
