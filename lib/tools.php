@@ -306,6 +306,70 @@ function checkRecaptcha($response=null) {
     return (isset($verdict->success) && $verdict->success == true);
 }
 
+function getPasswordResetSignature($userId, $expiry) {
+    return substr(hash('sha256', $userId.SIGNING_SECRET_1.$expiry.SIGNING_SECRET_2), 0, 10);
+}
+
+function checkPasswordResetCode($code) {
+    global $DB;
+
+    [$userId, $expiry, $signature] = explode('x', $code);
+
+    $error = '';
+    if(
+        !$userId || !$expiry || !$signature ||
+        $signature != getPasswordResetSignature($userId, $expiry)
+    ) {
+        $error = 'bad link';
+    } else if($expiry < time()) {
+        $error = 'expired';
+    }
+
+    if($error) {
+        return [null, $error];
+    }
+
+    $checkResult = $DB->getRow('SELECT id, email FROM user WHERE id = ?', $userId);
+    return $checkResult ?: [null, 'bad link'];
+}
+
+function sendPasswordResetLink($email) {
+    global $DB, $WS;
+
+    $userId = $DB->getValue('SELECT id FROM user WHERE email = ?', $email);
+    if(!$userId) {
+        return 'No user';
+    }
+
+    $expiryHours = getConfig('Password reset link expiry');
+    $expiry = time() + 60 * 60 * $expiryHours;
+
+    $signedId = $userId.'x'.$expiry.'x'.getPasswordResetSignature($userId, $expiry);
+    ws('signedId', $signedId);
+    ws('expiry', date('d F Y \\a\\t H:i', $expiry));
+    ws('resetLink', SITE_URL.'/password/forgottenPassword.php?code='.$signedId);
+
+    /*DEBUG*/
+    //global $LOGGER; $LOGGER->log("reset link ->{$WS['resetLink']}<-");
+    //return false;
+
+    include(LIB_DIR.'email.php');
+    $sendResult = $EMAIL->send([
+        'template' => 'password-reset',
+        'to' => [
+            ['userType' => 'user', 'userId' => $userId],
+        ],
+        'priority' => 'medium',
+        'mergeData' => $WS
+    ]);
+    if(!$sendResult) {
+        global $LOGGER;
+        $LOGGER->log("Error sending password reset to $email [$userId]:".print_r($EMAIL->errors(true), true));
+        return 'send error';
+    }
+
+    return false;
+}
 
 class Autoloader
 {
