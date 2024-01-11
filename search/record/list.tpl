@@ -137,7 +137,7 @@
         <? } ?>
         <? foreach( $fieldsToDisplay as $fieldId => $fieldData ) {
             echo '<td class="dataField '.htmlspecialchars(toCamelCase($fieldData['type'])).'">';
-            dataField::displayForList($fieldData['typeId'], $rowData['answer_'.$fieldId], $rowData['id'], $fieldId);
+            dataField::displayValueStatic($fieldData['typeId'], $rowData['answer_'.$fieldId], $rowData['id'], $fieldId);
             echo '</td>';
         } ?>
     </tr>

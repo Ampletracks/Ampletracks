@@ -58,7 +58,7 @@ div.questionAndAnswer.relationship {
 
 div.questionAndAnswer.displayToPublic {
     div.question {
-        @include backgroundIcon(0.2, 13, 1, left, red);
+        @include backgroundIcon(0.4, 13, 1, right, orange);
     }
 }
 

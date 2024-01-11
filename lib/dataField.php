@@ -34,6 +34,7 @@ class DataField {
     private $defaulted=false;
     public $id;
     static $answers;
+    static $unpackedAnswerCache = [];
     static $parentAnswers;
     static $inheritedFields;
     static $parameterPrefix = 'fieldParameters_';
@@ -107,16 +108,22 @@ class DataField {
         self::setInheritedFields($inheritedFields);
     }
 
-    static function displayForList( $typeId, $value, $recordId, $fieldId ) {
-        $objectName = self::lookupObjectType($typeId);
+    function displayValue() {
+        if (!isset($this->params['recordId'])) return false;
+        $this::displayValueStatic( $this, $this->getAnswer(), $this->params['recordId'], $this->id );
+    }
 
-        if ($objectName!==false) {
-            if (method_exists($objectName,'listDisplay')) {
-                $objectName::listDisplay($value, $recordId, $fieldId);
+    static function displayValueStatic( $typeIdOrObject, $value, $recordId, $fieldId ) {
+        $objectOrName = is_object($typeIdOrObject) ? $typeIdOrObject : self::lookupObjectType($typeIdOrObject);
+
+        if ($objectOrName!==false) {
+            if (method_exists($objectOrName,'formatForDisplay')) {
+                $objectOrName::formatForDisplay($value, $recordId, $fieldId);
                 return;
             }
         }
 
+        if (is_array($value)) $value = implode(', ',$value);
         // This is the default behaviour if no specific method is provided
         if (strlen($value)>100) $value = substr($value,0,97).'...';
         echo htmlspecialchars( $value );
@@ -378,10 +385,15 @@ class DataField {
 
     function getAnswer($dataFieldId=0) {
         if (!$dataFieldId) $dataFieldId=$this->params['id'];
+
+        // First see if we have cached the unpacked answer
+        if (isset(self::$unpackedAnswerCache[$dataFieldId])) return self::$unpackedAnswerCache[$dataFieldId];
+
+        $return = null;
         if (isset(self::$answers[$dataFieldId]) && self::$answers[$dataFieldId]!=='' ) {
             $answer = self::$answers[$dataFieldId];
             $this->unpackFromStorage( $answer );
-            return $answer;
+            $return = $answer;
         }
         else {
             // See if there is a user-specific default for this value
@@ -389,13 +401,15 @@ class DataField {
             $userDefault = $this->getUserDefault( );
             if (!is_null($userDefault)) {
                 $this->defaulted = DATAFIELD_USER_DEFAULT;
-                return $userDefault;
+                $return = $userDefault;
             } else if ($this->default) {
                 $this->defaulted = DATAFIELD_SYSTEM_DEFAULT;
-                return $this->default;
+                $return = $this->default;
             }
-            else return null;
         }
+
+        self::$unpackedAnswerCache[$dataFieldId] = $return;
+        return $return;
     }
 
     static function saveDefaultJavascriptDisplay() {
@@ -466,12 +480,12 @@ class DataField {
     }
 
     function displayPublicValue() {
-        $answer = htmlspecialchars($this->getAnswer());
+        $answer = $this->getAnswer();
         // Don't display defaulted answers
-        if ($this->defaulted || $answer==='') {
+        if ($this->defaulted || $answer==='' || is_null($answer)) {
             echo '<i>no value provided</i>';
         } else {
-            echo $answer;
+            $this->displayValue();
             $this->displayUnit();
         }
     }
@@ -1478,7 +1492,7 @@ class DataField_date extends DataField {
         formDate( $names[1], $values[1], $this->min, $this->max );
     }
 
-    static function listDisplay($value, $recordId, $fieldId) {
+    static function formatForDisplay($value, $recordId, $fieldId) {
         if (!is_numeric($value)) return;
         echo date('d/m/Y',$value);
     }
@@ -1997,7 +2011,7 @@ class DataField_image extends DataField {
         inputError($this->inputName());
     }
 
-    static function listDisplay($value, $recordId, $fieldId) {
+    static function formatForDisplay($value, $recordId, $fieldId) {
         $image = new dataFieldImage( array(
             'recordId'  => (int)$recordId,
             'dataFieldId' => (int)$fieldId
