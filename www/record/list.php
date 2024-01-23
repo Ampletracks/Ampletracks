@@ -51,20 +51,27 @@ function processInputs() {
 }
 
 function listSql(){
-    global $DB, $recordTypeId, $fieldsToDisplay, $builtInFieldsToDisplay, $fieldIds, $filters;
+    global $DB, $recordTypeId, $fieldsToDisplay, $builtInFieldsToDisplay, $fieldIds, $filters, $primaryDataFieldId;
 
     include(LIB_DIR.'/dataField.php');
     
+    $builtInFieldsToDisplay = explode('|',$DB->getValue('SELECT builtInFieldsToDisplay FROM recordType WHERE id = ?',$recordTypeId));
+    $builtInFieldsToDisplay = array_flip($builtInFieldsToDisplay);
+
+    $primaryDataFieldId = $DB->getValue('SELECT recordType.primaryDataFieldId FROM recordType WHERE recordType.id=?',$recordTypeId);
+
+    // If the primary data field is set for display then we need to make sure we load this...
+    $extraFieldId=0;
+    if (isset($builtInFieldsToDisplay['primaryDataField'])) $extraFieldId=$primaryDataFieldId;
+
     $DB->returnHash();
     $fieldsToDisplay = $DB->getHash('
         SELECT dataField.id, dataField.name, dataField.exportName, dataField.typeId, dataField.unit, dataField.parameters, dataFieldType.name as type
         FROM dataField
             INNER JOIN dataFieldType ON dataFieldType.id=dataField.typeId
-        WHERE !deletedAt AND displayOnList AND recordTypeId=?
+        WHERE !deletedAt AND (displayOnList OR dataField.id=?) AND recordTypeId=?
         ORDER BY dataField.orderId ASC
-    ',$recordTypeId);
-    $builtInFieldsToDisplay = explode('|',$DB->getValue('SELECT builtInFieldsToDisplay FROM recordType WHERE id = ?',$recordTypeId));
-    $builtInFieldsToDisplay = array_flip($builtInFieldsToDisplay);
+    ',$extraFieldId,$recordTypeId);
     
     $fieldIds = array_keys($fieldsToDisplay);
     $fields = '';
@@ -158,7 +165,7 @@ function prepareDisplay($list) {
     }
     $projects = array_merge(['-- All --'=>''],$projects);
     $projectFilter = new formOptionbox('filter_record:projectId_eq',$projects);
-    
+
 }
 
 function beforeList() {

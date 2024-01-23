@@ -1,6 +1,6 @@
 <TEMPLATE NAME="COMMON">
     <?
-    global $fieldsToDisplay,$builtInFieldsToDisplay,$entityName,$filters;
+    global $fieldsToDisplay,$builtInFieldsToDisplay,$entityName,$filters,$primaryDataFieldId;
     ?>
 </TEMPLATE>
 
@@ -8,47 +8,68 @@
     <?
     include_once(LIB_DIR.'/shareLinkTools.php');
     shareLinkJavascript();
+
+    function displayFieldHeader( $fieldId ) {
+        global $filters, $fieldsToDisplay;
+        $fieldData = $fieldsToDisplay[$fieldId];
+        ?>
+            <th class="filter dataField <?=htmlspecialchars(toCamelCase($filters[$fieldId]->getType()))?>"><?=htmlspecialchars($fieldData['name'])?>
+            <? if (strlen($fieldData['unit'])) echo '<span class="unit">'.htmlspecialchars($fieldData['unit']).'</span>'; ?>
+            <br />
+            <? $filters[$fieldId]->displayFilter(); ?>
+            </th>
+        <?
+    }
+
+    function displayField( $fieldId, &$rowData, $isLink=false ) {
+        global $filters, $fieldsToDisplay;
+        $fieldData = $fieldsToDisplay[$fieldId];
+        echo '<td class="dataField '.htmlspecialchars(toCamelCase($fieldData['type'])).'">';
+        if ($isLink) echo '<a href="admin.php?id='.htmlspecialchars($rowData['id']).'">';
+        dataField::displayValueStatic($fieldData['typeId'], $rowData['answer_'.$fieldId], $rowData['id'], $fieldId);
+        if ($isLink) echo '</a>';
+        echo '</td>';
+    }
     ?>
     <table class="main data-table record">
         <thead>
             <tr>
                 <th class="actions" >Actions</th>
-                <? if (isset($builtInFieldsToDisplay['id'])) { ?>
-                    <th class="filter recordId">
-                        <?=cms('Record List: ID column header',0,'ID')?><br />
-                        <? formTextbox('filter_record:id_eq',5,10);?>
-                    </th>
-                <? } ?>
-                <? if (isset($builtInFieldsToDisplay['project'])) { ?>
-                    <th class="filter project">
-                        <?=cms('Record List: Project column header',0,'Project')?><br />
-                        <? global $projectFilter; $projectFilter->display(); formPlaceholder('filter_record:projectId_eq'); ?>
-                    </th>
-                <? } ?>
-                <? if (isset($builtInFieldsToDisplay['labelId'])) { ?>
-                    <th class="filter labelId">
-                        <?=cms('Record List: Label ID column header',0,'Label ID')?><br />
-                        <? formTextbox('filter_label:id_eq',5,10);?>
-                    </th>
-                <? } ?>
-                <? if (isset($builtInFieldsToDisplay['path'])) { ?>
-                    <th class="filter path" >
-                        <?=cms('Record List: Path column header',0,'Path')?><br />
-                        <? formTextbox('filter_record:path_ct',5,10);?>
-                    </th>
-                <? } ?>
-                <? if (isset($builtInFieldsToDisplay['relationships'])) { ?>
-                    <th class="relationships">
-                        <?=cms('Record List: Relationships',0,'Relationships')?>
-                    </th>
-                <? } ?>
-                <? foreach( $fieldsToDisplay as $fieldId=>$fieldData ) { ?>
-                    <th class="filter dataField <?=htmlspecialchars(toCamelCase($filters[$fieldId]->getType()))?>"><?=htmlspecialchars($fieldData['name'])?>
-                    <? if (strlen($fieldData['unit'])) echo '<span class="unit">'.htmlspecialchars($fieldData['unit']).'</span>'; ?>
-                    <br />
-                    <? $filters[$fieldId]->displayFilter();?>
-                    </th>
-                <? } ?>
+                <?
+                foreach ($builtInFieldsToDisplay as $field=>$notUsed) {
+                    if ($field=='primaryDataField') {
+                        displayFieldHeader($primaryDataFieldId);    
+                    } else if ($field=='id') { ?>
+                        <th class="filter recordId">
+                            <?=cms('Record List: ID column header',0,'ID')?><br />
+                            <? formTextbox('filter_record:id_eq',5,10);?>
+                        </th>
+                    <? } else if ($field=='project') { ?>
+                        <th class="filter project">
+                            <?=cms('Record List: Project column header',0,'Project')?><br />
+                            <? global $projectFilter; $projectFilter->display(); formPlaceholder('filter_record:projectId_eq'); ?>
+                        </th>
+                    <? } else if ($field=='labelId') { ?>
+                        <th class="filter labelId">
+                            <?=cms('Record List: Label ID column header',0,'Label ID')?><br />
+                            <? formTextbox('filter_label:id_eq',5,10);?>
+                        </th>
+                    <? } else if ($field=='path') { ?>
+                        <th class="filter path" >
+                            <?=cms('Record List: Path column header',0,'Path')?><br />
+                            <? formTextbox('filter_record:path_ct',5,10);?>
+                        </th>
+                    <? } else if ($field=='relationships') { ?>
+                        <th class="relationships">
+                            <?=cms('Record List: Relationships',0,'Relationships')?>
+                        </th>
+                    <? }
+                }
+                foreach( $fieldsToDisplay as $fieldId=>$notUsed ) {
+                    if ($fieldId==$primaryDataFieldId && isset($builtInFieldsToDisplay['primaryDataField'])) continue;
+                    displayFieldHeader( $fieldId );
+                }
+                ?>
             </tr>
         </thead>
         <tbody>
@@ -93,52 +114,51 @@
 			echo substr_count($content,'href')>1 ? '<td class="actions">'.$content.'</td>' : '<td class="noActionsMenu">'.$content.'</td>';
 		?>
 
-        <? if (isset($builtInFieldsToDisplay['id'])) { ?>
-            <td class="id">
-                <a href="admin.php?id=@@id@@">@@id@@</a>
-            </td>
-        <? } ?>
-        <? if (isset($builtInFieldsToDisplay['project'])) { ?>
-            <td class="project">
-                @@project@@
-            </td>
-        <? } ?>
-        <? if (isset($builtInFieldsToDisplay['labelId'])) { ?>
-            <td class="labelId">
-                @@labelId@@
-            </td>
-        <? } ?>
-        <? if (isset($builtInFieldsToDisplay['path'])) { ?>
-            <td class="rootId">
-                /<?= str_replace(',','/',$rowData['path']); ?>
-            </td>
-        <? } ?>
-        <? if (isset($builtInFieldsToDisplay['relationships'])) { ?>
-            <td class="relationships">
-                <?
-                global $DB;
-                $relationships = $DB->getHash('
-                    SELECT CONCAT(description," ",recordType.name) AS description, COUNT(*)
-                    FROM relationship
-                    INNER JOIN relationshipLink ON relationshipLink.id=relationship.relationshipLinkId
-                    INNER JOIN recordType ON recordType.id=relationshipLink.toRecordTypeId
-                    WHERE relationship.fromRecordId = ?
-                    GROUP BY relationshipLink.id
-                ',$rowData['id']);
-                if (count($relationships)) {
-                    echo '<table>';
-                    foreach( $relationships as $description=>$count ){
-                        echo '<tr><td>'.htmlspecialchars($description).'</td><td>x'.$count.'</td></tr>';
+        <? foreach ($builtInFieldsToDisplay as $field=>$notUsed) {
+            if ($field=='primaryDataField') { ?>
+                <? displayField( $primaryDataFieldId, $rowData, true ); ?>
+            <? } else if ($field=='id') { ?>
+                <td class="id">
+                    <a href="admin.php?id=@@id@@">@@id@@</a>
+                </td>
+            <? } else if ($field=='project') { ?>
+                <td class="project">
+                    @@project@@
+                </td>
+            <? } else if ($field=='labelId') { ?>
+                <td class="labelId">
+                    @@labelId@@
+                </td>
+            <? } else if ($field=='path') { ?>
+                <td class="rootId">
+                    /<?= str_replace(',','/',$rowData['path']); ?>
+                </td>
+            <? } else if ($field=='relationships') { ?>
+                <td class="relationships">
+                    <?
+                    global $DB;
+                    $relationships = $DB->getHash('
+                        SELECT CONCAT(description," ",recordType.name) AS description, COUNT(*)
+                        FROM relationship
+                        INNER JOIN relationshipLink ON relationshipLink.id=relationship.relationshipLinkId
+                        INNER JOIN recordType ON recordType.id=relationshipLink.toRecordTypeId
+                        WHERE relationship.fromRecordId = ?
+                        GROUP BY relationshipLink.id
+                    ',$rowData['id']);
+                    if (count($relationships)) {
+                        echo '<table>';
+                        foreach( $relationships as $description=>$count ){
+                            echo '<tr><td>'.htmlspecialchars($description).'</td><td>x'.$count.'</td></tr>';
+                        }
+                        echo '</table>';
                     }
-                    echo '</table>';
-                }
-                ?>
-            </td>
+                    ?>
+                </td>
+            <? } ?>
         <? } ?>
         <? foreach( $fieldsToDisplay as $fieldId => $fieldData ) {
-            echo '<td class="dataField '.htmlspecialchars(toCamelCase($fieldData['type'])).'">';
-            dataField::displayValueStatic($fieldData['typeId'], $rowData['answer_'.$fieldId], $rowData['id'], $fieldId);
-            echo '</td>';
+            if ($fieldId==$primaryDataFieldId && isset($builtInFieldsToDisplay['primaryDataField'])) continue;
+            displayField( $fieldId,$rowData );
         } ?>
     </tr>
 </TEMPLATE>

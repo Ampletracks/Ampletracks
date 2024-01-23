@@ -29,19 +29,18 @@ function processUpdateAfter( $id, $isNew ) {
     
     $displayFieldIds = ws('dataFieldIds');
     forceArray($displayFieldIds);
-    $displayFieldIds[] = ws('recordType_primaryDataFieldId');
+    # $displayFieldIds[] = ws('recordType_primaryDataFieldId');
 
     // Split out the numeric from the non-numeric entries
     $builtInFieldsToDisplay = [];
     foreach( $displayFieldIds as $idx => $fieldId ) {
         if (!$fieldId) continue;
         if (!is_numeric($fieldId)) {
-            if (strpos('|id|project|labelId|path|relationships',$fieldId)) $builtInFieldsToDisplay[]=$fieldId;
+            if (strpos('|id|project|labelId|path|relationships|primaryDataField',$fieldId)) $builtInFieldsToDisplay[]=$fieldId;
             unset($displayFieldIds[$idx]);
         }
     }
     $builtInFieldsToDisplay = array_filter($builtInFieldsToDisplay);
-    sort($builtInFieldsToDisplay);
     $builtInFieldsToDisplay = implode('|',$builtInFieldsToDisplay);
     $DB->update('recordType',['id'=>$id],['builtInFieldsToDisplay'=>$builtInFieldsToDisplay]);
     ws('recordType_builtInFieldsToDisplay',$builtInFieldsToDisplay);
@@ -63,20 +62,22 @@ function processUpdateAfter( $id, $isNew ) {
 function prepareDisplay( $id ) {
     global $displayFieldsSelect, $DB;
     $availableList = [
-        cms('Record List: ID column header',0,'ID') => 'id',
-        cms('Record List: Project column header',0,'Project') => 'project',
-        cms('Record List: Label ID column header',0,'Label ID') => 'labelId',
-        cms('Record List: Path column header',0,'Path') => 'path',
-        cms('Record List: Relationships',0,'Relationships') => 'relationships',
+        'id' => cms('Record List: ID column header',0,'ID'),
+        'project' => cms('Record List: Project column header',0,'Project'),
+        'labelId' => cms('Record List: Label ID column header',0,'Label ID'),
+        'path' => cms('Record List: Path column header',0,'Path'),
+        'relationships' => cms('Record List: Relationships',0,'Relationships'),
+        'primaryDataField' => cms('Record List: Primary data field',0,'Primary data field')
     ];
     $selectedList = [];
     $builtInFieldsToDisplay = explode('|',ws('recordType_builtInFieldsToDisplay'));
-    foreach( $availableList as $option=>$value ) {
-        if (in_array($value,$builtInFieldsToDisplay)) {
-            $selectedList[$option] = $value;
-            unset($availableList[$option]);
-        }
+    foreach($builtInFieldsToDisplay as $value) {
+        $selectedList[$availableList[$value]] = $value;
+        unset($availableList[$value]);
     }
+
+    $availableList = array_flip( $availableList );
+        
     $queryh = $DB->query('
         SELECT
             dataField.name AS `option`,
