@@ -130,10 +130,19 @@ if ($id && $mode=='extrinsic') {
         margin: 0;
         padding: 0;
     }
+
+    #graphInfoPopup {
+        position: absolute;
+        top:0;
+        left:0;
+        background: #fee;
+        min-width: 100px;
+        min-height: 100px;
+    }
+
     #loading,#graph_familial,#graph_extrinsic {
         width: 100%;
         height: 100%;
-        border: 1px solid red;
         position: absolute;
         box-sizing:border-box;
         left: 0;
@@ -250,10 +259,18 @@ $(function(){
 
     const doubleClickTime = 200;
 
+    // For the info. pop-up we need to either bring this up in this window if we're running full screen,
+    // or if we're in an iframe then we need to create the pop-up in the parent
+    // Get a jquery which points to either this window or the parent
+    var $nodeInfoTarget = window.parent ? window.parent.jQuery : jQuery;
+
+    var nodeInfoPanel = $nodeInfoTarget('#nodeInfoPanel');
+
+
     function clickHandler(params) {
-        console.log('click');
-        console.log(params);
         let network = networks[mode].network;
+
+        // Handle clicks on node links (a.k.a. edges)
         if ( params.nodes.length==0 && params.edges.length>0 ) {
             let edgeId = params.edges[0];
             let edgeOptions = loadedEdges[edgeId];
@@ -281,6 +298,10 @@ $(function(){
             console.log('Ignoring second click event');
             return;
         }
+
+        // In both single and double click scenarios - and in familial, or extrinsic mode we want to
+        // Load the info about the clicked node
+        nodeInfoPanel.load('../record/admin.php?id='+lastClickNode+'&mode=infoPanel');
 
         // In familial mode we can move straight away
         if (mode=='familial') {
@@ -329,9 +350,11 @@ $(function(){
                     maximum: 150
                 },
                 shape: 'box',
-                mass: 2,
+                mass: 1,
                 borderWidth: 2,
                 borderWidthSelected: 3,
+                chosen: function(){
+                }
             },
             layout: {
                 randomSeed: 1
@@ -343,6 +366,17 @@ $(function(){
                 incomplete: {
                     shapeProperties: { borderDashes: [4,3] }
                 }
+            },
+            physics: {
+                solver: 'forceAtlas2Based',
+                maxVelocity: 50,
+                minVelocity: 2,
+                forceAtlas2Based: {
+                    gravitationalConstant: -500,
+                    avoidOverlap: 1,
+                    springLength: 60,
+                    springConstant: 0.8,
+                },
             }
         };
 
@@ -351,9 +385,7 @@ $(function(){
                 direction: 'UD'
             };
         } else {
-            options.physics = {
-                //solver: 'forceAtlas2Based'
-            }
+            
         }
 
         let container = $('#graph_'+mode);
@@ -385,7 +417,8 @@ $(function(){
             network.body.data.edges.remove(edgeId);
             let edgeData = loadedEdges[edgeId][0];
             let label = edgeData.label;
-            if (loadedEdges[edgeId].length>1) label += ' ('+edgeData.count+'/'+loadedEdges[edgeId].length+')';
+            // If we want to we can add (x/n) to show how many relationships are not shown
+            // if (loadedEdges[edgeId].length>1) label += ' ('+edgeData.count+'/'+loadedEdges[edgeId].length+')';
             let title = '';
             for (const edge of loadedEdges[edgeId]) {
                 let labelEscaped = $('<p>').text(edge.label).html();
@@ -616,13 +649,14 @@ $(function(){
 
     setupGraph('familial');
     setupGraph('extrinsic');
-    loadGraph( initialRecordId, params.get('render')=='familial'?'familial':'extrinsic' );
+    loadGraph( initialRecordId, params.get('render')=='extrinsic'?'extrinsic':'familial' );
+
 });
 
 
 
 </script>
-
+<div id="nodeInfoPanel"></div>
 <div id="graph_extrinsic" ></div>
 <div id="graph_familial" ></div>
 <div id="loading" style="display: none">

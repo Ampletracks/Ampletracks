@@ -98,8 +98,9 @@ div.graph-holder {
 }
 
 div#hideGraphButton,
-div#maximizeGraphButton,
+a#maximizeGraphButton,
 div#minimizeGraphButton {
+    display: block;
     position: absolute;
     top: 2px;
     background-color: var(--c-brand-a);
@@ -117,7 +118,7 @@ div#hideGraphButton {
     @include backgroundIcon(0.2, 5, 13, right, white);
 }
 
-div#maximizeGraphButton {
+a#maximizeGraphButton {
     right: 27px;
     @include backgroundIcon(0.2, 4, 5, right, white);
 }
@@ -172,9 +173,19 @@ a.openUrl {
     margin-right: 100%;
 }
 
-div.answer div.saveDefault {
-    color: var(--c-brand-a);
-    flex-basis: 100%;
+iframe#graph {
+    @include responsive(width,100%,100%,500px);
+    @include responsive(height,50vh,50vh,500px);
+}
+
+div.answer {
+    div.saveDefault {
+        color: var(--c-brand-a);
+        flex-basis: 100%;
+    }
+    div.chemical-input {
+        padding-bottom: 0;
+    }
 }
 
 div.questionAndAnswerContainer.publicView {

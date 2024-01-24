@@ -67,9 +67,9 @@ global $parentName;
 <a style="display: none;" id="showGraphButton" href="#">View Graph</a>
 <div class="recordDataHeader">
     <div class="graph-holder">
-        <iframe id="graph" src="graph.php?id=<?=wsp('id')?>&width=500&height=500"></iframe>
+        <iframe id="graph" src="graph3.php?id=<?=wsp('id')?>"></iframe>
         <div id="hideGraphButton">Hide Graph</div>
-        <div id="maximizeGraphButton">Maximise Graph</div>
+        <a id="maximizeGraphButton" href="graph3.php?id=<?=wsp('id')?>" target="_blank">Maximise Graph</a>
         <div id="minimizeGraphButton" style="display:none">Minimise Graph</div>
     </div>
 

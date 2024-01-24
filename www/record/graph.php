@@ -51,11 +51,12 @@ else $nodeJSON = '[]';
         padding: 0;
     }
     #recordGraph,#recordGraph2 {
-        width: 49%;
+        width: 100%;
         height: 100%;
-        border: 1px solid red;
+        border: none;
         position: absolute;
-        left: 10px;
+        left: 0px;
+        top: 0px;
     }
     #recordGraph2 {
         left: -1000px;

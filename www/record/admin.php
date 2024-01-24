@@ -31,9 +31,11 @@ function postStartup($mode,$id) {
     include( LIB_DIR.'/dataField.php');
     global $DB, $dontProcessUploads, $USER_ID;
 
+    $permissionsModeMap['showRelationships']='view';
+    $permissionsModeMap['infoPanel']='view';
 
     // This function isn't relevant for some modes
-    if ( in_array($mode,['relationshipOptions','ttsSearch','deleteRelationship','showRelationships','getShareLink'])) return;
+    if ( in_array($mode,['relationshipOptions','ttsSearch','deleteRelationship','showRelationships','getShareLink','infoPanel'])) return;
 
     if ($id==0) {
         if (!ws('record_typeId')) ws('record_typeId',getPrimaryFilter());
@@ -44,8 +46,6 @@ function postStartup($mode,$id) {
     $dontProcessUploads=true;
 
     global $permissionsEntity,$permissionsModeMap;
-
-    $permissionsModeMap['showRelationships']='view';
 
     $currentProjectId = 0;
     if ($id) {
@@ -658,7 +658,7 @@ function getRecordData( $condition, $conditionValue ) {
 
 function prepareDisplay( $id ) {
     global $DB, $extraScripts, $heading, $title;
-    
+        
     $extraScripts[] = '/javascript/dependentInputs.js';
     $extraScripts[] = '/javascript/jodit/jodit.js';
     $extraScripts[] = '/javascript/dataField.js';
@@ -688,6 +688,11 @@ function prepareDisplay( $id ) {
 
     $parentName = '';
     if (isset($parentAnswers[$primaryDataFieldId])) $parentName=$parentAnswers[$primaryDataFieldId];
+
+    if (ws('mode')=='infoPanel') {
+        include( VIEWS_DIR.'/record/infoPanel.php' );
+        exit;
+    }
 
     // Load context data
     global $ancestors, $descendants, $children;
