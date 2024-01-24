@@ -177,6 +177,21 @@ a.openUrl {
     margin-right: 100%;
 }
 
+iframe#graph {
+    @include responsive(width,100%,100%,500px);
+    @include responsive(height,50vh,50vh,500px);
+}
+
+div.answer {
+    div.saveDefault {
+        color: var(--c-brand-a);
+        flex-basis: 100%;
+    }
+    div.chemical-input {
+        padding-bottom: 0;
+    }
+}
+
 div.questionAndAnswerContainer.publicView {
     div.question {
         font-weight: bold;
