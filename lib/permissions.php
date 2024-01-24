@@ -401,6 +401,14 @@ function canDo( ) {
     return false;
 }
 
+
+function addUserAccessLimits( $options=[] ) {
+    global $WS;
+    $limits = getUserAccessLimits( $options );
+    if (!count($limits)) return;
+    $WS = array_merge($WS,$limits); 
+}
+
 /*
  * $options can contain...
  *      'projectIdColumn' - defaults to best guess based on entity
@@ -409,9 +417,9 @@ function canDo( ) {
  *          - defaults to $ENTITY
  *          - If entity is "record" then this should be set to 'recordTypeId:<entityId>'
  *      'userId' - defaults to $USER_ID
- *      'prefix' - prefix to be used when adding limits to workspace  defaults to 'limit_'
+ *      'prefix' - prefix to be used when adding limits to the return hash. Defaults to 'limit_'
  */
-function addUserAccessLimits( $options=[] ) {
+function getUserAccessLimits( $options=[] ) {
     static $projectColumnLookup = [
         'actionLog'     => '',
         'cms'           => '',
@@ -458,13 +466,12 @@ function addUserAccessLimits( $options=[] ) {
     $permissions = getUserPermissionsForEntity( $entity, $userId );
 
     // if they are a superuser then don't impose any limits
-    if (isset($permissions['superuser'])) return true;
+    if (isset($permissions['superuser'])) return [];
 
     // If they have no list permissions in relation to this entity then return false
     if (!isset($permissions['list'])) {
         // Put in an unattainable limit
-        $return[$prefix.$ownerIdColumn.'_eq']=0;
-        return false;
+        return [$prefix.$ownerIdColumn.'_eq' => 0];
     }
 
     $return=[];

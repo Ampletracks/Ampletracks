@@ -31,6 +31,10 @@ function postStartup($mode,$id) {
     include( LIB_DIR.'/dataField.php');
     global $DB, $dontProcessUploads, $USER_ID;
 
+
+    // This function isn't relevant for some modes
+    if ( in_array($mode,['relationshipOptions','ttsSearch','deleteRelationship','showRelationships','getShareLink'])) return;
+
     if ($id==0) {
         if (!ws('record_typeId')) ws('record_typeId',getPrimaryFilter());
     }
@@ -49,7 +53,7 @@ function postStartup($mode,$id) {
         list( $recordTypeId, $currentProjectId, $currentOwnerId, $createdBy, $lastSavedAt ) = $DB->getRow('SELECT typeId,projectId,ownerId,createdBy,lastSavedAt FROM record WHERE id=?',$id);
         $permissionsEntity = 'recordTypeId:'.$recordTypeId;
 
-        if(ws('mode') == 'logEditAccess') {
+        if($mode == 'logEditAccess') {
             // Update a 'view' access from this user in the last couple of seconds as it's probably from
             // initially hitting the page with '#edit' on the end
             $updated = $DB->exec('
@@ -64,10 +68,10 @@ function postStartup($mode,$id) {
             }
             echo 'OK';
             exit;
-        } else {
+        } else if ($mode=='' || $mode=='view') {
             $DB->insert('userRecordAccess', ['userId' => $USER_ID, 'recordId' => $id, 'accessType' => 'view', 'accessedAt' => time()]);
         }
-    } else {
+    } else { // No record ID provided...
         $permissionsEntity = 'recordTypeId:'.ws('record_typeId');
         $currentOwnerId = 0;
     }
@@ -150,8 +154,10 @@ function postStartup($mode,$id) {
 }
 
 function processInputs($mode,$id) {
-    global $DB, $dataFields;
-   
+    global $DB, $dataFields, $USER_ID;
+  
+    $isSuperuser = isSuperuser();
+ 
     if ($mode=='ttsSearch') {
 		$ttsSearch = ws('ttsSearch');
 		$labelId = preg_match('/^\d+$/',$ttsSearch) ? (int)$ttsSearch : 0;
@@ -172,15 +178,29 @@ function processInputs($mode,$id) {
 				INNER JOIN record ON record.typeId=recordType.id AND !record.deletedAt AND record.lastSavedAt
                 LEFT JOIN user ON user.id=record.ownerId
 				INNER JOIN recordData ON recordData.recordId=record.id AND recordData.dataFieldId=dataField.id
-				LEFT JOIN label ON label.recordId=record.id
+				LEFT JOIN label ON label.recordId=record.id';
+        if (!$isSuperuser) {
+            $sql .= '
+                # If they arent superuser then make sure they have access to the record...
+                INNER JOIN rolePermission ON rolePermission.roleId IN (?) AND rolePermission.entity="recordTypeId" AND rolePermission.recordTypeId=recordType.id AND rolePermission.action="list" AND ( rolePermission.level="global" OR (rolePermission.level="own" AND record.ownerId=?) OR (rolePermission.level="project" AND record.projectId IN (?)) )
+            ';
+        }
+        $sql .= '
 			WHERE
 				relationshipLink.id=? AND
 				record.id <> ? AND
 				(recordData.data LIKE ? OR user.firstName LIKE ? OR user.lastName LIKE ? OR label.id=? OR record.id=?)
 			LIMIT 300
 		';
+
         $likeSearch = '%'.ws('ttsSearch').'%';
-		$options = $DB->getHash($sql,$likeSearch,$likeSearch,ws('relationshipLinkId'),$id,$likeSearch,$likeSearch,$likeSearch,$labelId,$labelId);
+        if ($isSuperuser) {
+    		$options = $DB->getHash($sql,$likeSearch,$likeSearch,ws('relationshipLinkId'),$id,$likeSearch,$likeSearch,$likeSearch,$labelId,$labelId);
+        } else {
+            $userRoleIds = $DB->getColumn('SELECT roleId FROM userRole WHERE userId=?',$USER_ID);
+            $userProjectIds = $DB->getColumn('SELECT projectId FROM userProject WHERE userId=?',$USER_ID);
+    		$options = $DB->getHash($sql,$likeSearch,$likeSearch, $userRoleIds, $USER_ID, $userProjectIds, ws('relationshipLinkId'),$id,$likeSearch,$likeSearch,$likeSearch,$labelId,$labelId);
+        }
 		echo json_encode($options);
 		exit;
 	}
@@ -232,6 +252,14 @@ function processInputs($mode,$id) {
 	}
 
     if ($mode=='deleteRelationship' && $id) {
+
+        // In order to delete a relationship they must have edit rights to at least one of the 2 records involved
+        list($from,$to) = $DB->getRow('SELECT fromRelationshipId,toRelationshipId FROM relationship WHERE id=?',$id);
+        if (!( canDo('edit',$from,'record') || canDo('edit',$to,'record'))) {
+            echo "You do not have permission to delete this relationship";
+            exit;
+        }
+
 		$DB->exec('DELETE FROM relationship WHERE id=? OR reciprocalRelationshipId=?',$id,$id);
 		echo 'OK';
 		exit;
@@ -371,9 +399,17 @@ function processUpdateAfter( $id, $isNew ) {
     global $parentAnswers;
 
     $saveDefault = array_filter($saveDefault);
+
     $defaultsChanged = 0;
 
     foreach( $dataFields as $dataFieldId=>$dataField) {
+
+        // Don't save any fields that weren't submitted.
+        // BEWARE - if you remove this next line then a bug appears when just assigning a label and storing no data
+        // e.g. calling: /record/admin.php?mode=update&id=297&labelId=1493
+        // this will remove the content of the first field on the form
+        if (!isset($recordData[$dataFieldId])) continue;
+
         $hidden = in_array($dataFieldId,$hiddenFields);        
         $inherited = isset($recordInherited[$dataFieldId]) ? $recordInherited[$dataFieldId] : 0;
         // Inheritance kicks in if the "inherited" box is ticked AND we actually have a parent
@@ -390,7 +426,7 @@ function processUpdateAfter( $id, $isNew ) {
             $value = isset($recordData[$dataFieldId]) ? $recordData[$dataFieldId] : '';
         }
         if (isset($saveDefault[$dataFieldId]) && strlen($dataField->question)) {
-            // see if this already existsA
+            // see if this already exists
             $DB->setInsertType('REPLACE');
             $defaultsChanged += (int)$DB->insert('userDefaultAnswer',[
                 'userId' => $USER_ID,

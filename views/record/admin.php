@@ -1,8 +1,8 @@
 <script>
 $(function(){
 
-    // Move the error summary underneath the recordMetadata
-    $('div.errorSummary').remove().insertAfter('div.recordMetadata');
+    // Move the error summary underneath the record family tree details
+    $('div.errorSummary').remove().insertAfter('div.recordFamily');
 
     $('#hideGraphButton').on('click',function(){
         $('#showGraphButton').css('display','inline-block');
@@ -65,16 +65,16 @@ $parentId = (int)ws(ws('id')?'record_parentId':'parentId');
 global $parentName;
 ?>
 <a style="display: none;" id="showGraphButton" href="#">View Graph</a>
-<div class="layout">
-    <div class="sidebar graph-holder">
+<div class="recordDataHeader">
+    <div class="graph-holder">
         <iframe id="graph" src="graph.php?id=<?=wsp('id')?>&width=500&height=500"></iframe>
         <div id="hideGraphButton">Hide Graph</div>
         <div id="maximizeGraphButton">Maximise Graph</div>
         <div id="minimizeGraphButton" style="display:none">Minimise Graph</div>
     </div>
 
-    <div class="content">
-        <div class="recordMetadata form-grid">
+    <div class="recordMetadata">
+        <section class="recordFamily">
             <? if($parentId) { ?>
                 <div class="ancestors form-row half">
                     <h2>Ancestors</h2>
@@ -139,7 +139,7 @@ global $parentName;
                     </div>
                 </div>
             <? } ?>
-        </div>
+        </section>
 
 
         <?
@@ -336,86 +336,86 @@ global $parentName;
                     </div>
                 </div>
             </section>
-        <? } ?>
-    <?
-    # =============================================================================================
-    # end of relationship management ==============================================================
-    # =============================================================================================
-    ?>
+        <? }
+        # =============================================================================================
+        # end of relationship management ==============================================================
+        # ============================================================================================
 
+        # =============================================================================================
+        # OWNERSHIP ===================================================================================
+        # =============================================================================================
+        ?>
+        <section class="ownership">
+            <header>
+                <h2>Ownership</h2>
+            </header>
+            <div class="questionAndAnswer ownership form-row">
+                <div class="question">
+                    Person
+                </div>
+                <div class="answer">
+                    <? global $ownerSelect; $ownerSelect->display(); ?>
+                </div>
+            </div>
+            <div class="questionAndAnswer ownership form-row">
+                <div class="question">
+                    Project
+                </div>
+                <div class="answer">
+                    <? global $projectSelect; $projectSelect->display(); ?>
+                </div>
+            </div>
+        </section>
+
+        <?
+        # =============================================================================================
+        # LABELS ===================================================================================
+        # =============================================================================================
+        ?>
+        <section class="labels">
+            <header>
+                <h2>Labels</h2>
+            </header>
+            <div class="questionAndAnswer form-row">
+                <label for="labelID">
+                    <div><?
+                        global $labelIds;
+                        if (!count($labelIds)) echo cms('No labels assigned',0);
+                        else echo implode(',',$labelIds);
+                    ?></div>
+                    <div class="showOnEdit">
+                        Assign label: <? formInteger('labelId',0,1000000, null, null, 'id="labelID"'); ?>
+                        <? inputError('labelId'); ?><br />
+                        <input dependsOn="labelId gt 0" class="small" type="submit" value="Submit" /><br />
+                        <a class="btn small" href="#" clickToShow="#removeLabel"><?=cms('Remove label')?></a>
+                        <? if (ws('id')) { ?>
+                            <a class="btn small createLabel" href="#" ><?=cms('Create new label')?></a>
+                        <? } ?>
+                    </div>
+                    <div id="removeLabel" style="display:none">
+                        Remove label :<? formInteger('removeLabelId',0,1000000); ?>
+                        <? inputError('removeLabelId'); ?><br />
+                        Enter the ID of the label you wish to disassociate from this record.<br />
+                        <input class="small" type="submit" value="Submit" />
+                        <? if (inputError('removeLabelId',false)) {?>
+                            <script>
+                                $(function(){$('[clickToShow=\\#removeLabel]').trigger('click');});
+                            </script>
+                        <? } ?>
+                    </div>
+                </label>
+            </div>
+        </section>
+    </div>
+</div>
+
+<div class="content">
     <div class="questionAndAnswerContainer form-grid">
-            <?
-            # =============================================================================================
-            # OWNERSHIP ===================================================================================
-            # =============================================================================================
-            ?>
-            <section>
-                <header>
-                    <h2>Ownership</h2>
-                </header>
-                <div class="questionAndAnswer ownership">
-                    <div class="question">
-                        Person
-                    </div>
-                    <div class="answer">
-                        <? global $ownerSelect; $ownerSelect->display(); ?>
-                    </div>
-                </div>
-                <div class="questionAndAnswer ownership">
-                    <div class="question">
-                        Project
-                    </div>
-                    <div class="answer">
-                        <? global $projectSelect; $projectSelect->display(); ?>
-                    </div>
-                </div>
-            </section>
-
-            <?
-            # =============================================================================================
-            # LABELS ===================================================================================
-            # =============================================================================================
-            ?>
-            <section>
-                <header>
-                    <h2>Labels</h2>
-                </header>
-                <div class="questionAndAnswer">
-                    <label for="labelID">
-                        <div><?
-                            global $labelIds;
-                            if (!count($labelIds)) echo cms('No labels assigned',0);
-                            else echo implode(',',$labelIds);
-                        ?></div>
-                        <div class="showOnEdit">
-                            Assign label: <? formInteger('labelId',0,1000000, null, null, 'id="labelID"'); ?>
-                            <? inputError('labelId'); ?><br />
-                            <input dependsOn="labelId gt 0" class="small" type="submit" value="Submit" /><br />
-                            <a class="btn small" href="#" clickToShow="#removeLabel"><?=cms('Remove label')?></a>
-                            <? if (ws('id')) { ?>
-                                <a class="btn small createLabel" href="#" ><?=cms('Create new label')?></a>
-                            <? } ?>
-                        </div>
-                        <div id="removeLabel" style="display:none">
-                            Remove label :<? formInteger('removeLabelId',0,1000000); ?>
-                            <? inputError('removeLabelId'); ?><br />
-                            Enter the ID of the label you wish to disassociate from this record.<br />
-                            <input class="small" type="submit" value="Submit" />
-                            <? if (inputError('removeLabelId',false)) {?>
-                                <script>
-                                    $(function(){$('[clickToShow=\\#removeLabel]').trigger('click');});
-                                </script>
-                            <? } ?>
-                        </div>
-                    </label>
-                </div>
-            </section>
-            <?
-            foreach($dataFields as $id => $dataField) {
-                $dataField->displayRow(false);
-            }
-            ?>
-        </div>
+        <?
+        foreach($dataFields as $id => $dataField) {
+            $dataField->displayRow(false);
+        }
+        ?>
     </div>
 </div>
 

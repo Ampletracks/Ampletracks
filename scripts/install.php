@@ -326,7 +326,8 @@ $tables = array(
         'accessType' => "ENUM('view','edit')",
         'accessedAt' => "INT(10) UNSIGNED NOT NULL",
         'index_userId' => "INDEX (`userId`,`recordId`)",
-        'index_recordId' => "INDEX (`recordId`,`userId`)",
+        'index_accessedAt' => "INDEX (`accessedAt`,`userId`,`recordId`)",
+        'index_recordId' => "INDEX (`recordId`,`accessedAt`)",
     ),
     'userRole' => array(
         'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",

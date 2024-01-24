@@ -140,8 +140,14 @@ td.actions {
         padding: 0;
         list-style: none;
 
+        a {
+            pointer-events: none;
+        }
         &:hover,
         &:focus {
+            a {
+                pointer-events: initial;
+            }
             display: block;
         }
     }

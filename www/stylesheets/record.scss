@@ -1,12 +1,96 @@
 @import 'globalMixins';
 @import 'icons.scss';
 
-body.record {
-    .layout {
-        @media (min-width: $mq-desktop-min) {
-            --grid-cols: 1fr 500px;
+
+/* Main page layout */
+
+div.recordDataHeader {
+
+    overflow: hidden;
+    position: relative;
+
+    div.graph-holder {
+        position: absolute;
+        width: 30%;
+        right:0;
+        top:0;
+        bottom: 0;
+        padding-bottom: var(--l-block-pad);
+
+    }
+
+    div.recordMetadata {
+        width: 69%;
+        float: left;
+
+        section.recordFamily {
+            &>div {
+                margin-bottom: var(--l-block-pad);
+                width: 49%;
+                float: left;
+            }
+            div:first-child {
+                margin-right: 2%;
+            }
+        }
+
+        section.relationships {
+            clear: left;
+        }
+        
+        section.ownership {
+            clear: left;
+            width: 49%;
+            float: left;
+            margin-right: 2%;
+            margin-bottom: var(--l-block-pad);
+        }
+        section.labels {
+            width: 49%;
+            float: left;
+            margin-bottom: var(--l-block-pad);
         }
     }
+
+    /* Responsive adaptations */
+
+    @media ( max-width: 1000px) {
+        div.graph-holder {
+            position: initial;
+            padding-bottom: 0;
+            width: 100%;
+            height: 50vh;
+            margin-bottom: var(--l-block-pad);
+        }
+        div.recordMetadata {
+            width: 100%;
+        }
+    }
+
+    @media (max-width: 640px) {
+        div.recordMetadata {
+            section.recordFamily > div {
+                width: 100%;
+            }
+            section.ownership, section.labels {
+                width: 100%;
+                float: left;
+            }
+        }
+    }
+}
+
+div.content {
+    clear: left;
+}
+
+
+
+/* Graph view */
+
+iframe#graph {
+    width: 100%;
+    height: 100%;
 }
 
 div.graph-holder {
@@ -42,6 +126,9 @@ div#minimizeGraphButton {
     right: 27px;
     @include backgroundIcon(0.2, 11, 20, right, white);
 }
+
+
+/* Other bits and pieces */
 
 div.questionAndAnswer.publicView div.question{
     font-weight: bold;
@@ -83,11 +170,6 @@ div.questionAndAnswer.displayToPublic {
 a.openUrl {
     // Force the open URL button onto a new line
     margin-right: 100%;
-}
-
-iframe#graph {
-    @include responsive(width,100%,100%,500px);
-    @include responsive(height,50vh,50vh,500px);
 }
 
 div.answer div.saveDefault {

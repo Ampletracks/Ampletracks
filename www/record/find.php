@@ -58,24 +58,36 @@ if (isset($_GET['token'])) {
 
                 $recentRecordSelect = null;
                 if($USER_ID) {
-                    $recentRecordSelect = new formOptionbox('id', ['-- Recently viewed records --' => '']);
-                    $recentRecordQuery = $DB->query('
-                        SELECT record.id, name.data AS name
-                        FROM record
-                        INNER JOIN userRecordAccess ON userRecordAccess.recordId = record.id AND userRecordAccess.userId = ?
-                        INNER JOIN recordData AS name ON name.recordId = record.id
-                        INNER JOIN dataField ON dataField.id = name.dataFieldId AND dataField.orderId = 1
-                        GROUP BY record.id
-                        ORDER BY MAX(userRecordAccess.accessedAt) DESC
-                    ', $USER_ID);
-                    $editableRecords = [];
-                    $recordData = [];
-                    while($recentRecordQuery->fetchInto($recordData) && count($editableRecords) < 5) {
-                        if(canDo('edit', $recordData['id'])) {
-                            $editableRecords[$recordData['name']] = $recordData['id'];
+                    $recentRecordSelect = new formOptionbox('id');
+                    foreach( ['withoutLabel','withLabel'] as $which ) {
+                        $recentRecordQuery = $DB->query('
+                            SELECT record.id, CONCAT( FROM_UNIXTIME( MAX(userRecordAccess.accessedAt),"- %d/%m/%Y %H:%i - "),recordType.name,": ",name.data," (ID:",record.id,")") AS name
+                            FROM record
+                            INNER JOIN recordType ON recordType.id=record.typeId
+                            INNER JOIN userRecordAccess ON userRecordAccess.recordId = record.id AND userRecordAccess.userId = ?
+                            INNER JOIN recordData AS name ON name.recordId = record.id
+                            INNER JOIN dataField ON dataField.id = name.dataFieldId AND dataField.orderId = 1
+                            LEFT JOIN label ON label.recordId=record.id
+                            # to keep things sensible only go back 30 days
+                            WHERE
+                                record.lastSavedAt>0 AND record.deletedAt=0 AND
+                                userRecordAccess.accessedAt > UNIX_TIMESTAMP()-86400*30
+                                '.($which=='withLabel'?'AND !ISNULL(label.id)':'AND ISNULL(label.id)').'
+                            GROUP BY record.id
+                            ORDER BY MAX(userRecordAccess.accessedAt) DESC
+                        ', $USER_ID);
+                        $editableRecords = [];
+                        $recordData = [];
+                        while($recentRecordQuery->fetchInto($recordData) && count($editableRecords) < 5) {
+                            if(canDo('edit', $recordData['id'])) {
+                                $editableRecords[$recordData['name']] = $recordData['id'];
+                            }
+                        }
+                        if (count($editableRecords)) {
+                            $recentRecordSelect->addOption($which=='withLabel'?'Recently viewed with existing label...':'Recently viewed records without label...','');
+                            $recentRecordSelect->addOptions($editableRecords);
                         }
                     }
-                    $recentRecordSelect->addOptions($editableRecords);
                     $recentRecordSelect->setExtra('id="recentRecordSelect"');
                 }
             } else {

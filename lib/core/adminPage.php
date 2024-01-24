@@ -18,10 +18,20 @@ include_once('startup.php');
 
 // These are just to keep intelephense happy
 // This also make a handly list of all the hooks that are available
+// They are listed here in the order they are called in
 if (0) {
-    function postStartup(){};
-    function entityLoadSql(){return '';};
+    function postStartup($mode,$id){};
+    function processInputs($mode,$id){};
+    function processUpdateBefore($id){};
+    function entityLoadSql($mode,$id){};
+    function processDeleteBefore($id,$doShred){};
+    function processDeleteAfter($id,$doShred){};
+    function processUpdateAfter($id,$newEntity,$actuallyChanged){};
+    function prepareDisplay($id,$mode){};
     function extraPageContentAboveButtons(){};
+    function extraButtonsBefore(){};
+    function extraButtonsAfter(){};
+    function extraPageContent(){};
 }
 
 if (!isset($WS['mode'])) $WS['mode']='';
@@ -121,7 +131,7 @@ if ( isset($WS['id']) && $WS['id'] ) {
     // load existing data for this item
     // Do this before deleting just in case the processDelete function wants to use some data about the entity
 
-    if (function_exists('entityLoadSql')) $entityLoadSql = entityLoadSql($id,$WS['mode']);
+    if (function_exists('entityLoadSql')) $entityLoadSql = entityLoadSql($WS['mode'],$id);
     if (!isset($entityLoadSql) || !strlen($entityLoadSql)) { $entityLoadSql = "SELECT * FROM $ENTITY WHERE id='@@id@@'"; }
     
     $DB->returnHash();

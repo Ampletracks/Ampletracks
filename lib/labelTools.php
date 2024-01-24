@@ -140,6 +140,9 @@ class label {
             $siteId = (($bits['byte1'] & 15) << 8) | $bits['byte2'];
         }
         $shiftedSecurityCode = strtoupper(base_convert( (int)$bits['securityCode'], 10, strlen(LABEL_SECURITY_CODE_KEYSPACE) ));
+        // if the code happens to start with "A"'s these will be converted to 0's which will be stripped of during the numerical conversion
+        // So we have to add these back on by left padding with zero's
+        $shiftedSecurityCode = str_pad( $shiftedSecurityCode, LABEL_SECURITY_CODE_LENGTH, '0', STR_PAD_LEFT);
         $securityCode = strtr( $shiftedSecurityCode,'0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ', LABEL_SECURITY_CODE_KEYSPACE );
         return array( $bits['id'], $securityCode, $siteId );
     }
