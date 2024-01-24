@@ -272,6 +272,15 @@ $tables = array(
         'action' => "ENUM('list','view','edit','delete','create') NOT NULL",
         'index_roleId' => "INDEX (`roleId`,`entity`,`action`,`level`)",
     ),
+
+    'userLibrary' => array(
+        'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
+        'userId' => "INT(10) UNSIGNED NOT NULL",
+        'type' => "ENUM('chemical') NOT NULL",
+        'name' => "VARCHAR(255) NOT NULL",
+        'value'=> "TEXT NOT NULL",
+        'index_userId' => "INDEX (`userId`,`type`,`name`)"
+    ), 
     'user' => array(
         'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
         'firstName' => "VARCHAR(255) NOT NULL",
@@ -446,7 +455,8 @@ $dbSetup = function() {
     (12,"Image","1","0"),
     (13,"Float","1","0"),
     (14,"Type To Search","1","1"),
-    (15,"Suggested Textbox","1","0")
+    (15,"Suggested Textbox","1","0"),
+    (16,"Chemical Formula","1","0")
     ');
     
     // set any missing path depths

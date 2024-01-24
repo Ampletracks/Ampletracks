@@ -23,6 +23,7 @@ class DataField {
         13 => "Float",
         14 => "Type To Search",
         15 => "Suggested Textbox",
+        16 => "Chemical Formula",
     );
 
     static $saveDefaultJavascriptDisplayed = false;
@@ -468,6 +469,10 @@ class DataField {
 
     function setup($recordId) {
         // This does nothing - it is intended to be defined in sub-classes where neccessary
+    }
+
+    function displayOnList() {
+        return $this->params['displayOnList'];
     }
 
     function displayUnit() {
@@ -2114,3 +2119,60 @@ class DataField_suggestedTextbox extends DataField_typeToSearch {
         );
     }
 }
+
+/*
+======================================================================================================
+CHEMICAL FORMULA
+======================================================================================================
+*/
+
+class DataField_chemicalFormula extends DataField {
+
+    private static $javascriptDone = false;
+
+    const parameters = array('default');
+
+    const filterSpec = array( 'width'=>10,'filter'=>'ct');
+
+    function __construct( $params ) {
+        parent::__construct($params);
+    }
+
+    function validate( &$value ) {
+        if (!is_string($value)) return 'Invalid type of data supplied';
+        return true;
+    }
+
+    function displayDefinitionForm() {
+    }
+
+    function displayInput() {
+        if (!self::$javascriptDone) {
+            self::$javascriptDone = true;
+            ?>
+       		<script defer src="/javascript/chemicalInput/chemicalInput.js"></script>
+            <script defer src="/javascript/chemicalInputHandlers.js"></script>
+            <script>
+                var link = document.createElement("link");
+                link.rel = "stylesheet";
+                link.type = "text/css";
+                link.href = "/javascript/chemicalInput/chemicalInput.css";
+                document.head.appendChild(link);
+
+                window.addEventListener('DOMContentLoaded', function() {
+                    let picker = new ChemicalInputs({
+                        'favouritesSaveHandler' : chemicalInputFavourites_saveHandler,
+                        'favouritesLoadHandler' : chemicalInputFavourites_loadHandler
+                    });
+                });
+            </script>
+        <?}
+        $inputName = $this->inputName();
+        formTextbox($inputName,10,255,$this->getAnswer(),'data-type="chemical" class="dataField '.htmlspecialchars($this->getType()).'"');
+        $this->versionLink();
+        inputError($inputName);
+        $this->displayDefaultWarning();
+    }
+
+}
+
