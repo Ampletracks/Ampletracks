@@ -16,7 +16,7 @@ table.relationship {
             small { font-size: 14px; }
         }
 
-        td.backward {
+        td.forward {
             text-align: right;
             textarea, input {
                 text-align: right;
@@ -53,12 +53,12 @@ table.relationship {
             background: rgba(255,255,255,255);
             border: 1px solid;
             &.up {
+                border-width: 0 0 0 1px;
                 @include backgroundIcon(1, 15, 16, left, black);
-                border-width: 0 1px 0 0;
             }
             &.down {
+                border-width: 0 1px 0 0;
                 @include backgroundIcon(1, 2, 17, right, black);
-                border-width: 0 0 0 1px;
             }
             
         }
