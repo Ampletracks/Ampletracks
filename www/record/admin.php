@@ -408,7 +408,8 @@ function processUpdateAfter( $id, $isNew ) {
         // BEWARE - if you remove this next line then a bug appears when just assigning a label and storing no data
         // e.g. calling: /record/admin.php?mode=update&id=297&labelId=1493
         // this will remove the content of the first field on the form
-        if (!isset($recordData[$dataFieldId])) continue;
+        // HOWEVER... this doesn't hold for images - they are processed differently so we shouldn't expect a value in $recordData[$dataFieldId]
+        if (!isset($recordData[$dataFieldId]) && !in_array($dataField->getType(),['image','upload'])) continue;
 
         $hidden = in_array($dataFieldId,$hiddenFields);        
         $inherited = isset($recordInherited[$dataFieldId]) ? $recordInherited[$dataFieldId] : 0;
