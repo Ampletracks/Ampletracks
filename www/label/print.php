@@ -24,8 +24,10 @@ if (ws('mode')=='preview') {
         'A4 8x11: Tiny'=>'Tiny',
     ];
 
-    foreach($labelOptions as $option => $value) {
-        $labelOptions[$option.' (single label)'] = $value.' (single)';
+    if (!ws('labelId')) {
+        foreach($labelOptions as $option => $value) {
+            $labelOptions[$option.' (single label)'] = $value.' (single)';
+        }
     }
     $labelSelect = new formOptionbox('layout', $labelOptions);
     $labelSelect->setExtra('onChange="changeLayout(this.value)" class="dontExpand"');

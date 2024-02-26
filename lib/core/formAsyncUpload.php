@@ -248,6 +248,7 @@ class formAsyncUpload {
     private function tmpLocation() {
         if (strlen($this->tmpLocation)) return $this->tmpLocation;
 
+        if (!$this->url) return false;
         $scriptUri = substr($this->url,strpos($this->url,'/',8)+1);
         $scriptUri = substr($scriptUri,0,strpos($scriptUri,'?'));
 
