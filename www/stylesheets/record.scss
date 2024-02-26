@@ -88,18 +88,20 @@ div.content {
 
 /* Graph view */
 
+
 iframe#graph {
-    width: 100%;
-    height: 100%;
+    @include responsive(width,100%,100%,100%);
+    @include responsive(height,50vh,50vh,500px);
 }
 
 div.graph-holder {
     position: relative;
 }
 
-div#hideGraphButton,
-a#maximizeGraphButton,
-div#minimizeGraphButton {
+button#hideGraphButton,
+button#graphHelpButton,
+a#maximizeGraphButton {
+    border:none;
     display: block;
     position: absolute;
     top: 2px;
@@ -113,7 +115,12 @@ div#minimizeGraphButton {
     }
 }
 
-div#hideGraphButton {
+button#graphHelpButton {
+    left: 2px;
+    @include backgroundIcon(0.2, 8, 9, right, white);
+}
+
+button#hideGraphButton {
     right: 2px;
     @include backgroundIcon(0.2, 5, 13, right, white);
 }
@@ -123,30 +130,27 @@ a#maximizeGraphButton {
     @include backgroundIcon(0.2, 4, 5, right, white);
 }
 
-div#minimizeGraphButton {
-    right: 27px;
-    @include backgroundIcon(0.2, 11, 20, right, white);
-}
-
-
 /* Other bits and pieces */
 
-div.questionAndAnswer.publicView div.question{
-    font-weight: bold;
-}
+dib.recordData {
 
-div.questionAndAnswer.relationship {
-    #choosePartnerRecord {
-        margin-left:10px;
-        div.info {
-            margin: -5px 0 0 26px;
+    div.questionAndAnswer.publicView div.question{
+        font-weight: bold;
+    }
+
+    div.questionAndAnswer.relationship {
+        #choosePartnerRecord {
+            margin-left:10px;
+            div.info {
+                margin: -5px 0 0 26px;
+            }
         }
     }
-}
 
-div.questionAndAnswer.displayToPublic {
-    div.question {
-        @include backgroundIcon(0.4, 13, 1, right, orange);
+    div.questionAndAnswer.displayToPublic {
+        div.question {
+            @include backgroundIcon(0.4, 13, 1, right, orange);
+        }
     }
 }
 
@@ -171,21 +175,6 @@ div.questionAndAnswer.displayToPublic {
 a.openUrl {
     // Force the open URL button onto a new line
     margin-right: 100%;
-}
-
-iframe#graph {
-    @include responsive(width,100%,100%,500px);
-    @include responsive(height,50vh,50vh,500px);
-}
-
-div.answer {
-    div.saveDefault {
-        color: var(--c-brand-a);
-        flex-basis: 100%;
-    }
-    div.chemical-input {
-        padding-bottom: 0;
-    }
 }
 
 div.questionAndAnswerContainer.publicView {

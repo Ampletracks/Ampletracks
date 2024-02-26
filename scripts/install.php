@@ -294,6 +294,7 @@ $tables = array(
         'createdAt' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
         'recordTypeFilter' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
         'defaultsLastChangedAt' =>  "INT(10) UNSIGNED NOT NULL DEFAULT 0",
+        'fontScale' => "TINYINT UNSIGNED NOT NULL DEFAULT 0",
         'index_email' => "UNIQUE INDEX (`email`,`deletedAt`)",
         'index_lastName' => "INDEX (`lastName`(40),`deletedAt`,`firstName`(40))",
         'index_deletedAt' => "INDEX (`deletedAt`)",
@@ -420,7 +421,8 @@ $dbSetup = function() {
         ("Hide add button on record list","Set this to \"Yes\" to remove the \"Add\" button on the record list - this means that new records can only be created from the record type list page, or as children of existing records.","","/record/list.php"),
         ("Cobranding logo URL","URL for the logo which is presented alongside the Ampletracks logo","/images/brand-logo.png","/"),
         ("New account request email","Email address where requests to create a new account are sent. Leave this empty to disable this functionality. You can specify multiple space-separated addresses.","","/"),
-        ("Timezone","The system timezone","","/")
+        ("Timezone","The system timezone","","/"),
+        ("Font scale factor","Scale up or down font sizes across the site. Defaults to 100%","","/")
     ');
     
     $words='his,that,from,word,other,were,which,time,each,tell,also,play,small,home,hand,port,large,spell,even,land,here,must,high,kind,need,house,animal,point,mother,world,near,build,self,earth,father,work,part,take,place,made,after,back,little,only,round,man,year,came,show,every,good,under,name,very,just,form,great,think,help,line,differ,turn,much,mean,before,move,right,boy,old,many,write,like,long,make,thing,more,day,number,sound,most,people,water';

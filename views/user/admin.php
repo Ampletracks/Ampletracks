@@ -44,7 +44,9 @@
     <? } else { ?>
         <div class="questionAndAnswer">
             <div class="question">Password:</div>
-            <div class="answer"><? formTextbox('password', -20,200,null,'autocomplete="new-password"'); ?></div>
+            <div class="answer"><? formTextbox('password', -20,200,null,'autocomplete="new-password" data-bad-password-warning-id="badPasswordWarning" data-good-password-notice-id="goodPasswordNotice"'); ?></div>
+            <div class="answer warning" id="badPasswordWarning" style="display:none">This password is not a good choice because it has been found in a database of passwords previously found in online data breaches.</div>
+            <div class="answer info" id="goodPasswordNotice" style="display:none">Great password! We checked a database of 500 million passwords previously found in online data breaches and this one isn't in there.</div>
         </div>
         <div class="questionAndAnswer">
             <div class="question">Confirm Password:</div>
@@ -88,6 +90,15 @@
                 <?=cms('Only assign to others roles you have yourself info',0,'You can only give to others roles you have yourself') ?>
             </div>
         <? } ?>
+    </div>
+</div>
+<div class="questionAndAnswer">
+    <div class="question">Font scale factor (percent):</div>
+    <div class="answer">
+        <? formInteger('user_fontScale', 10, 255); ?>
+        <div class="info">
+            <?=cms('This doesn\'t take effect until the next login. Any value less than 10 deactivates font scaling.',1) ?>
+        </div>
     </div>
 </div>
 

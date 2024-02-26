@@ -1,25 +1,10 @@
 
-//override built in window.alert
-function alertPopup( message, onClose ) {
-    $.alertable.alert(message).then(function(){ if (onClose) onClose() });
-}
 
-function askYesNo(question,answerCallback,cancelCallback) {
-	$.alertable.prompt(question, {
-		prompt: 
-			'<div style="float:right"><input type="hidden" name="result" id="yesNoDialogResult" value="foo" />'+
-			'<button onClick="$(\'#yesNoDialogResult\').val(\'cancel\')" class="alertable-cancel">Cancel</button>'+
-			'<input onClick="$(\'#yesNoDialogResult\').val(\'yes\')" type="submit" class="alertable-ok" value="Yes">'+
-			'<input onClick="$(\'#yesNoDialogResult\').val(\'no\')" name="result" type="submit" class="alertable-ok" value="No"></div>',
-		modal:
-			'<form class="alertable"><div class="alertable-message"></div><div class="alertable-prompt"></div></form>'
-	}).then(function(data){
-		if (data.result=='cancel') {
-			if (cancelCallback) cancelCallback();
-		} else if (answerCallback) answerCallback(data.result=='yes');
-	},function(){
-		if (cancelCallback) cancelCallback();
-	});
+function alertPopup( message, onClose ) {
+    modal({
+        text:message,
+        onClose: onClose
+    });
 }
 
 // Extract variables that are encoded as a query string after the # in the URL
@@ -92,55 +77,56 @@ $(function(){
 		}
 	});
 
-   // alert on click functionality
-   $('body').on('click','a[confirm]',function(){
-      let self = $(this);
-      
-      let okButton = self.attr('okbutton');
-      let cancelButton = self.attr('cancelbutton');
-      
-      var html = false;
-      var confirm = self.attr('confirm');
-      if (confirm.indexOf('#'===0)) {
-         confirm = $(confirm).clone();
-         html = true;
-      }
-      
-   let method='confirm';
-   options = {html: html, 'okButton':okButton, cancelButton:cancelButton};
-   if (html && confirm.find(':input').length) {
-      options.prompt=''
-      method='prompt';
-   }
-      $.alertable[method](confirm,{prompt: '', html: html, 'okButton':okButton, cancelButton:cancelButton}).then(function(data) {
-      // data seems to be some weird kind of object which $.param doesn't understand
-      // we reconstruct it here
-      let newData = {};
-      for (var key in data) {
-         newData[key] = data[key];
-      }
-      let href = self.attr('href') || '';
-      let qs = $.param(newData);
-      if (qs.length) {
-         if (href.indexOf('?')<0) href += '?';
-         href += qs;
-      }
-      window.location.href=href;
-      });
-      
-      return false;
-   });
+    // alert on click functionality
+    $('body').on('click','a[confirm]',function(){
+        let self = $(this);
+        
+        let okButton = self.attr('okbutton');
+        let cancelButton = self.attr('cancelbutton');
+
+        let modalOptions = {};
+        
+        var confirm = self.attr('confirm');
+        if (confirm.indexOf('#'===0)) {
+            modalOptions.html = $(confirm);
+        } else {
+            modalOptions.text = confirm;
+        }
+       
+        modalOptions.buttons = [
+            { align: 'right', text: 'OK'},
+            { align: 'left', text: 'Cancel'}
+        ];
+
+        var href = self.attr('href');
+        if (href) {
+            modalOptions.events = {
+                onOk: function(data) {
+                    let qs = $.param(data);
+                    if (qs.length) {
+                        if (href.indexOf('?')<0) href += '?';
+                        href += qs;
+                    }
+                    window.location.href=href;
+                }
+            }
+        }
+
+        modal(modalOptions);
+        
+        return false;
+    });
 
 	// fancy ajax deletion functionality - for deleteing one item from a list when deletePrompt attribute is set
 	function prompter(prompt,desiredResponse,carryOn) {
 		if (prompt!='') {
-			if (desiredResponse) $.alertable.prompt(prompt,{html:true}).then(function(sure) {
+			if (desiredResponse) prompt(prompt,function(sure) {
 				if (sure==desiredResponse) {
-					carryOn(sure);
+					return carryOn(sure);
 				}
 			});
-			else $.alertable.confirm(prompt,{html:true}).then(function() {
-				carryOn();
+			else confirm(prompt,function() {
+				return carryOn();
 			});
 		}
 	}
@@ -150,7 +136,7 @@ $(function(){
 		var self = $(this);
 		var href = self.attr('href');
 		
-		prompter(self.attr('deletePrompt'),self.attr('ddeleteResponse'),function(sure){
+		prompter(self.attr('deletePrompt'),self.attr('deleteResponse'),function(sure){
 			if (self.attr('deleteResponse')) href += '&sure='+sure;
 			$.get(href,function(data){
 				if (data != 'OK') {
@@ -158,12 +144,13 @@ $(function(){
 						var newWindow = window.open('');
 						newWindow.document.write(data);
 					} else {
-						$.alertable.alert(data);
+						alert(data);
 					}
 				} else {
 					self.closest('tr').remove();
 				}
 			});
+            return true;
 		});
 
 		return false;

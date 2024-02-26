@@ -657,11 +657,12 @@ function getRecordData( $condition, $conditionValue ) {
 }
 
 function prepareDisplay( $id ) {
-    global $DB, $extraScripts, $heading, $title;
+    global $DB, $extraScripts, $extraStylesheets, $heading, $title;
         
     $extraScripts[] = '/javascript/dependentInputs.js';
     $extraScripts[] = '/javascript/jodit/jodit.js';
     $extraScripts[] = '/javascript/dataField.js';
+    $extraStylesheets[] = '/stylesheets/nodeInfoPanel.css';
 
     $recordTypeId = ws('record_typeId');
 

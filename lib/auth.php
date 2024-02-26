@@ -80,7 +80,17 @@ if (
                 
         // Get the password from the database
         $DB->returnHash();
-        $userData = $DB->getRow('SELECT password, email AS EMAIL, id AS ID, firstName AS FIRST_NAME, lastName AS LAST_NAME FROM user WHERE !user.deletedAt AND email=?',$username);
+        $userData = $DB->getRow('
+            SELECT
+                password, email AS EMAIL,
+            id AS ID, firstName AS FIRST_NAME,
+                lastName AS LAST_NAME, fontScale AS FONT_SCALE
+            FROM
+                user
+            WHERE
+                !user.deletedAt AND
+                email=?
+        ',$username);
         // Prevent timing attacks on by filling in bogus password and ID if lookup failed
         if (!is_array($userData) || !count($userData)) $userData = array('ID'=>0,'password'=>'$2y$10$57MkiQmrjryJjJLoiAhvgO..EjizJWq7X/jgWCmSZZrFuEN24sL5i');
 
@@ -146,15 +156,16 @@ if (!isset($_SESSION['USER_ID'])) {
         $USER_EMAIL='';
         $USER_FIRST_NAME='';
         $USER_LAST_NAME='';
+        $USER_FONT_SCALE=100;
     } else {
         $persistLoginToken = time().':'.hash_hmac('sha256',time(),$persistLoginCookieSigningSecret.'_token');
         include(VIEWS_DIR.'/login.php');
         exit;
     }
 } else {
-    foreach( array('ID','EMAIL','FIRST_NAME','LAST_NAME') as $key ) {
+    foreach( array('ID','EMAIL','FIRST_NAME','LAST_NAME','FONT_SCALE') as $key ) {
         $key = 'USER_'.$key;
-        $$key = $_SESSION[$key];
+        $$key = $_SESSION[$key] ?? '';
     }
 }
 

@@ -261,6 +261,8 @@ function prepareDisplay($id) {
     // The following is required to support drag and drop of user defaults for ordering
     $extraScripts = array('/javascript/jquery-ui.justDraggable.min.js');
 
+    $extraScripts = array('/javascript/badPasswordChecker.js');
+
 }
 
 include( '../../lib/core/adminPage.php' );

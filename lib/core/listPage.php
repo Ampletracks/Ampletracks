@@ -43,6 +43,7 @@ if (0) {
 if ( function_exists('canDo') ) {
     if (!isset($permissionsEntity)) $permissionsEntity = $ENTITY;
     if (!canDo('list',$permissionsEntity)) {
+        echo "--";
         displayError('You do not have permission to list '.pluralize($ENTITY));
         exit;
     }

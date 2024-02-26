@@ -137,7 +137,8 @@ div.question {
     margin-bottom: 0.2em;
 }
 
-div.answer {
+div.recordData div.answer {
+
     display: flex;
     flex-wrap: wrap;
 
@@ -162,6 +163,7 @@ div.answer {
             flex-grow: 100;
         }
     }
+
 
     .checkboxHolder {
         padding: 0.5em 0.75em;
@@ -213,6 +215,14 @@ div.answer {
         opacity: 0.7;
         // Force the note onto a new row
         width: 100%;
+    }
+
+    div.saveDefault {
+        color: var(--c-brand-a);
+        flex-basis: 100%;
+    }
+    div.chemical-input {
+        padding-bottom: 0;
     }
 
 }

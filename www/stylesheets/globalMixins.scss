@@ -9,15 +9,17 @@
     // FONTS
     --f-title: urbane-rounded, Arial, sans-serif;
     --f-body: source-sans-pro, Arial, sans-serif;
-    --f-h1-size: clamp(1.25rem, calc(1rem + 2.64vw), 2.375rem); // 36px -> 48px
-    --f-h2-size: clamp(0.875rem, calc(0.875rem + 2.08vw), 1.8rem); // 30px -> 46px
-    --f-h3-size: clamp(0.83rem, calc(0.83rem + 1.39vw), 1.6rem); // 24px -> 36px
-    --f-h4-size: clamp(0.8rem, calc(0.8rem + 0.5vw), 1.5rem); // 20px -> 30px
-    --f-h5-size: clamp(0.7rem, calc(0.7rem + 0.4vw), 1.4rem); // 18px -> 22px
-    --f-h6-size: clamp(0.6rem, calc(0.6rem + 0.2vw), 1.3rem); // 16px -> 16px
-    --f-body-size: clamp(0.7rem, calc(1rem + 0.14vw), 1.2rem); // 16px -> 18px
-    --f-lede-size: clamp(0.6rem, calc(1rem + 0.556vw), 1rem); // 18px -> 24px
-    --f-small-size: clamp(0.4rem, calc(0.625rem + 0.139vw), 1rem); // 10px -> 12px
+
+    --fontScaleFactorDefaulted: var(--fontScaleFactor, 1);
+    --f-h1-size: clamp(calc(1.25rem * var(--fontScaleFactorDefaulted)), calc((1rem + 2.64vw) * var(--fontScaleFactorDefaulted)), calc(2.375rem * var(--fontScaleFactorDefaulted)));
+    --f-h2-size: clamp(calc(0.875rem * var(--fontScaleFactorDefaulted)), calc((0.875rem + 2.08vw) * var(--fontScaleFactorDefaulted)), calc(1.8rem * var(--fontScaleFactorDefaulted)));
+    --f-h3-size: clamp(calc(0.83rem * var(--fontScaleFactorDefaulted)), calc((0.83rem + 1.39vw) * var(--fontScaleFactorDefaulted)), calc(1.6rem * var(--fontScaleFactorDefaulted)));
+    --f-h4-size: clamp(calc(0.8rem * var(--fontScaleFactorDefaulted)), calc((0.8rem + 0.5vw) * var(--fontScaleFactorDefaulted)), calc(1.5rem * var(--fontScaleFactorDefaulted)));
+    --f-h5-size: clamp(calc(0.7rem * var(--fontScaleFactorDefaulted)), calc((0.7rem + 0.4vw) * var(--fontScaleFactorDefaulted)), calc(1.4rem * var(--fontScaleFactorDefaulted)));
+    --f-h6-size: clamp(calc(0.6rem * var(--fontScaleFactorDefaulted)), calc((0.6rem + 0.2vw) * var(--fontScaleFactorDefaulted)), calc(1.3rem * var(--fontScaleFactorDefaulted)));
+    --f-body-size: clamp(calc(0.7rem * var(--fontScaleFactorDefaulted)), calc((1rem + 0.14vw) * var(--fontScaleFactorDefaulted)), calc(1.2rem * var(--fontScaleFactorDefaulted)));
+    --f-lede-size: clamp(calc(0.6rem * var(--fontScaleFactorDefaulted)), calc((1rem + 0.556vw) * var(--fontScaleFactorDefaulted)), calc(1rem * var(--fontScaleFactorDefaulted)));
+    --f-small-size: clamp(calc(0.4rem * var(--fontScaleFactorDefaulted)), calc((0.625rem + 0.139vw) * var(--fontScaleFactorDefaulted)), calc(1rem * var(--fontScaleFactorDefaulted)));
 
     // COLOURS
     --c-text: #050d2b; // Text colour.

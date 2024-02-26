@@ -107,7 +107,7 @@
             <? $GLOBALS['saveInvalidAnswersSelect']->display(); formPlaceholder('dataField_saveInvalidAnswers') ?>
         </div>
     </div>
-    <div class="questionAndAnswer" dependsOn="dataField_typeId !in 5|7|8|9|10|11|12">
+    <div class="questionAndAnswer" dependsOn="dataField_typeId !in 5|7|8|9|10|11|12|16">
         <div class="question">
             <?=cms('Data Field: Unit',0,'Unit')?>:
         </div>

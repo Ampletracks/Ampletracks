@@ -4,32 +4,28 @@ $(function(){
     // Move the error summary underneath the record family tree details
     $('div.errorSummary').remove().insertAfter('div.recordFamily');
 
+    $('#graphHelpButton').on('click',function(){
+        modal({
+            title: 'Graph Help',
+            html: $('#graph-help'),
+        });
+        return false;
+    });;
+
     $('#hideGraphButton').on('click',function(){
         $('#showGraphButton').css('display','inline-block');
-        $('#graph').hide();
+        $('.graph-holder').hide();
         $(this).hide();
         $('#maximizeGraphButton').hide();
         $('#minimizeGraphButton').hide();
+        $('#nodeInfoPanel').hide();
     });
 
     $('#showGraphButton').on('click',function(){
         $(this).hide();
-        $('#minimizeGraphButton').trigger('click');
-    });
-
-    $('#maximizeGraphButton').on('click',function(){
-        $(this).hide();
-        $('#minimizeGraphButton').show();
-        $('#graph').css({width:'100%',height:'100vh'});
-        $('#graph').get(0).contentWindow.resizeHandler();
-    });
-
-    $('#minimizeGraphButton').on('click',function(){
-        $(this).hide();
         $('#maximizeGraphButton').show();
         $('#hideGraphButton').show();
-        $('#graph').show();
-        $('#graph').css({width:'500px',height:'500px'});
+        $('.graph-holder').show();
         $('#graph').get(0).contentWindow.resizeHandler();
     });
 
@@ -65,12 +61,24 @@ $parentId = (int)ws(ws('id')?'record_parentId':'parentId');
 global $parentName;
 ?>
 <a style="display: none;" id="showGraphButton" href="#">View Graph</a>
-<div class="recordDataHeader">
+    <div class="recordDataHeader">
     <div class="graph-holder">
-        <iframe id="graph" src="graph3.php?id=<?=wsp('id')?>"></iframe>
-        <div id="hideGraphButton">Hide Graph</div>
-        <a id="maximizeGraphButton" href="graph3.php?id=<?=wsp('id')?>" target="_blank">Maximise Graph</a>
-        <div id="minimizeGraphButton" style="display:none">Minimise Graph</div>
+        <iframe id="graph" src="graph.php?id=<?=wsp('id')?>"></iframe>
+        <button id="hideGraphButton">Hide Graph</button>
+        <a id="maximizeGraphButton" href="graph.php?id=<?=wsp('id')?>" target="_blank">Maximise Graph</a>
+        <button id="graphHelpButton">Graph Help</button>
+    </div>
+    <div id="graph-help" style="display:none">
+        <?
+            $cms = cms('Node graph help text',1);
+            if (strlen($cms)>20) echo $cms;
+            else { ?>
+                <p><b>Click a node</b> to centre the graph on that node and pull up a preview of the record data.</p>
+                <p><b>Double click a node</b> to switch from viewing parent-child (intrinsic) relationships, to cross-record (extrinsic) relationships.</p>
+                <p><b>Hover over a link</b> to view all relationships between two nodes (applies to extrinsic view only).<p>
+                <p><b>Click a link</b> to toggle through relationships between two nodes (applies to extrinsic view only).<p>
+            <? }
+        ?>
     </div>
 
     <div class="recordMetadata">
@@ -409,7 +417,7 @@ global $parentName;
     </div>
 </div>
 
-<div class="content">
+<div class="content recordData">
     <div class="questionAndAnswerContainer form-grid">
         <?
         foreach($dataFields as $id => $dataField) {
@@ -524,7 +532,7 @@ formHidden('hiddenFields');
             var inputs = $('.questionAndAnswer .answer').find('textarea,select,input');
             var saveButtons = $('.btn-list button[type=submit]');
             var hideOnEdit = $('.hideOnEdit');
-            var showOnEdit = $('.showOnEdit');
+            var showOnEdit = $('.showOnEdit,.saveDefault');
             <? if (canDo('edit',ws('id'),'recordTypeId:'.ws('record_typeId'))) { ?>
                 var editButton = $('<li><button class="btn">Edit</button></li>').appendTo($('.btn-list'));
                 editButton.on('click',function(){

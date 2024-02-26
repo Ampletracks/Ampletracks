@@ -1,7 +1,7 @@
 <?
 
 call_user_func(function () {
-    global $DB, $USER_ID, $USER_FIRST_NAME, $title, $PAGE_NAME, $ENTITY, $extraBodyClasses, $extraStylesheets, $extraScripts, $noJS, $primaryFilterIdField, $cobrandingLogoUrl;
+    global $DB, $USER_ID, $USER_FIRST_NAME, $USER_FONT_SCALE, $title, $PAGE_NAME, $ENTITY, $extraBodyClasses, $extraStylesheets, $extraScripts, $noJS, $primaryFilterIdField, $cobrandingLogoUrl;
 
     if (!isset($extraStylesheets)) $extraStylesheets=array();
     if (!is_array($extraStylesheets)) $extraStylesheets=array($extraStylesheets);
@@ -29,6 +29,17 @@ call_user_func(function () {
         <? } ?>
 
         <link rel="stylesheet" href="https://use.typekit.net/crp4ibc.css">
+        <?
+            $fontScaleFactor = (int)getConfig('Font scale factor');
+            if ($fontScaleFactor<10 || $fontScaleFactor >  255) $fontScaleFactor=100;
+            if ($USER_FONT_SCALE>10 && $USER_FONT_SCALE < 256) $fontScaleFactor *= $USER_FONT_SCALE/100;
+            if ($fontScaleFactor) { ?>
+            <style>
+                :root {
+                    --fontScaleFactor : <?=(int)$fontScaleFactor/100?>;
+                }
+            </style>
+        <? } ?>
         <link rel="stylesheet" type="text/css" href="/stylesheets/main.css">
 
         <? if (strlen($favicon)) { ?>
@@ -43,8 +54,9 @@ call_user_func(function () {
 			<script src="/javascript/core/tools.js"></script>
 			<script src="/javascript/renderPage.js"></script>
 			<script src="/javascript/main.js"></script>
-            <link rel="stylesheet" type="text/css" href="/javascript/alertable/jquery.alertable.css">
-            <script src="/javascript/alertable/jquery.alertable.min.js"></script>
+            <script src="/javascript/micromodal.min.js"></script>
+            <script src="/javascript/micromodalWrapper.js"></script>
+            <link rel="stylesheet" type="text/css" href="/stylesheets/modal.css">
             <? if (isset($extraScripts)) {
                 foreach($extraScripts as $src){
                     echo "<script src=\"$src?".round(time()/86400)."\"></script>\n";

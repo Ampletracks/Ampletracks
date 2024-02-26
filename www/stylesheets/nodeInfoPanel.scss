@@ -1,0 +1,58 @@
+@import 'icons.scss';
+
+/* When the graph is full windows then put the node info panel on the right*/
+body.graph #nodeInfoPanel {
+    float: right;
+}
+
+#nodeInfoPanel {
+    padding: 15px;
+    border: 3px solid #1A7182;
+    background: #eee;
+    float: left;
+    font-size: 90%;
+    position: relative;
+
+    &.loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ccc;
+
+        div.throbber {
+            display: block;
+        }
+    }
+
+    div.throbber {
+        display: none;
+    }
+    
+    div.questionAndAnswer {
+        margin-top: 0.2em;
+    }
+
+    div.question {
+        margin-bottom: -0.2em;
+    }
+
+    div.answer{
+        font-weight: bold;
+    }
+
+    button.closeButton {
+        border: none;
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        background-color: var(--c-brand-a);
+        padding: 5px;
+        color: #fff;
+        font-size: 0;
+        @include backgroundIcon(0.2, 5, 13, right, white);
+        &:after {
+                margin-left: 0 !important;
+        }
+    }
+
+}
