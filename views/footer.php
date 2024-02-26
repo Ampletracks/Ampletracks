@@ -5,7 +5,7 @@
             <div class="container body-pad">
 
                 <div>
-                    <span>&copy;2022 Ampletracks.</span>
+                    <span>&copy;<?=date('Y')?> Ampletracks.</span>
                     <span>All rights reserved.</span>
 
                     <ul>
