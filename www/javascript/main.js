@@ -464,6 +464,8 @@ $(function(){
                   $(lastFocusedInput).val(lastInputValue); // Restore the original value of the input
                }
                window.location.href = result[1]; // Redirect if regex matches
+               event.preventDefault();
+               return false;
             }
          }
       }
