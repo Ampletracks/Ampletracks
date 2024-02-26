@@ -116,49 +116,59 @@ if (!$error) {
 if ($error && $errorReturnCode) http_response_code($errorReturnCode);
 
 include(VIEWS_DIR.'/header.php');
-?>
-<h1><?=cms('Public record preview: header',0,'Sample Details')?></h1>
-<? if ($error) { ?>
-    <p class="error"><?=cms('Public record preview: error',1,'There was a problem retrieving data about this item')?></p>
-    <p class="error"><?=htmlspecialchars($error)?></p>
-    <? if ($USER_ID) {
-        if($canCreateRecord) { ?>
-            <form method="post" action="/record/admin.php">
-                <? formHidden('labelId',$label->id); ?>
-                Create a record now and associate it with this label<br />
-                <? $recordTypeSelect->display() ?>
-                <input type="submit" value="Create new record" />
-            </form>
-        <? }
-        if($recentRecordSelect instanceof formOptionbox && count($recentRecordSelect->getOptions()) > 1) { ?>
-            <form method="post" action="/record/admin.php" id="associateLabelForm">
-                <? formHidden('labelId', $label->id); ?>
-                Associate this label with a recently viewed record<br>
-                <? $recentRecordSelect->display(); ?>
-                <input type="submit" value="Associate" />
-            </form>
-            <script>
-                $(function () {
-                    $('#associateLabelForm').on('submit', function () {
-                        if(!$('#recentRecordSelect').val()) {
-                            window.alert('Please choose a recently viewed record');
-                            return false;
-                        }
-                    });
+
+echo "<h1>";
+if ($USER_ID) {
+    echo cms('Associate label: header',0,'Associate Label');
+} else {
+    echo cms('Public record preview: header',0,'Sample Details');
+}
+echo "</h1>";
+
+if ($USER_ID) {
+    if($canCreateRecord) { ?>
+        <form method="post" action="/record/admin.php">
+            <? formHidden('labelId',$label->id); ?>
+            Create a record now and associate it with this label<br />
+            <? $recordTypeSelect->display() ?>
+            <input type="submit" value="Create new record" />
+        </form>
+    <? }
+    if($recentRecordSelect instanceof formOptionbox && count($recentRecordSelect->getOptions()) > 1) {
+        ?>
+        <form method="post" action="/record/admin.php" id="associateLabelForm">
+            <? formHidden('labelId', $label->id); ?>
+            Associate this label with a recently viewed record<br>
+            <? $recentRecordSelect->display(); ?>
+            <input type="submit" value="Associate" />
+        </form>
+        <script>
+            $(function () {
+                $('#associateLabelForm').on('submit', function () {
+                    if(!$('#recentRecordSelect').val()) {
+                        window.alert('Please choose a recently viewed record');
+                        return false;
+                    }
                 });
-            </script>
-        <? }
+            });
+        </script>
+        <?
     }
-} else { ?>
-    <p class="introduction"><?=cms('Public record preview: introduction',1,'The publicly avaiable data relating to this item is shown below')?></p>
-    <? if (strlen(trim($previewMessage))) { ?>
-        <p class="introduction"><?=nl2br(htmlspecialchars($previewMessage))?></p>
-    <? } ?>
-    <div class="questionAndAnswerContainer recordData publicView">
-        <? foreach( $dataFields as $dataField ) {
-            $dataField->displayRow( true );
-        } ?>
-    </div>
-<? } ?>
+} else {
+    if ($error) { ?>
+        <p class="error"><?=cms('Public record preview: error',1,'There was a problem retrieving data about this item')?></p>
+        <p class="error"><?=htmlspecialchars($error)?></p>
+    <? } else { ?>
+        <p class="introduction"><?=cms('Public record preview: introduction',1,'The publicly avaiable data relating to this item is shown below')?></p>
+        <? if (strlen(trim($previewMessage))) { ?>
+            <p class="introduction"><?=nl2br(htmlspecialchars($previewMessage))?></p>
+        <? } ?>
+        <div class="questionAndAnswerContainer recordData publicView">
+            <? foreach( $dataFields as $dataField ) {
+                $dataField->displayRow( true );
+            } ?>
+        </div>
+    <? }
+} ?>
 <br />
 <? include(VIEWS_DIR.'/footer.php'); ?>
