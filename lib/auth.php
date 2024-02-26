@@ -96,6 +96,9 @@ if (
             // clear out the record of any failed logins
             if ($hashedUsername) $DB->delete('failedLogin',array('hashedUsername'=>$hashedUsername));
 
+            $USER_ID=$userData['ID'];
+            logAction('user',$USER_ID,'Logged in');
+
             // Update the last login time
             $DB->update('user',['id'=>$userData['ID']],[
                 'lastLoggedInAt'    => time(),
