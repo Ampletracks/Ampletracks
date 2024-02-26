@@ -8,7 +8,7 @@ domain=$2
 
 case $every in
     minute)
-		wget -q -O - "http://$domain/acme/checkOrders.php" &
+		wget --no-check-certificate -q -O - "http://$domain/acme/checkOrders.php" &
 		./restartApache.sh	
 	;;
 	tenminute)
