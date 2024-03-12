@@ -19,6 +19,7 @@ $(function(){
         $('#maximizeGraphButton').hide();
         $('#minimizeGraphButton').hide();
         $('#nodeInfoPanel').hide();
+        return false;
     });
 
     $('#showGraphButton').on('click',function(){

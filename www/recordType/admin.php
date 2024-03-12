@@ -72,6 +72,7 @@ function prepareDisplay( $id ) {
     $selectedList = [];
     $builtInFieldsToDisplay = explode('|',ws('recordType_builtInFieldsToDisplay'));
     foreach($builtInFieldsToDisplay as $value) {
+        if (empty($value)) continue;
         $selectedList[$availableList[$value]] = $value;
         unset($availableList[$value]);
     }

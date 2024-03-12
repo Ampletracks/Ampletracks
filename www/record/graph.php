@@ -29,7 +29,7 @@ $nodeQuerySql = '
 
 function returnAjax( $nodes, $edges ) {
     foreach( $nodes as &$node ) {
-        $node['color'] = preg_match('/^#[0-9A-F]{3,}$/',$node['color']) ? $node['color'] : '#114411';
+        $node['color'] = preg_match('/^#[0-9A-F]{3,}$/i',$node['color']) ? $node['color'] : '#114411';
     }
     header('Content-type: application/json');
     echo json_encode([

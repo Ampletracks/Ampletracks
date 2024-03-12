@@ -11,11 +11,11 @@ div.recordDataHeader {
 
     div.graph-holder {
         position: absolute;
-        width: 30%;
+        width: 29%;
         right:0;
         top:0;
         bottom: 0;
-        padding-bottom: var(--l-block-pad);
+        margin-bottom: var(--l-block-pad);
 
     }
 
@@ -91,11 +91,13 @@ div.content {
 
 iframe#graph {
     @include responsive(width,100%,100%,100%);
-    @include responsive(height,50vh,50vh,500px);
+    @include responsive(height,50vh,50vh,100%);
+    border: none;
 }
 
 div.graph-holder {
     position: relative;
+    border: 1px solid black;
 }
 
 button#hideGraphButton,
@@ -175,11 +177,6 @@ dib.recordData {
 a.openUrl {
     // Force the open URL button onto a new line
     margin-right: 100%;
-}
-
-iframe#graph {
-    @include responsive(width,100%,100%,500px);
-    @include responsive(height,50vh,50vh,500px);
 }
 
 div.answer {
