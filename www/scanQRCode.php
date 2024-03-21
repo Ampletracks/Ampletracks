@@ -9,41 +9,11 @@ include(VIEWS_DIR.'/header.php');
 
 ?>
 <style>
-    html {
-        background-color: white;
-        margin:0;
-        padding: 0;
-    }
-    body {
-        margin:0;
-        padding: 0;
-        text-align:center;
-        font-family: arial,sans-serif;
-    }
-    main {
-        margin:0;
-        padding: 0;
-    }
     video {
         width: 80%;
         border: 2px solid black;
     }
-    button {
-        display: block;
-        position: absolute;
-        bottom: 10px;
-        right: 10px;
-        background: #ccc;
-        color: #000;
-        font-famil:arial;
-        padding: 5px;
-        border: 0;
-        font-weight: bold;
-    }
-    button.test{
-        right: 100px;
-        display: none;
-    }
+
     div#success {
         display: none;
         position: absolute;
@@ -192,7 +162,7 @@ include(VIEWS_DIR.'/header.php');
 
         // If this is loaded as an iFrame then remove the header and footer
         $(function() {
-            if (window.parent) {
+            if (window.parent !== window) {
                 $('header').hide();
                 $('footer').hide();
                 

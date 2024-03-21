@@ -40,7 +40,7 @@ body.graph #nodeInfoPanel {
         font-weight: bold;
     }
 
-    button.closeButton {
+    button.closeButton, a.openRecord {
         border: none;
         position: absolute;
         top: 2px;
@@ -53,6 +53,11 @@ body.graph #nodeInfoPanel {
         &:after {
                 margin-left: 0 !important;
         }
+    }
+
+    a.openRecord {
+        right: 30px;
+        @include backgroundIcon(0.2, 10, 20, right, white);
     }
 
 }

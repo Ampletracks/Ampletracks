@@ -1,4 +1,22 @@
 $(function () {
+
+	// ===========================================================================
+	// Reactive elements
+	// ===========================================================================
+
+	// On mobile we don't want to have two menus at the top so if the screen is narrow
+	// move the elements from the primary menu into the secondary menu and ditch the primary menu
+	//$('#recordTypeSwitcher').prependTo('ul.secondary-menu');
+	if ($('button.primary-menu-button').is(':visible')) {
+		$('ul.secondary-menu > li').appendTo('ul.primary-menu');
+		$('div.secondary-menu-container').remove();
+		$('div.primary-menu-container').addClass('toggle-menu');
+	}
+	
+
+	// End of reactive elements
+	// ===========================================================================
+
     $('td.actions').each(function () {
         let td = $(this);
 
@@ -27,92 +45,10 @@ $(function () {
         $(this).insertAfter($(this).parent());
     });
     $('div.checkboxHolder').closest('div.questionAndAnswer').addClass('half');
-});
 
-$(function(){
     // If we add any <input type=submit> buttons within the filter form the browser will automatically make these the default
     // action if the user hits enter in any of the search boxes. This isn't generally what we want
     // So... we add an <input type=submit> button right at the start of the form
     $('#filterForm').prepend('<input type="submit" style="display:none"/>');
-
-    // OLD STUFF
-    return;
-
-    $('td.actions').wrapInner('<div class="wrapper"></div>').on('mouseover', function() {
-        var cell = $(this),
-        menu = $('> .wrapper', cell);
-
-        // grab the menu item's position relative to its positioned parent
-        var menuPos = cell.offset();
-
-        console.log(menuPos);
-        var cellWidth = cell.outerWidth();
-        var menuWidth = menu.outerWidth();
-        if (menuWidth<cellWidth) menuWidth=cellWidth;
-
-        // place the submenu in the correct position relevant to the cell
-        menu.css({
-            width: menuWidth,
-        });
-    });
-
-    $('main .top.buttons').detach().appendTo('header div.subHeading').wrap('<nav class="top buttons"></nav>').addClass('nav-wrapper').wrapInner('<ul></ul>');
-
-    // When the buttons are moved into the nav bar they are taken out of the form
-    $('.buttons.top,.buttons.bottom').find('input[type=submit],button[type=submit]').on('click',function(){
-        let self = $(this);
-        self.clone().appendTo('#filterForm,#dataEntryForm').css({position:'absolute',left:'-999px'}).trigger('click');
-        return false;
-    });
-
-    $('h1').detach().appendTo('header div.subheading');
-
-    // Question and answer stuff
-
-    // Set the width of the questions to be the same...
-    $('.questionAndAnswer').parent().each(function(){
-        var self = $(this);
-        ['question'].forEach(function(thing){
-            var maxWidth = self.find('.questionAndAnswer .'+thing).map(function(){return parseInt($(this).width())}).sort(function(a,b){return a<b?1:-1})[0];
-            self.find('.questionAndAnswer .'+thing).width(maxWidth);
-        });
-    });
-
-    function wrapAdjacentSiblings(selector,wrapper,checkCallback) {
-        $(':not('+selector+') + '+selector+', * > '+selector+':first-of-type').each(function() {
-            var self = $(this);
-            if (checkCallback && !checkCallback.call(self)) return;
-            self.nextUntil(':not('+selector+')').addBack().wrapAll(wrapper);
-        });
-    }
-
-    // Wrap groups of questionAndAnswer divs in a container
-    // But not if they're already in one!
-    wrapAdjacentSiblings('div.questionAndAnswer','<div class="questionAndAnswerContainer" />',function(){
-        return !this.parent().is('div.questionAndAnswerContainer');
-    });
-
-    $('.questionAndAnswer:has(.error)').addClass('error');
-
-    $('.numbersOnly').keypress(function(e){
-        if (e.charCode>0 && e.charCode!=13 && (e.charCode<48 || e.charCode>57)) {
-            e.preventDefault();
-        }
-    });
-
-    /*
-    $('table.main').wrap('<div class="tablesaw-overflow"></div>').attr('data-tablesaw-mode','columntoggle').attr('data-tablesaw-minimap','');
-    $('th.persist').attr('data-tablesaw-priority','persist');
-    $('table.main th:not(.persist)').attr('data-tablesaw-priority','999');
-
-    jQuery(document).trigger('enhance.tablesaw');
-    */
-
-    //$('div.buttons.bottom').detach().insertAfter('main');
-
-    window.setTimeout(function(){
-        $('div.rowCount.top').detach().appendTo('header div.subheading');
-        $('div.rowCount.bottom').detach().appendTo('div.buttons.bottom');
-    },10);
 
 });

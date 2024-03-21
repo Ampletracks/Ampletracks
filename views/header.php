@@ -70,7 +70,7 @@ call_user_func(function () {
     <div style="width: 100%; text-align:center; font-weight: bold; border 2px solid red; background-color: #ffcccc; padding:10px;"><?=cms('THIS INSTANCE IS USED AS THE MODEL FOR INSTANCE-ON-DEMAND INSTANCES - DO NOT ENTER ANY LIVE DATA',1);?></div>
     <? } ?>
     <header class="site-header">
-        <div class="container body-pad toggle-menu">
+        <div class="primary-menu-container body-pad">
             <div class="top-row">
                 <ul class="logos">
                     <? if (!empty($cobrandingLogoUrl)) { ?>
@@ -78,7 +78,8 @@ call_user_func(function () {
                     <? } ?>
                     <li><a href="/"><img src="/images/ampletracks-logo.svg" alt="Ampletracks logo"></a></li>
                 </ul>
-                <button class="toggle-menu__toggle" aria-label="Primary menu" aria-expanded="false">
+                <!-- This button is only visible in mobile view -->
+                <button class="primary-menu-button toggle-menu__toggle btn" aria-label="Primary menu" aria-expanded="false">
                     <?= getSVGIcon('menuDots') ?>
                 </button>
             </div>
@@ -88,7 +89,7 @@ call_user_func(function () {
                 <ul class="primary-menu">
                     <? if($USER_ID) { ?>
                         <? if(isset($primaryFilterIdField)) { ?>
-                            <li id="recordTypeSwitcher">
+                            <li id="recordTypeSwitcher" class="toggle-menu">
                                 <?
                                 $recordTypes = $DB->getHash('
                                     SELECT recordType.id, recordType.name
@@ -99,11 +100,11 @@ call_user_func(function () {
                                     ORDER BY ISNULL(user.id) DESC, recordType.name
                                 ',$USER_ID);
                                 ?>
-                                <button class="current-selection">
+                                <button class="current-selection with-icon toggle-menu__toggle">
                                     <?= getSVGIcon('menuDownBoxArrow') ?>
                                     <span>Currently viewing <strong><?=array_pop($recordTypes)?></strong></span>
                                 </button>
-                                <ul>
+                                <ul class="toggle-menu__menu">
                                     <? foreach($recordTypes as $id => $name) { ?>
                                         <li data-recordTypeId="<?=htmlspecialchars($id)?>"><a href="#"><?=cms('Main Nav: Swith Record Type',0,'Switch to')?> <?=$name?></a></li>
                                     <? } ?>
@@ -138,12 +139,12 @@ call_user_func(function () {
                                 </a>
                             </li>
                         <? } ?>
-                        <li>
-                            <a href="#">
+                        <li class="toggle-menu">
+                            <button class="toggle-menu__toggle with-icon my-acocunt">
                                 <?= getSVGIcon('myAccount') ?>
-                                My account
-                            </a>
-                            <ul>
+                                <span>My account</span>
+                            </button>
+                            <ul class="toggle-menu__menu">
                                 <li>
                                     <a href="/user/admin.php?id=<?=(int)$USER_ID?>"><?=cms('Main Nav: Settings', 0, 'Settings')?></a>
                                 </li>
@@ -168,11 +169,8 @@ call_user_func(function () {
 
         <? if($USER_ID) { ?>
             <!-- Secondary Menu -->
-            <div class="body-pad bg-d">
-                <nav class="toggle-menu-secondary toggle-menu container">
-                    <button class="hamburger toggle-menu__toggle" aria-label="Secodary menu" aria-expanded="false">
-                        <?= getSVGIcon('menuHamburger') ?>
-                    </button>
+            <div class="secondary-menu-container body-pad bg-d">
+                <nav class="toggle-menu-secondary container">
                     <ul class="secondary-menu toggle-menu__menu">
                         <? if(canDo('list', 'recordTypeId')) { ?>
                             <li>
@@ -181,9 +179,9 @@ call_user_func(function () {
                         <? } ?>
                         <? if (canDoMultiple('list', 'dataField,recordType,relationship', 'or')) { ?>
                             <li class="toggle-menu">
-                                <a class="toggle-menu__toggle" href="#"><?=cms('Main Nav: Shema', 0, 'Schema')?></a>
                                 <button class="toggle-menu__toggle">
                                     <?= getSVGIcon('menuDownArrow') ?>
+                                    <span><?=cms('Main Nav: Shema', 0, 'Schema')?></spam>
                                 </button>
                                 <ul class="toggle-menu__menu">
                                     <? if(canDo('list', 'dataField')) { ?>
@@ -206,9 +204,9 @@ call_user_func(function () {
                         <? } ?>
                         <? if (canDoMultiple('list', 'project,user,role,cms,configuration', 'or')) { ?>
                             <li class="toggle-menu">
-                                <a class="toggle-menu__toggle" href="#"><?=cms('Main Nav: Admin', 0, 'Admin')?></a>
                                 <button class="toggle-menu__toggle">
                                     <?= getSVGIcon('menuDownArrow') ?>
+                                    <span><?=cms('Main Nav: Admin', 0, 'Admin')?></span>
                                 </button>
                                 <ul class="toggle-menu__menu">
                                     <? if (canDo('list', 'project')) { ?>

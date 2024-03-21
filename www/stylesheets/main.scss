@@ -42,7 +42,7 @@ a {
     color: var(--c-brand-a);
 }
 
-table {
+table.data-table {
     width: 100%;
     margin-bottom: 2em;
     border-collapse: collapse;
@@ -57,33 +57,33 @@ table {
             border: none;
         }
     }
-}
 
-thead,
-tbody {
-    border-bottom: 1px solid var(--c-border);
-}
+	thead,
+	tbody {
+		border-bottom: 1px solid var(--c-border);
+	}
 
-tr {
-    &:nth-child(even) {
-        background-color: var(--c-brand-f);
-    }
+	tr {
+		&:nth-child(even) {
+			background-color: var(--c-brand-f);
+		}
 
-    &:hover {
-        background-color: var(--c-brand-h);
-    }
-}
+		&:hover {
+			background-color: var(--c-brand-h);
+		}
+	}
 
-th,
-td {
-    padding: clamp( 0.1em, calc( 0.1em + 0.1vw ), 0.3em ) clamp( 0.4em, calc( 0.4em + 0.1vw ), 0.8em ) ;
-    border-left: 1px solid var(--c-border);
-    border-right: 1px solid var(--c-border);
+	th,
+	td {
+		padding: clamp( 0.1em, calc( 0.1em + 0.1vw ), 0.3em ) clamp( 0.4em, calc( 0.4em + 0.1vw ), 0.8em ) ;
+		border-left: 1px solid var(--c-border);
+		border-right: 1px solid var(--c-border);
 
 
-    &.dataField.image {
-        text-align: center;
-    }
+		&.dataField.image {
+			text-align: center;
+		}
+	}
 }
 
 table.record {
