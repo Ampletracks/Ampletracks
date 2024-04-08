@@ -14,7 +14,11 @@ $INPUTS=[
 $requireLogin=false;
 include('../../lib/core/startup.php');
 
+$requireEmail = true;
+include(LIB_DIR.'email.php');
+
 if (ws('mode')=='request') {
+
     $checks = [
         'firstName'             => [2,'You must provide your first name'],
         'lastName'              => [2,'You must provide your last name'],
@@ -53,7 +57,6 @@ if (ws('mode')=='request') {
         if (empty($recipients)) {
             inputError('general','There was a problem sending your application to the site administrator - no administrator email address has been configured');
         } else {
-            include(LIB_DIR.'email.php');
             $sendResult = $EMAIL->send([
                 'template' => 'request-account',
                 'to' => $recipients,
