@@ -10,6 +10,9 @@ td.displayToPublic, td.displayOnList {
 }
 
 div.selectDefinition table {
+    th.defaultCheckbox {
+        text-align: right;
+    }
 	td {
 		padding: 4px 2px;
 	}
