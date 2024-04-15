@@ -1289,7 +1289,7 @@ class DataField_select extends DataField {
                         <thead>
                             <tr>
 
-                                <th class="defaultCheckbox">Default</th>
+                                <th class="defaultCheckbox">Is default?</th>
                                 <th class="value">Option</th>
                                 <th colspan="2"></th>
                             </tr>
