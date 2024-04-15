@@ -302,9 +302,9 @@ function processInputs($mode,$id) {
         // Correct the path for the new record
         $DB->exec('UPDATE record SET path = REGEXP_REPLACE(path,?,?) WHERE id=?',$id.',$',$newRecordId.',',$newRecordId);
 
-        // Non-inherited record data should had the fromRecordId pointing to itself
+        // Non-inherited record data should have the fromRecordId pointing to itself
         // I don't think it really matters but this will be consistent with what we do elsewhere
-        $DB->exec('UPDATE recordData SET fromRecordId = id WHERE recordId=? AND inherited=0',$newRecordId);
+        $DB->exec('UPDATE recordData SET fromRecordId = recordId WHERE recordId=? AND inherited=0',$newRecordId);
 
         header('Location: admin.php?id='.$newRecordId);
         exit;
