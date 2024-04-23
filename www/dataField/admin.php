@@ -185,10 +185,25 @@ function prepareDisplay( $id ) {
     if ($id) $recordTypeId = ws('dataField_recordTypeId');
     else $recordTypeId = getPrimaryFilter();
     
-    global $dataFieldTypeSelect;
+    global $dataFieldTypeSelect, $dataFieldHelp;
     $dataFieldTypeSelect = new formOptionbox('dataField_typeId','
         SELECT name,id FROM dataFieldType WHERE !disabled ORDER BY name ASC
     ');
+    $dataFieldHelp='';
+    $dataFieldObjects = DataField::getAllTypes();
+    foreach( $dataFieldTypeSelect->getOptions() as $id ) {
+        if (!isset($dataFieldObjects[$id])) continue; // Should not happen
+        $help = $dataFieldObjects[$id]->getDefinitionHelp();
+        if (!empty($help)) {
+            ob_start();
+            ?>
+                <div class="info" dependsOn="dataField_typeId eq <?=(int)$id?>">
+                    <?=$help?>
+                </div>
+            <?
+            $dataFieldHelp .= ob_get_clean();
+        }
+    }
 
     global $inheritanceSelect;
     $inheritanceSelect = new formOptionbox('dataField_inheritance', $DB->getEnumValues('dataField', 'inheritance'));
@@ -208,6 +223,7 @@ function prepareDisplay( $id ) {
     if (!$currentPosition) {
         $currentPosition = $DB->getValue('SELECT MAX(orderId)+1 FROM dataField WHERE recordTypeId=? AND !deletedAt',$recordTypeId);
         ws('dataField_orderId',$currentPosition);
+        if (!$currentPosition) $currentPosition=0;
     } else if ($currentPosition==1) {
         $firstFieldLabel .= ' - Current position';
     }
