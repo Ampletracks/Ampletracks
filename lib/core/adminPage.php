@@ -156,9 +156,13 @@ if ( isset($WS['id']) && $WS['id'] ) {
     if ( $WS['mode']=='delete' || $WS['mode']=='shred' ) {
 
         $proceed=true;
+        $ajaxMessage=null;
         if ( function_exists('processDeleteBefore') ) {
             $proceed = processDeleteBefore( $id, $WS['mode']=='shred' );
             // if the function omits to return a value then null is returned - this probably wants to be treated as OK to proceed
+            if (is_array($proceed)) {
+                list($proceed,$ajaxMessage) = $proceed;
+            }
             if (is_null($proceed)) $proceed=true;
         }
         if ($proceed) {
@@ -185,9 +189,9 @@ if ( isset($WS['id']) && $WS['id'] ) {
 
             if ( function_exists('processDeleteAfter') ) processDeleteAfter( $id, $WS['mode']=='shred' );
 
-            if (isAjaxRequest()) echo "OK";
+            if (isAjaxRequest()) echo $ajaxMessage ?? "OK";
         } else {
-            if (isAjaxRequest()) echo "Not deleted";
+            if (isAjaxRequest()) echo $ajaxMessage ?? "Not deleted";
         }
 
         if (!isAjaxRequest()) {
