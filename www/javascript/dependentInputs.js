@@ -106,7 +106,32 @@ $(function(){
 				// if we get to this point then either all bits succedded (cl) or all bits failed (cy)
 				return comparator=='cl'?true:false;
 			}
-		}
+		},
+        'ci' : { // Contains Item - for testing array controls (check/radio) to see if any of the checked ones have a particular value
+            'alias' : [ ],
+            'test' : function(values,testValue,comparator) {
+                values = values.split(/\|/);
+                return jQuery.inArray(testValue, values) > -1;
+            }
+        },
+        'sw' : { //check if the dependence starts with the text
+            'alias' : [ ],
+            'test' : function(values,testValue,comparator) {
+                return values.startsWith(testValue);
+            }
+        },
+        'ew' : { //check if the dependence end with the text
+            'alias' : [ ],
+            'test' : function(values,testValue,comparator) {
+                return values.endsWith(testValue);
+            }
+        },
+        'sy' : { //check if the dependence contain substring
+            'alias' : [ ],
+            'test' : function(values,testValue,comparator) {
+                return values.includes(testValue);
+            }
+        }
 	}
 	
 	for( var comparator in comparatorLookup) {
