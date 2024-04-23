@@ -87,7 +87,7 @@ function processUpdateAfter( $id ) {
     
     // Save the dependencies
     if (isset($WS['dataField_dependencyCombinator'])) {
-        
+       
         // If the dependency combinator is set but empty that means they have switched off all dependencies
         if (!$WS['dataField_dependencyCombinator']) {
             $DB->delete('dataFieldDependency',array('dependentDataFieldId'=>$id));
@@ -110,7 +110,6 @@ function processUpdateAfter( $id ) {
                 // One of these should be hidden so only one should actually be set
                 // Move the one that is set into dependencyTests[$i]
                 if (!isset($dependencyTests[$i]) && isset($nonValueDependencyTests[$i])) $dependencyTests[$i]=$nonValueDependencyTests[$i];
-                
                 foreach($fields as $field) {
                     if (!isset(${$field}[$i])) continue 2;
                 }
@@ -175,14 +174,14 @@ function processDeleteBefore( $id ) {
     $DB->exec('UPDATE dataField SET orderId=@count:=@count+1 WHERE recordTypeId=? AND id<>? AND !deletedAt ORDER BY orderId',$recordTypeId,$id);
 }
 
-function prepareDisplay( $id ) {
+function prepareDisplay( $dataFieldId ) {
     global $DB, $WS, $extraStylesheets,$extraScripts;
     $extraScripts[] = '/javascript/dependentInputs.js';
     $extraStylesheets[] = '/javascript/jodit/jodit.css';
     $extraScripts[] = '/javascript/jodit/jodit.js';
     
     $DB->loadRow(['SELECT name FROM recordType WHERE id=?',ws('dataField_recordTypeId')],'recordType_');
-    if ($id) $recordTypeId = ws('dataField_recordTypeId');
+    if ($dataFieldId) $recordTypeId = ws('dataField_recordTypeId');
     else $recordTypeId = getPrimaryFilter();
     
     global $dataFieldTypeSelect, $dataFieldHelp;
@@ -228,17 +227,17 @@ function prepareDisplay( $id ) {
         $firstFieldLabel .= ' - Current position';
     }
    
-    if (!$id) $currentPosition = 0; 
+    if (!$dataFieldId) $currentPosition = 0; 
     $positionSelect = new formOptionbox('dataField_orderId',array($firstFieldLabel=>1));
-    $positionSelect->addLookup('SELECT CONCAT("After ",name,IF(orderId=?," - Current position","")),orderId+IF(orderId>?,0,1) FROM dataField WHERE !deletedAt AND id!=? AND recordTypeId=? ORDER BY orderId ASC',$currentPosition-1,$currentPosition, $id,$recordTypeId);
+    $positionSelect->addLookup('SELECT CONCAT("After ",name,IF(orderId=?," - Current position","")),orderId+IF(orderId>?,0,1) FROM dataField WHERE !deletedAt AND id!=? AND recordTypeId=? ORDER BY orderId ASC',$currentPosition-1,$currentPosition, $dataFieldId,$recordTypeId);
     
-    if ($id) DataField::unserializeParameters($WS['dataField_parameters'],$WS);
+    if ($dataFieldId) DataField::unserializeParameters($WS['dataField_parameters'],$WS);
     unset($WS['dataField_parameters']);
     
     global $dependeeFieldSelect, $dependencyCombinatorSelect, $dependencyTestSelect, $nonValueDependencyTestSelect;
     
     $dependencyTestSelect = new formOptionbox('',array('Delete dependency'=>''));
-    $dependencyTestSelect->addLookup('SELECT name, test FROM testLookup');
+    $dependencyTestSelect->addLookup('SELECT name, test FROM testLookup ORDER BY name');
     $nonValueDependencyTestSelect = new formOptionbox('',array('Delete dependency'=>''));
     $nonValueDependencyTestSelect->addLookup('SELECT name, test FROM testLookup WHERE !hasValue');
     
@@ -249,8 +248,8 @@ function prepareDisplay( $id ) {
         WHERE dataField.recordTypeId='.((int)$recordTypeId).' AND !dataField.deletedAt
         ORDER BY dataField.orderId ASC
     ');
-    if ($id) {
-        $dependeeFieldSelect->removeOption($id);
+    if ($dataFieldId) {
+        $dependeeFieldSelect->removeOption($dataFieldId);
     }
 
     global $dependeeFieldList;
@@ -263,9 +262,9 @@ function prepareDisplay( $id ) {
         UNION ALL
         SELECT 0,0,"","" FROM number WHERE number <11
         LIMIT 10
-    ',$id));
-    
-    $numDependencies = $DB->getValue('SELECT COUNT(*) FROM dataFieldDependency WHERE dependentDataFieldId = ?',$id);
+    ',$dataFieldId));
+   
+    $numDependencies = $DB->getValue('SELECT COUNT(*) FROM dataFieldDependency WHERE dependentDataFieldId = ?',$dataFieldId);
     // Default the combinator select to "no dependencies" if none have been defined
     if ($numDependencies==0) ws('dataField_dependencyCombinator','');
     
