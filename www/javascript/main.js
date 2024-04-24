@@ -131,7 +131,8 @@ $(function(){
 		}
 	}
 
-	$("a[deletePrompt]").on('click',function(){
+    // Delegate the handler so we can have dynamically created delete links
+	$('body main').on('click', 'a[deletePrompt]', function(){
 
 		var self = $(this);
 		var href = self.attr('href');

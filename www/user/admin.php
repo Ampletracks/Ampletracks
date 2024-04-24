@@ -22,7 +22,13 @@ $INPUTS = array(
         'id' => 'INT',
         'userDefaultAnswer_id' => 'INT',
         'userDefaultAnswer_orderId' => 'INT'
-    )
+    ),
+    'createAPIKey' => array(
+        'name' => 'TEXT',
+    ),
+    'deleteAPIKey' => array(
+        'apiKeyId' => 'INT',
+    ),
 );
 
 function processInputs($mode, $id) {
@@ -54,6 +60,31 @@ function processInputs($mode, $id) {
         );
 
         echo json_encode($results);
+        exit;
+    }
+
+    if ($mode == 'createAPIKey') {
+        if (!canDo('edit', $id)) {
+            exit;
+        }
+        require_once(LIB_DIR.'/api/tools.php');
+
+        $keyData = createAPIKey($id, ws('name'));
+        unset($keyData[0]);
+        unset($keyData[1]);
+
+        echo json_encode($keyData);
+        exit;
+    }
+
+    if ($mode == 'deleteAPIKey') {
+        if (!canDo('edit', $id)) {
+            exit;
+        }
+
+        global $LOGGER; $LOGGER->log("Deleting:\n".print_r(['id' => ws('apiKeyId'), 'userId' => $id], true));
+        $deleted = $DB->update('userAPIKey', ['id' => ws('apiKeyId'), 'userId' => $id], ['deletedAt' => time()]);
+        echo $deleted ? 'OK' : 'ERROR';
         exit;
     }
 
@@ -257,6 +288,14 @@ function prepareDisplay($id) {
             dataField.recordTypeId IN (?)
     ',getUserAccessibleRecordTypes($id,'edit',true));
 
+    global $apiKeyList;
+    $apiKeyList = new search('user/apiKeyList', ['
+        SELECT id, userId, name, apiKey, createdAt
+        FROM userAPIKey
+        WHERE userId = ?
+        AND deletedAt = 0
+        ORDER BY createdAt ASC
+    ', $id]);
 
     // The following is required to support drag and drop of user defaults for ordering
     $extraScripts = array('/javascript/jquery-ui.justDraggable.min.js');

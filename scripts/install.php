@@ -299,6 +299,16 @@ $tables = array(
         'index_lastName' => "INDEX (`lastName`(40),`deletedAt`,`firstName`(40))",
         'index_deletedAt' => "INDEX (`deletedAt`)",
     ),
+    'userAPIKey' => array(
+        'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
+        'userId' => "INT(10) UNSIGNED NOT NULL",
+        'name' => "VARCHAR(255) NOT NULL DEFAULT''",
+        'apiKey' => "VARCHAR(32) NOT NULL DEFAULT''",
+        'createdAt' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
+        'deletedAt' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
+        'index_apiKey' => "UNIQUE INDEX (`apiKey`)",
+        'index_userId' => "INDEX (`userId`)",
+    ),
     'userDefaultAnswer' => array(
         'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
         'userId' => "INT(10) UNSIGNED NOT NULL",
