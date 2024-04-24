@@ -134,4 +134,7 @@
             });
         });
     </script>
+
+    <h2>API Keys</h2>
+    <? $apiKeyList->display(true); ?>
 <? } ?>

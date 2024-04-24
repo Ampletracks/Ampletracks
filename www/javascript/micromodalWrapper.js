@@ -133,6 +133,7 @@ function modal(options) {
       var buttonId = `${modalId}-btn-${index}`;
       $('#' + buttonId).on('click', function() {
          var inputData = gatherInputValues();
+         inputData.__modalId = modalId;
          var result;
          if (buttonAttrib.onClick) {
             // If an individual click handler is provided
@@ -192,7 +193,7 @@ function prompt(text, title, onOk) {
                onClick: function(data) {
                   // Call onOk with the input value when OK is clicked
                   var inputValue = $('#' + inputId).val();
-                  onOk(inputValue);
+                  return onOk(inputValue);
                }
             }
         ],

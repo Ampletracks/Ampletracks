@@ -13,6 +13,12 @@ $tables = array(
         'index_time' => "INDEX (`time`,`entityId`)",
         'index_entityId' => "INDEX (`entityId`)",
     ),
+    'apiIdTablePrefix' => array(
+        'tableName' => "VARCHAR(128) NOT NULL",
+        'prefix' => "VARCHAR(4) NOT NULL",
+        'index_tableName' => "UNIQUE INDEX (`tableName`)",
+        'index_prefix' => "UNIQUE INDEX (`prefix`)",
+    ),
     'cms' => array(
         'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
         'label' => "VARCHAR(255) NOT NULL",
@@ -321,6 +327,7 @@ $tables = array(
     ), 
     'user' => array(
         'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
+        'apiId' => "VARCHAR(40) NOT NULL DEFAULT''",
         'firstName' => "VARCHAR(255) NOT NULL",
         'lastName' => "VARCHAR(255) NOT NULL",
         'email' => "VARCHAR(255) NOT NULL",
@@ -334,8 +341,19 @@ $tables = array(
         'defaultsLastChangedAt' =>  "INT(10) UNSIGNED NOT NULL DEFAULT 0",
         'fontScale' => "TINYINT UNSIGNED NOT NULL DEFAULT 0",
         'index_email' => "UNIQUE INDEX (`email`,`deletedAt`)",
+        'index_apiKey' => "UNIQUE INDEX (`apiId`)",
         'index_lastName' => "INDEX (`lastName`(40),`deletedAt`,`firstName`(40))",
         'index_deletedAt' => "INDEX (`deletedAt`)",
+    ),
+    'userAPIKey' => array(
+        'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
+        'userId' => "INT(10) UNSIGNED NOT NULL",
+        'name' => "VARCHAR(255) NOT NULL DEFAULT''",
+        'apiKey' => "VARCHAR(32) NOT NULL DEFAULT''",
+        'createdAt' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
+        'deletedAt' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
+        'index_apiKey' => "UNIQUE INDEX (`apiKey`)",
+        'index_userId' => "INDEX (`userId`)",
     ),
     'userDefaultAnswer' => array(
         'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
@@ -551,6 +569,12 @@ $dbSetup = function() {
             }
         }
     }
+
+    // Add these as needed, and add an `apiId` column to the relevant table definition
+    $DB->exec('
+        INSERT IGNORE INTO apiIdTablePrefix (tableName, prefix) VALUES
+        ("user", "u")
+    ');
 };
 
 $writableDirectories = ['data/images','data/tmp/uploads','data/system','data/acme','data/emailMergeData'];
