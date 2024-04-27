@@ -79,6 +79,6 @@ Installation Steps
 
 3. Run the Ansible playbook
     ~~~
-    ansible-playbook -i testInventory.yml install.yml
+    ansible-playbook -i inventory.yml install.yml
     ~~~
 
