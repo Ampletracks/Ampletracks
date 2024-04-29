@@ -10,8 +10,30 @@ The upgrade process basically involves:
 
 N.B. between steps 1 and 2 the code and the database will be out of step. Depending on the nature of the changes in the version of the code you are upgrading to there may be database incompatibility that will not be resolved until the upgrade script is run, so anyone using your site at this intervening stage may experience errors, or unpredictable behaviour. This will not corrupt the data, but might upset users. On most installations we find this isn't an issue, but if you have a particularly large or high profile installation you may wish to tweak you web server configuration to serve up a holding page to users whilst you do the upgrade. Ampletracks does not currently have any built in "maintenance mode" mechanism to do this.
 
-Getting The Latest Version
---------------------------
+Just Use Ansible
+----------------
+If you installed Ampletracks using the Ansible scripts in this repository then the easiest way to upgrade your installation is simply to edit your inventory file to require the new version and then re-run the ansible script. This will perform the steps detailed below (except for backing up your existing database). Re-running the Ansible script on an existing running installation will not do any harm.
+
+To use this approach follow these steps
+1. (optional but recommended) Pull the desired version of the Ampletracks codebase to the machine where you will be running Ansible so that you have the up to date versions of the Ansible scripts:
+~~~
+cd /your/Ampletracks/checkout/directory
+git fetch
+git checkout <desired version branch>
+~~~
+2. Edit your inventory file and update the "ampletracks_version" variable e.g.
+~~~
+ampletracks_version: Ampletracks-1-3
+~~~
+
+3. Run the ansible script - see the [INSTALL.md](./INSTALL.md) file for details of how to do this.
+
+N.B. Just to reiterate: Upgrading using ansible will not automatically create a backup of your existing database, so if you want to do this, you should do so before running Ansible
+
+Manual approach
+---------------
+
+### Getting The Latest Version
 
 If your ampletracks installation was performed using the Ampletracks Ansible script, or it was originally obtained via a manual "git clone", then all you need to do is fetch and checkout the desired version as follows:
 ~~~
@@ -28,8 +50,7 @@ https://github.com/Ampletracks/Ampletracks/archive/refs/heads/<desired branch na
 ~~~
 You should then unpack this over your existing Ampletracks installation.
 
-Running The Install Script
---------------------------
+### Running The Install Script
 
 Once you have the desired version of the codebase installed, you need to run the install script. This will automatically upgrade the database to bring it into line with the new codebase. You can upgrade multiple version in one go - the install script will perform all intervening upgrades in sequence.
 

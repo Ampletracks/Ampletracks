@@ -69,6 +69,10 @@ The system is built around a number of entities:
 
 See the [INSTALL.md](./INSTALL.md) file
 
+# Upgrading
+
+See the [UPGRADE.md](./UPGRADE.md) file
+
 # Funding
 
 Ampletracks was funded through the EPSRC MIDAS grant, on the study of irradiated fuel assembly materials  - EP/S01702X/1, https://gow.epsrc.ukri.org/NGBOViewGrant.aspx?GrantRef=EP/S01702X/1

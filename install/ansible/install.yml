@@ -380,7 +380,7 @@
       git:
         repo: https://github.com/Ampletracks/Ampletracks.git
         dest: "{{ ampletracks_install_path }}"
-        update: no
+        version: "{{ ampletracks_version }}"
 
     - name: Build full path to ampletracks config file
       set_fact:

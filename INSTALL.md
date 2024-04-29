@@ -78,6 +78,7 @@ Installation Steps
 	~~~
 
 3. Run the Ansible playbook
+
     If the remote server requires you to type your password to get sudo permissions then use this command
     ~~~
     ansible-playbook -i inventory.yml install.yml --ask-become-pass

@@ -32,6 +32,13 @@ ampletracks_servers:
     # Mandatory Ampletracks configuration
     #====================================
 
+    # Version
+
+    # What version of Ampletracks should be installed. The value provided here
+    # will install the latest stable version.
+    # You can visit https://github.com/Ampletracks/Ampletracks to find details of other version
+    ampletracks_version: Ampletracks-1-3
+
     # Domain Name
 
     # This is the web address that users will go to to access your Ampletracks site.
