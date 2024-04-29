@@ -89,3 +89,7 @@ See [CITATION.cff](./CITATION.cff), or generate an automatic APA or BibTeX entry
 
 Ampletracks is an Open Source project aimed at improving structured data collection and sharing in the materials science community although we think it might have wider applications beyond materials science. We welcome contributions from projects using and modifying Ampletracks for their own purposes. If you modify Ampletracks in a way that might be generally useful to the wider community please consider submitting this as a pull request so that others can benefit from it Please fork the repository and submit any changes in the form of a pull request.
 
+# Development Workflow
+
+Amplretracks is developed using a branching strategy to ensure stability and continuous integration. All development is performed on feature or bugfix branches that are then merged into the Main branch. Periodically, we create release branches (e.g., Ampltracks-1-0, Ampltracks-1-1) from Main. These release branches represent stable versions of Amplretracks and are used for deployments. This strategy makes it easier to manage versions, fix bugs, and add features in a controlled and predictable manner.
+
