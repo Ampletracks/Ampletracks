@@ -69,7 +69,7 @@ function processInputs($mode, $id) {
         }
         require_once(LIB_DIR.'/api/tools.php');
 
-        $keyData = createAPIKey($id, ws('name'));
+        $keyData = \API\createAPIKey($id, ws('name'));
         unset($keyData[0]);
         unset($keyData[1]);
 
