@@ -54,22 +54,28 @@ do { // allow us to jump out as needed
     if(count($apiIdBits) != 2) {
         break;
     }
-    $ENTITY = $DB->getValue('
-        SELECT tableName 
-        FROM apiIdTablePrefix
-        WHERE prefix = ?
-    ', $apiIdBits[0]);
-    if(!$ENTITY) {
-        break;
-    }
-    // As apiIdTablePrefix is effectively a whitelist we should be safe to use $ENTITY directly
-    $API_ENTITY_ID = (int)$DB->getValue('
-        SELECT id
-        FROM `'.$ENTITY.'`
-        WHERE apiId = ?
-    ', $apiIdBits[1]);
-    if(!$API_ENTITY_ID) {
-        break;
+
+    if(!$apiIdBits[0] != 'qry') {
+        $ENTITY = $DB->getValue('
+            SELECT tableName 
+            FROM apiIdTablePrefix
+            WHERE prefix = ?
+        ', $apiIdBits[0]);
+
+        if(!$ENTITY) {
+            break;
+        }
+        // As apiIdTablePrefix is effectively a whitelist we should be safe to use $ENTITY directly
+        $API_ENTITY_ID = (int)$DB->getValue('
+            SELECT id
+            FROM `'.$ENTITY.'`
+            WHERE apiId = ?
+        ', $apiIdBits[1]);
+        if(!$API_ENTITY_ID) {
+            break;
+        }
+    } else {
+        $ENTITY = 'NEXT_PAGE';
     }
 
     // Other url variables

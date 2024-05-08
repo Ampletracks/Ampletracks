@@ -1,6 +1,61 @@
 <?
 namespace API;
 
+require_once(LIB_DIR.'/api/baseClasses.php');
+
+class APIQuery_user implements APIQuery {
+    private $userRecords = [];
+    private $nextId = 0;
+
+    public function __construct(string $type, array $data) {
+        if($type == 'list') {
+        } else if($type == 'next') {
+
+        } else {
+            return null;
+        }
+    }
+
+    public function () {
+    }
+
+    public function loadRecordsById(array $ids) {
+        global $DB;
+
+        $ids = array_filter($ids, function ($id) { return is_int($id); });
+        $DB->returnHash();
+        $userRecords = $DB->getRows('
+            SELECT
+                user.id AS realId,
+                CONCAT(?, "_", user.apiId) AS id,
+                user.firstName,
+                user.lastName,
+                user.email,
+                user.mobile,
+                user.lastLoggedInAt,
+                user.lastLoginIp,
+                user.createdAt,
+                user.recordTypeFilter,
+                user.defaultsLastChangedAt,
+                user.fontScale
+            FROM user
+            WHERE id IN (?)
+        ', $ids);
+
+        foreach($userRecords as $idx => $userData) {
+            if(strlen($userData['id']) == strlen($apiIdPrefix.'_')) {
+                $userRecords[$idx]['id'] = getAPIId('user', $userData['realId']);
+            }
+            unset($userRecords[$idx]['realId']);
+        }
+
+        $this->userRecords = $userRecords;
+    }
+
+    public function formatRecordForOutput($userData) {
+    }
+}
+
 function getUserList($_filters = []) {
     global $DB;
 
