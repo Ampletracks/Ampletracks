@@ -4,7 +4,8 @@ namespace API;
 require_once(LIB_DIR.'/api/tools.php');
 
 interface APIQuery {
-    public static function loadRecordsById(array $ids);
+    // vvvv Need this one? vvvv
+    //public static function loadRecordsById(array $ids);
     public static function formatRecordForOutput(array $data);
 }
 
@@ -115,9 +116,13 @@ class IdStreamer {
     /**
      * Generator
      */
-    public function getIds($count) {
-        for($i = 0; $i < $count; $i++) {
-            $idData = unpack('Nid', fread($this->idFileH, self::bytesPerId));
+    public function getIds($maxCount) {
+        for($i = 0; $i < $maxCount; $i++) {
+            $rawIdData = fread($this->idFileH, self::bytesPerId);
+            if($rawIdData === false) {
+                break;
+            }
+            $idData = unpack('Nid', $rawIdData);
             yield $idData['id'];
         }
     }

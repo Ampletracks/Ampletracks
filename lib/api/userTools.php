@@ -3,23 +3,51 @@ namespace API;
 
 require_once(LIB_DIR.'/api/baseClasses.php');
 
+define('API_PER_PAGE_USER', 50);
+
 class APIQuery_user implements APIQuery {
     private $userRecords = [];
-    private $nextId = 0;
+    private $currentPage = 1;
+    private $userIdStreamer = null;
 
-    public function __construct(string $type, array $data) {
-        if($type == 'list') {
-        } else if($type == 'next') {
+    public function __construct($filtersOrListId, $page) {
+        $this->currentPage = max((int)$page, 1);
 
-        } else {
-            return null;
+        if(!canDo('list', 'user')) {
+            throw new APIException('Forbidden', 403);
         }
+
+        if(is_array($filtersOrListId)) {
+            $filters = [];
+            // specify all filters relate to the user table for makeConditions()
+            foreach($_filters as $test => $val) {
+                if(strpos('user:', $test) !== 0) {
+                    $test = 'user:'.$test;
+                }
+                $filters[$test] = $val;
+            }
+
+            $queryOrFileId = 'SELECT id FROM user WHERE 1 = 1';
+            $filterConditions = makeConditions($filters);
+            if($filterConditions) {
+                $filterConditions = "AND $filterConditions";
+            }
+        } else {
+            $queryOrFileId = $filtersOrListId;
+        }
+
+        $startIdx = ($this->currentPage - 1) * API_PER_PAGE_USER;
+
+        $this->userIdStreamer = new IdStreamer($queryOrFileId, 'user', $startIdx);
+        $userIds = [];
+        foreach($this->userIdStreamer->getIds(API_PER_PAGE_USER) as $userId) {
+            $userIds[] = $userId;
+        }
+
+        $this->loadRecordsById($userIds);
     }
 
-    public function () {
-    }
-
-    public function loadRecordsById(array $ids) {
+    private function loadRecordsById(array $ids) {
         global $DB;
 
         $ids = array_filter($ids, function ($id) { return is_int($id); });
@@ -52,51 +80,81 @@ class APIQuery_user implements APIQuery {
         $this->userRecords = $userRecords;
     }
 
-    public function formatRecordForOutput($userData) {
+    public function getUserRecords() {
+        return $this->userRecords;
+    }
+
+    public function getNextListPageUrl($pageNum) {
+        if(!$this->userIdStreamer->getIds(1)) {
+            return '';
+        }
+        return '/user/listId/'.$this->userIdStreamer->getIdFileId().'/page/'.$this->currentPage + 1;
+    }
+
+    public function formatRecordForOutput() {
+        return [
+            'userRecords' => $this->userRecords,
+            'nextPageUrl' => $this->getNextListPageUrl(),
+        ];
     }
 }
 
-function getUserList($_filters = []) {
+// probably unused now
+$__userIdStreamer = null;
+
+// probably unused now
+function getUserList($filtersOrListId, $listId = null, $page = 1) {
     global $DB;
 
     if(!canDo('list', 'user')) {
         throw new APIException('Forbidden', 403);
     }
 
-    $filters = [];
-    // specify all filters relate to the user table for makeConditions()
-    foreach($_filters as $test => $val) {
-        if(strpos('user:', $test) !== 0) {
-            $test = 'user:'.$test;
+    if(is_array($filtersOrListId)) {
+        $filters = [];
+        // specify all filters relate to the user table for makeConditions()
+        foreach($_filters as $test => $val) {
+            if(strpos('user:', $test) !== 0) {
+                $test = 'user:'.$test;
+            }
+            $filters[$test] = $val;
         }
-        $filters[$test] = $val;
-    }
 
-    $apiIdPrefix = getAPIIdPrefix('user');
-    $filterConditions = makeConditions($filters);
-    if($filterConditions) {
-        $filterConditions = "AND $filterConditions";
-    }
-    $DB->returnHash();
-    $userList = $DB->getRows('
-        SELECT
-            user.id AS realId,
-            CONCAT(?, "_", user.apiId) AS id,
-            user.firstName,
-            user.lastName
-        FROM user
-        WHERE deletedAt = 0
-        '.$filterConditions.'
-    ', $apiIdPrefix);
-
-    foreach($userList as $idx => $userData) {
-        if(strlen($userData['id']) == strlen($apiIdPrefix.'_')) {
-            $userList[$idx]['id'] = getAPIId('user', $userData['realId']);
+        $queryOrFileId = 'SELECT id FROM user WHERE 1 = 1';
+        $filterConditions = makeConditions($filters);
+        if($filterConditions) {
+            $filterConditions = "AND $filterConditions";
         }
-        unset($userList[$idx]['realId']);
+    } else {
+        $queryOrFileId = $filtersOrListId;
     }
 
-    return $userList;
+    $startIdx = ($page - 1) * API_PER_PAGE_USER;
+
+    $__userIdStreamer = new IdStreamer($queryOrFileId, 'user', $startIdx);
+    $userIds = [];
+    foreach($__userIdStreamer->getIds(API_PER_PAGE_USER) as $userId) {
+        $userIds[] = $userId;
+    }
+
+    $userQuery = new APIQuery_user();
+    $userQuery->loadRecordsById($userIds);
+
+    return $userQuery->getUserRecords();
+}
+
+// probably unused now
+function getNextListPageUrl($pageNum) {
+    if(
+        gettype($__userIdStreamer) != 'object' ||
+        getClass($__userIdStreamer) != 'IdStreamer'
+    ) {
+        global $LOGGER;
+        $LOGGER->log('getNextListPageUrl() called before $__userIdStreamer initiallised');
+        throw new APIException('Internal Error', 500);
+    }
+    $pageNum = max((int)$pageNum, 1);
+    return '/user/listId/'.__userIdStreamer->getIdFileId()."/page/$pageNum";
 }
 
 function createUser($userDetails) {
