@@ -377,6 +377,9 @@ $(function(){
                     springLength: 60,
                     springConstant: 0.8,
                 },
+                stabilization: {
+                    iterations: 100,
+                }
             }
         };
 

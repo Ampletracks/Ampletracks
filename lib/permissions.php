@@ -195,17 +195,18 @@ function getUserPermissionsForEntity( $entity='', $userId=0 ) {
             $userId
         );
     }
-    
+
     while ( $permissionQuery->fetchInto($row) ) {
-        $entity = $row['entity'];
-        if ($recordTypeId) $entity.=':'.$recordTypeId;
+        $permsEntity = $row['entity'];
+        if ($recordTypeId) $permsEntity.=':'.$recordTypeId;
        
-        if (!isset($permissions[$userId][$entity])) { 
-            $permissions[$userId][$entity] = $emptyPermissions;
+        if (!isset($permissions[$userId][$permsEntity])) { 
+            $permissions[$userId][$permsEntity] = $emptyPermissions;
         }
-   
-        $permissions[$userId][$entity][$row['action']][$row['level']]=true;
+  
+        $permissions[$userId][$permsEntity][$row['action']][$row['level']]=true;
     }
+
     return $permissions[$userId][$entity];
 }
 
@@ -239,6 +240,7 @@ function canDo( ) {
     static $entityOwnershipLookupSql = [
         'cms' => '', // CMS doesn't have owner OR department ID
         'configuration' => '', // configuration doesn't have owner OR department ID
+        'iodRequest' => '', // IOD Requests don't have owner OR department ID
         'dataField' => '
             SELECT recordType.projectId
             FROM dataField
@@ -281,7 +283,7 @@ function canDo( ) {
         ',
         // Colon on the end of this next one is intentional
         'recordTypeId:' => '
-            SELECT projectId, createdBy AS ownerId
+            SELECT projectId, ownerId
             FROM record
             WHERE
                 record.deletedAt=0 AND
@@ -424,6 +426,7 @@ function getUserAccessLimits( $options=[] ) {
         'actionLog'     => '',
         'cms'           => '',
         'configuration' => '',
+        'iodRequest'    => '',
         'dataField'     => 'recordType.projectId',
         'user'          => 'userProject.projectId',
         'recordTypeId:' => 'record.projectId',
@@ -440,6 +443,7 @@ function getUserAccessLimits( $options=[] ) {
         'actionLog'     => '',
         'cms'           => '',
         'configuration' => '',
+        'iodRequest'    => '',
         'dataField'     => '',
         'user'          => 'user.id',
         'recordTypeId:' => 'record.ownerId',

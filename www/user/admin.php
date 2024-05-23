@@ -25,6 +25,20 @@ $INPUTS = array(
     )
 );
 
+function processDeleteBefore( $id ) {
+    // If this is the instance-on-demand model instance then don't let them delete the model user
+    if (!defined('IOD_ROLE') || IOD_ROLE != 'master') return true;
+    if (!defined('IOD_MODEL_USER')) return true;
+
+    global $DB;
+    $userEmail = $DB->getValue('SELECT email FROM user WHERE id=?',$id);
+    if ($userEmail==IOD_MODEL_USER) {
+        return [false, 'You cannot delete this user because this is the model user used when creating new instance-on-demand instances']; 
+    }
+
+    return true;
+}
+
 function processInputs($mode, $id) {
     global $WS, $USER_ID, $DB;
 

@@ -471,6 +471,12 @@ class DataField {
         // This does nothing - it is intended to be defined in sub-classes where neccessary
     }
 
+    function getDefinitionHelp() {
+        // This does nothing here - it is intended to be defined in sub-classes where neccessary
+        // It should describe the purpose of thes particular type of data field
+        return ''; 
+    }
+
     function displayOnList() {
         return $this->params['displayOnList'];
     }
@@ -803,8 +809,10 @@ class DataField {
         $return = ' dependencyCombinator="'.htmlspecialchars($this->dependencyCombinator).'" ';
 
         $dependencyQuery = $DB->query('SELECT * FROM dataFieldDependency WHERE dependentDataFieldId=?',$this->id);
+        $idx=1;
         while( $dependencyQuery->fetchInto( $dependencyData ) ) {
-            $return .= 'dependsOn="dataField['.$dependencyData['dependeeDataFieldId'].'] '.$dependencyData['test'].' '.$dependencyData['testValue'].'"';
+            $return .= 'dependsOn'.$idx.'="dataField['.$dependencyData['dependeeDataFieldId'].'] '.$dependencyData['test'].' '.$dependencyData['testValue'].'"';
+            $idx++;
         }
         return $return;
     }
@@ -832,7 +840,7 @@ class DataField {
 
         if($show && $parentAnswer !== null) {
             $checked = $inherited ? 'checked' : '';
-            ?><span class="inherited"><input type="checkbox" class="inherited" name="<?=$this->inheritedName()?>" value="1" <?=$checked?> parentAnswer="<?=htmlspecialchars($parentAnswer)?>"> inherited</span><?
+            ?><span class="inherited"><input type="checkbox" class="inherited" name="<?=$this->inheritedName()?>" value="1" <?=$checked?> parentAnswer="<?=htmlspecialchars(json_encode($parentAnswer))?>"> inherited</span><?
         } else {
             ?><input type="hidden" class="inherited" name="<?=$this->inheritedName()?>" value="<?=$inherited?>"><?
         }
@@ -869,8 +877,8 @@ class DataField_commentary extends DataField {
 
     function displayRow( $isPublic = true ) {
         ?>
-        <div class="questionAndAnswer commentary">
-            <h2><?=htmlspecialchars($this->question)?></h2>
+        <div class="questionAndAnswer commentary" <?=$this->getDependencyAttributes()?>>
+            <? if (strlen($this->question)) { ?><h2><?=htmlspecialchars($this->question)?></h2><? } ?>
             <p><?=$this->commentary?></p>
         </div>
         <?
@@ -902,7 +910,7 @@ class DataField_divider extends DataField {
 
     function displayRow( $isPublic = true ) {
         ?>
-        <div class="questionAndAnswer divider">
+        <div class="questionAndAnswer divider" <?=$this->getDependencyAttributes()?>>
             <h2><?=htmlspecialchars($this->question)?></h2>
         </div>
         <?
@@ -1054,7 +1062,7 @@ class DataField_textarea extends DataField {
 
     function displayInput() {
         $inputName = $this->inputName();
-        formTextarea($inputName,$this->width,$this->height,$this->getAnswer(),'class="dataField '.htmlspecialchars($this->getType()).'placeholder="'.htmlspecialchars($this->hint).'"');
+        formTextarea($inputName,$this->width,$this->height,$this->getAnswer(),'class="dataField '.htmlspecialchars($this->getType()).'" placeholder="'.htmlspecialchars($this->hint).'"');
         $this->versionLink();
         inputError($inputName);
         $this->displayDefaultWarning();
@@ -2107,6 +2115,10 @@ class DataField_suggestedTextbox extends DataField_typeToSearch {
         $this->showNoResults = false;
         $this->hiddenInput = false;
         $this->searchUrl = 'suggestedTextboxSearch.php';
+    }
+
+    function getDefinitionHelp() {
+        return 'hello';
     }
 
     function displayDefinitionForm() {

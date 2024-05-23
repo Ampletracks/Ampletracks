@@ -118,14 +118,14 @@ $(function(){
     });
 
 	// fancy ajax deletion functionality - for deleteing one item from a list when deletePrompt attribute is set
-	function prompter(prompt,desiredResponse,carryOn) {
-		if (prompt!='') {
-			if (desiredResponse) prompt(prompt,function(sure) {
+	function prompter(promptText,desiredResponse,carryOn) {
+		if (promptText!='') {
+			if (desiredResponse) prompt(promptText,function(sure) {
 				if (sure==desiredResponse) {
 					return carryOn(sure);
 				}
 			});
-			else confirm(prompt,function() {
+			else confirm(promptText,function() {
 				return carryOn();
 			});
 		}
@@ -135,7 +135,7 @@ $(function(){
 
 		var self = $(this);
 		var href = self.attr('href');
-		
+	
 		prompter(self.attr('deletePrompt'),self.attr('deleteResponse'),function(sure){
 			if (self.attr('deleteResponse')) href += '&sure='+sure;
 			$.get(href,function(data){

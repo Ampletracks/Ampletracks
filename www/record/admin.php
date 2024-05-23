@@ -254,7 +254,7 @@ function processInputs($mode,$id) {
     if ($mode=='deleteRelationship' && $id) {
 
         // In order to delete a relationship they must have edit rights to at least one of the 2 records involved
-        list($from,$to) = $DB->getRow('SELECT fromRelationshipId,toRelationshipId FROM relationship WHERE id=?',$id);
+        list($from,$to) = $DB->getRow('SELECT fromRecordId,toRecordId FROM relationship WHERE id=?',$id);
         if (!( canDo('edit',$from,'record') || canDo('edit',$to,'record'))) {
             echo "You do not have permission to delete this relationship";
             exit;

@@ -17,8 +17,6 @@
 	<tr>
 		<td class="actions">
 			<a href="admin.php?id=@@id@@">Edit</a>
-			<a deletePrompt="Are you sure you want to delete the IOD request for this user?
-			<div class=&quot;deleteWarningBox&quot;>@@email@@</div>" href="admin.php?mode=delete&id=@@id@@">Delete</a>
 		</td>
 		<td>
             @@createdAtDateTime@@

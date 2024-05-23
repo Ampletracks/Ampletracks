@@ -288,7 +288,7 @@ class formPicklist {
 }
 
 function formPicklist($name, $availableList, $selectedList = null, $labels = array()) {
-    $picklist = new formPicklist($name, $availableList, $selectedList = null, $labels = array());
+    $picklist = new formPicklist($name, $availableList, $selectedList, $labels);
     $picklist->display();
 }
 

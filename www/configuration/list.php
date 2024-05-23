@@ -11,4 +11,12 @@ function afterList(){
 }
 
 $hideAddButton=true;
+
+function extraButtonsBefore(){
+    if (IOD_ROLE!=='master') return;
+    ?>
+        <a class="btn" href="../iodRequest/list.php">Instance On Demand</a>
+    <?
+}
+
 include( '../../lib/core/listPage.php' );

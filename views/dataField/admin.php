@@ -16,6 +16,7 @@
 	</div>
 	<div class="answer">
 		<? $GLOBALS['dataFieldTypeSelect']->display(); formPlaceHolder('dataField_typeId'); ?>
+        <?= $dataFieldHelp ?>
 	</div>
 </div>
 

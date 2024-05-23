@@ -4,11 +4,10 @@ $INPUTS = array(
 );
 
 function processInputs( $mode, $id ) {
-    global $WS;
-    dump($WS);
 }
 
 function prepareDisplay( $id ) {
 }
 
+$ENTITYName="IOD Request";
 include( '../../lib/core/adminPage.php' );

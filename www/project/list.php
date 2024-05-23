@@ -2,7 +2,8 @@
 
 $listSql = '
     SELECT
-        project.*,
+        project.id,
+        project.name,
         recordType.name AS recordType,
         COUNT(record.id) AS numRecords,
         recordType.id AS recordTypeId

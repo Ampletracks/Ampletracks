@@ -89,7 +89,6 @@ function modal(options) {
     options.buttons.forEach(function(button, index) {
         var position = button.align || 'right', text = button.text;
         var extraClasses = button.extraClasses || ( text.toLowerCase()=='ok' ? 'modal__btn-primary' : '' );
-        console.log('xx',extraClasses);
         var buttonId = `${modalId}-btn-${index}`;
         modalHTML += `
             <button class="modal__btn modal__btn-${position} ${extraClasses}" id="${buttonId}"}>${text}</button>
@@ -225,7 +224,7 @@ function confirm(text, title, onOk) {
     // Define the modal options
     var modalOptions = {
         title: title,
-        text: text, // Using 'text' here as we don't need input fields for a confirm dialog
+        html: text,
         buttons: [
             {align:'left', text:'Cancel'}, // No specific action needed, modal will close on cancel
             {align:'right', text:'OK', onClick: onOk} // Execute onOk callback when OK is clicked

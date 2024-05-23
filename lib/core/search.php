@@ -471,16 +471,24 @@ bundle_hash(2)
 					$last_row = null;
 
                     $rows_fetched = 0;
+                    $first_column_name;
+
 					while ( true ) {
                         $query_handle->fetchInto($row_data);
                         $rows_fetched++;
+
+                        // Work out the name of the first column - will be 0 for indexed array and something else for associative array
+                        if (!isset($first_column_name)) {
+                            if (isset($row_data[0])) $first_column_name=0;
+                            else $first_column_name = key($row_data);
+                        }
 
 						# if there is some bundle_data and this row is different to the last - or if this is the last row of data we have
 
                         # We need to go one row past the end as we display the previous row
                         $beyondLastRow = $rows_fetched == $num_rows + 1;
 						if (
-                            (is_array($last_row) && is_array($row_data) && $last_row[0] <> $row_data[0]) ||
+                            (is_array($last_row) && is_array($row_data) && $last_row[$first_column_name] <> $row_data[$first_column_name]) ||
                             $beyondLastRow
                         ) {
 							# add in the bundle data

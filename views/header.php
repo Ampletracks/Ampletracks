@@ -64,6 +64,7 @@ call_user_func(function () {
             }
         } ?>
         <? globalHeaderMarkup(); ?>
+        <?= getConfig('Custom header markup'); ?>
     </head>
     <body class="<?=$ENTITY?> <?=htmlspecialchars($PAGE_NAME)?> <?=isset($extraBodyClasses)?htmlspecialchars(implode(' ',$extraBodyClasses)):''?> ">
     <? if (defined('IOD_ROLE') && IOD_ROLE=='master' && $USER_ID) { ?>

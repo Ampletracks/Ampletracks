@@ -422,7 +422,8 @@ $dbSetup = function() {
         ("Cobranding logo URL","URL for the logo which is presented alongside the Ampletracks logo","/images/brand-logo.png","/"),
         ("New account request email","Email address where requests to create a new account are sent. Leave this empty to disable this functionality. You can specify multiple space-separated addresses.","","/"),
         ("Timezone","The system timezone","","/"),
-        ("Font scale factor","Scale up or down font sizes across the site. Defaults to 100%","","/")
+        ("Font scale factor","Scale up or down font sizes across the site. Defaults to 100%","","/"),
+        ("Custom header markup","Any markup you add here will be injected into the header of every page. One common application for this is to add any analytics tracking code.","","/")
     ');
     
     $words='his,that,from,word,other,were,which,time,each,tell,also,play,small,home,hand,port,large,spell,even,land,here,must,high,kind,need,house,animal,point,mother,world,near,build,self,earth,father,work,part,take,place,made,after,back,little,only,round,man,year,came,show,every,good,under,name,very,just,form,great,think,help,line,differ,turn,much,mean,before,move,right,boy,old,many,write,like,long,make,thing,more,day,number,sound,most,people,water';

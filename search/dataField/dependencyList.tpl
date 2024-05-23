@@ -1,3 +1,9 @@
+<TEMPLATE NAME="COMMON">
+<?
+    static $seenHelpText = false;
+?>
+</TEMPLATE>
+
 <TEMPLATE NAME="HEADER">
 <? global $dependencyCombinatorSelect; ?>
 	<h2>Dependencies</h2>
@@ -60,18 +66,21 @@
 				Set the test field to "Delete dependency" to remove this dependency
 			</div>
         <? } ?>
-        <div class="info" dependsOn="dependencyTest<?=$rowIdx?> !cy !em|em|vi|!vi">
-			When dependency relates to a date field enter the date as dd/mm/yyyy or d/m/yyyy<br />
-			When dependency relates to a duration field enter the duration in minutes e.g. for 2 hours, 30 mins use 150<br />
-			When using "between" test separate the two values with a comma (can be two numbers or two dates)<br />
-			When comparing against a "select" type question with multiple answers use...
-			<ul>
-				<li>equals "<i>value</i>" - to test for exactly one option selected</li>
-				<li>equals "|<i>value1</i>|<i>value2</i>|" - to test for an exact combination of options (no more, no less)</li>
-				<li>contains all "<i>value1</i>|<i>value2</i>|<i>value3</i>" - to test for all these options (or more)</li>
-				<li>contains any "<i>value1</i>|<i>value2</i>|<i>value3</i>" - to test for any one or more of these options</li>
-			</ul>
-        </div>
+        <? if (!$seenHelpText) { ?>
+            <div class="info" dependsOn="dependencyTest<?=$rowIdx?> !cy !em|em|vi|!vi">
+                When dependency relates to a date field enter the date as dd/mm/yyyy or d/m/yyyy<br />
+                When dependency relates to a duration field enter the duration in minutes e.g. for 2 hours, 30 mins use 150<br />
+                When using "between" test separate the two values with a comma (can be two numbers or two dates)<br />
+                When comparing against a "select" type question with multiple answers use...
+                <ul>
+                    <li>equals "<i>value</i>" - to test for exactly one option selected</li>
+                    <li>equals "|<i>value1</i>|<i>value2</i>|" - to test for an exact combination of options (no more, no less)</li>
+                    <li>contains all "<i>value1</i>|<i>value2</i>|<i>value3</i>" - to test for all these options (or more)</li>
+                    <li>contains any "<i>value1</i>|<i>value2</i>|<i>value3</i>" - to test for any one or more of these options</li>
+                </ul>
+            </div>
+            <? $seenHelpText=true;
+        } ?>
 
     </div>
 </div>

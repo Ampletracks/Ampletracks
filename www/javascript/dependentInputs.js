@@ -117,6 +117,7 @@ $(function(){
         'sw' : { //check if the dependence starts with the text
             'alias' : [ ],
             'test' : function(values,testValue,comparator) {
+                console.log(values,testValue,comparator,values.startsWith(testValue));
                 return values.startsWith(testValue);
             }
         },
@@ -366,8 +367,9 @@ $(function(){
 		this.dependencies = new Array();
 		this.id = domObject.get(0).id;
 		this.hide();
-        this.combinator = domObject.attr('dependencyCombinator')=='AND'?'AND':'OR'; 
-		
+        var combinator = domObject.attr('dependencyCombinator');
+        this.combinator = (typeof(combinator)=='string' && combinator.toUpperCase()=='AND')?'AND':'OR';
+
 		// parse dependencies
 		var i='';
 		

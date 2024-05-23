@@ -1,4 +1,6 @@
 <script>
+var editMode=true;
+
 $(function(){
 
     // Move the error summary underneath the record family tree details
@@ -466,7 +468,7 @@ global $parentName;
                 .closest('div.answer').find('input,textarea,select')
                 .filter(function () { return !$(this).is(checkbox); });
 
-            checkbox.data('parentAnswer', checkbox.attr('parentAnswer'));
+            checkbox.data('parentAnswer', JSON.parse(checkbox.attr('parentAnswer')));
             checkbox.data('changedAnswer', input.val());
         });
 
@@ -512,8 +514,6 @@ formHidden('hiddenFields');
         $('input[name="hiddenFields"]').val(hiddenFields);
 
     });
-
-    var editMode = true;
 
     $(function(){
         // Put a set of buttons at the top of the page

@@ -160,8 +160,17 @@ const ChemicalInput = class {
     document.addEventListener('keydown', e => {
       const focusedChainElement = this.chainElements.querySelector('.periodic-table__element:focus');
       const symbol = focusedChainElement?.dataset.symbol;
-      
+
+      // make sure that pressing enter on the number input box doesn't submit the form
+      if (e.key=='Enter' && e.target.classList.contains('pt-count')) {
+        e.target.blur();
+        e.preventDefault();
+        return false;
+      }
+
+        
       if (focusedChainElement) {
+        console.log(e.key); 
         switch (e.key) {
           case 'ArrowUp':
             e.preventDefault();
@@ -312,7 +321,7 @@ const ChemicalInput = class {
           <span class="weight">${elem.weight}</span>
           <span class="symbol">${elem.symbol}</span>
           <span class="name">${elem.name}</span>
-          <input class="pt-count" value="${parseFloat(count.toFixed(4))}" />
+          <input class="pt-count" value="${parseFloat(count.toFixed(7))}" />
         </button>
         <ul>
           <li data-action="left"><button>
