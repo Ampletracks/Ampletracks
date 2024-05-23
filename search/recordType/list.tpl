@@ -1,5 +1,5 @@
 <TEMPLATE NAME="HEADER">
-<table class="main">
+<table class="main data-table">
 	<thead>
 	<tr>
 		<th class="actions">Actions</th>

@@ -1,6 +1,6 @@
 <TEMPLATE NAME="HEADER">
 
-<table class="main" >
+<table class="main data-table" >
     <thead>
 	<tr>
 		<th>
@@ -30,7 +30,13 @@
 </td>
 <td>@@name@@</td>
 <td>@@description@@</td>
-<td>@@value@@</td>
+<td>
+    <? if (preg_match('/password$/i',$rowData['name'])) { ?>
+        <i>hidden</i>
+    <? } else { ?>
+        @@value@@
+    <? } ?>
+</td>
 </tr>
 </TEMPLATE>
 

@@ -234,6 +234,11 @@ call_user_func(function () {
                                             <a href="/cms/list.php"><?=cms('Main Nav: CMS', 0, 'CMS')?></a>
                                         </li>
                                     <? } ?>
+                                    <? if (canDo('list', 'email')) { ?>
+                                        <li>
+                                            <a href="/email/list.php"><?=cms('Main Nav: Email Log', 0, 'Email Log')?></a>
+                                        </li>
+                                    <? } ?>
                                     <? if (canDo('list', 'configuration')) { ?>
                                         <li>
                                             <a href="/configuration/list.php"><?=cms('Main Nav: Site Settings', 0, 'Site Settings')?></a>

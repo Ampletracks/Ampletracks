@@ -7,7 +7,6 @@
             <?=wsp('user_lastLoggedInAtDateTime')?> from <?=wsp('user_lastLoginIpAddress')?>
         <? } ?>
     </div>
-            
 </div>
 <div class="questionAndAnswer">
     <div class="question">First name:</div>

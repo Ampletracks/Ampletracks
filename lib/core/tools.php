@@ -533,7 +533,7 @@ function deriveInputsFromFile( $files=null ) {
 		}
 
 		// Now look for CODE function calls in the source
-		if (preg_match_all('/(form(?:Label|Hidden|Textbox|Float|Integer|Textarea|Placeholder|Optionbox|Checkbox|Radio|Picklist|YesNo)|defaultFormField)\\(\s*(["\'])(.*?)\\2/i',$contents,$matches)) {
+		if (preg_match_all('/(form(?:Label|Hidden|Textbox|Float|Integer|Textarea|Placeholder|Optionbox|Checkbox|Radio|Picklist|YesNo|Date)|defaultFormField)\\(\s*(["\'])(.*?)\\2/i',$contents,$matches)) {
 			// Following line just to stop intelephense complaining
 			if (0) $matches[3] = [];
 			
@@ -551,10 +551,10 @@ function deriveInputsFromFile( $files=null ) {
 	}
 }
 
-function dump( $vars ) {
-	echo "<pre>";
+function dump( $vars, $html=true ) {
+	if ($html) echo "<pre>";
 	print_r($vars);
-	echo "</pre>";
+	if ($html) echo "</pre>";
 }
 
 

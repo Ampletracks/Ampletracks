@@ -15,7 +15,14 @@ function alert( $message ) {
     ));
 }
 
-function getConfig( $key, $default='' ) {
+function setConfig( $key, $value ) {
+    global $DB;
+
+    $DB->update('configuration',array('name'=>$key),array('value'=>$value));
+}
+
+
+function getConfig( $key, $default='', $standardise=false ) {
     static $config;
 
     if (!is_array($config)) {
@@ -33,7 +40,18 @@ function getConfig( $key, $default='' ) {
         $config = $DB->getHash("SELECT name,value FROM configuration WHERE path IN($pathOptions)");
     }
     if (!isset($config[$key])) return $default;
-    return $config[$key];
+    $value = $config[$key];
+
+    if($standardise) {
+        $value = trim(strtoupper($value));
+    }
+
+    return $value;
+}
+
+function getConfigBoolean($key, $default = false) {
+    $value = getConfig($key, $default, true);
+    return $value === true || intval($value) > 0 || $value === "YES" || $value === "TRUE";
 }
 
 function logAction($entity, $entityId, $message ) {
