@@ -14,7 +14,7 @@
 	formPlaceholder('filter_actionLog:userType_lk');
 	formPlaceholder('filter_actionLog:userId_eq');
 ?>
-<table class="main">
+<table class="main data-table">
 <thead>
 	<tr>
 		<th>

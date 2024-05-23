@@ -106,17 +106,18 @@ if (ws('mode')=='request') {
         
         ws('link',preg_replace('!^https?://!','',$link));
 
+firstName,lastName,email,link,password
         $recipient = $userParams['email'];
 
-        $sendResult = $EMAIL->send([
-            'template' => 'confirm-iod-request',
+        $sendResult = $EMAIL->add([
+            'template' => 'iod/confirm-request',
             'to' => [$recipient],
             'priority' => 'immediate',
             'mergeData' => $WS
         ]);
         if (!$sendResult) {
             inputError('general','There was a problem sending the confirmation email - please try again later');
-            $LOGGER->log(implode(' & ',$EMAIL->errors()));
+            $LOGGER->log(implode(' & ',$EMAIL->getErrors()));
         }
         if (!inputError()) {
             include(VIEWS_DIR.'iod/confirm.php');

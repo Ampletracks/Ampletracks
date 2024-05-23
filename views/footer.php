@@ -27,5 +27,4 @@
             </div>
         </footer>
     </body>
-    <script src="/javascript/ui.js"></script>
 </html>

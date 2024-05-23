@@ -81,7 +81,45 @@ $tables = array(
         'hasValue' => "TINYINT(3) UNSIGNED NOT NULL",
         'disabled' => "TINYINT(3) UNSIGNED NOT NULL DEFAULT 0",
     ),
-
+    'email' => array(
+        'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
+        'emailTemplateId'  => "INT(10) UNSIGNED NOT NULL",
+        'priority' => "ENUM('low','medium','high','immediate') NOT NULL",
+        'status' => "ENUM('held','sent','error','new') NOT NULL DEFAULT 'new'",
+        'deletedAt'  => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
+        'lastError' => "MEDIUMTEXT DEFAULT NULL DEFAULT ''",
+        'sendAfter' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
+        'sendAttempts' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
+        'lastSendAttemptedAt' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
+        'fromDetails' => "MEDIUMTEXT NOT NULL DEFAULT ''",
+        'index_priority' => 'INDEX (`priority`,`status`,`sendAfter`,`deletedAt`)',
+        'index_sendAttempts' => 'INDEX (`sendAttempts`,`status`,`deletedAt`)',
+        'index_emailTemplateId' => 'INDEX (`emailTemplateId`,`deletedAt`)',
+    ),
+    'emailTemplate' => array(
+        'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
+        'name' => "VARCHAR(255) NOT NULL",
+        'body' => "MEDIUMTEXT DEFAULT ''",
+        'subject' => "VARCHAR(255) NOT NULL",
+        'defaultStatus' => "ENUM('held','new') NOT NULL DEFAULT 'new'",
+        'disabled' => "TINYINT(3) UNSIGNED NOT NULL DEFAULT 0",
+        'extraCc' => "VARCHAR(255) NOT NULL DEFAULT ''",
+        'extraBcc' => "VARCHAR(255) NOT NULL DEFAULT ''",
+        'index_name' => 'UNIQUE INDEX (`name`)',
+    ),
+    'emailRecipient' => array(
+        'emailId'  => "INT(10) UNSIGNED NOT NULL",
+        'type' => "ENUM('to','cc','bcc') NOT NULL",
+        'emailAddressId' => "INT(10) UNSIGNED NOT NULL",
+        'index_emailId' => 'INDEX (`emailId`)',
+        'index_emailAddressId' => 'INDEX (`emailAddressId`)'
+    ),
+    'emailAddress' => array(
+        'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
+        'name' => "VARCHAR(255) NOT NULL DEFAULT ''",
+        'email' => "VARCHAR(255) NOT NULL",
+        'index_emailName' => 'UNIQUE INDEX (`email`,`name`)'
+    ),
     'failedLogin' => array(
         'hashedUsername'    => "CHAR(32)",
         'lastFailedAt'      => "INT(10) UNSIGNED NOT NULL",
@@ -414,7 +452,6 @@ $dbSetup = function() {
         }
     }
 
-    
     $DB->exec('INSERT IGNORE INTO configuration (name,description,value,path) VALUES
         ("Minimum user password length","The minimum permissable password length for user accounts","10","/"),
         ("Shortcut Icon","URL of the shortcut icon (commonly known as the favicon)","","/"),
@@ -423,7 +460,23 @@ $dbSetup = function() {
         ("New account request email","Email address where requests to create a new account are sent. Leave this empty to disable this functionality. You can specify multiple space-separated addresses.","","/"),
         ("Timezone","The system timezone","","/"),
         ("Font scale factor","Scale up or down font sizes across the site. Defaults to 100%","","/"),
-        ("Custom header markup","Any markup you add here will be injected into the header of every page. One common application for this is to add any analytics tracking code.","","/")
+        ("Custom header markup","Any markup you add here will be injected into the header of every page. One common application for this is to add any analytics tracking code.","","/"),
+        ("Font scale factor","Scale up or down font sizes across the site. Defaults to 100%. This is combined with (multiplied by) any user-specific scale factor","","/"),
+        ("Pause email delivery","Set this to \"yes\" to pause all outgoing email delivery.","no","/"),
+        ("Email engine","Choose the email delivery engine - currently only supported engine is SMTP - if this is empty then email sending is disabled.","SMTP","/"),
+        ("Email SMTP username","Username used to connect to the SMTP server if email delivery engine is SMTP.","","/"),
+        ("Email SMTP password","Password used to connect to the SMTP server if email delivery engine is SMTP.","","/"),
+        ("Email SMTP port","Port used to connect to the SMTP server if email delivery engine is SMTP.","587","/"),
+        ("Email SMTP server","Domain name of the SMTP server if email delivery engine is SMTP.","","/"),
+        ("Email SMTP encryption mechanism","This must be either SMTPS or STARTTLS.","STARTTLS","/"),
+        ("Email from name","Any emails sent by the system will use this as their from name. This is optional.","","/"),
+        ("Email from address","Any emails sent by the system will use this as their from address. This must be set for email to work","","/"),
+        ("Email reply-to name","Any emails sent by the system will use this as their reply-to name. This is optional.","","/"),
+        ("Email reply-to address","Any emails sent by the system will use this as their reply-to address. This is optional.","","/"),
+        ("Email sending throttle per minute","This determines the maximum number of queued emails the system will send per minute. This throttle is applied in addition to the per day and per hour throttles. N.B. This throttle will not prevent the delivery of any \"immediate priority\" emails such as forgotten password retreival emails, however immediate priority emails that have been sent do count towards the throttle. Empty (or any non-integer value) means unlimited.","100","/cron/email.php"),
+        ("Email sending throttle per hour","This determines the maximum number of queued emails the system will send per hour. This throttle is applied in addition to the per minute and per day throttles. N.B. This throttle will not prevent the delivery of any \"immediate priority\" emails such as forgotten password retreival emails, however immediate priority emails that have been sent do count towards the throttle. Empty (or any non-integer value) means unlimited.","1000","/cron/email.php"),
+        ("Email sending throttle per day","This determines the maximum number of queued emails the system will send per day. This throttle is applied in addition to the per minute and per hour throttles. N.B. This throttle will not prevent the delivery of any \"immediate priority\" emails such as forgotten password retreival emails, however immediate priority emails that have been sent do count towards the throttle. Empty (or any non-integer value) means unlimited.","50000","/cron/email.php"),
+        ("Only send emails to","Emails will only be sent to these addresses/domains. This is primarily intended for testing/development sites where you don\'t want emails being sent out to most users, but it might have other applications. This is a comma separated list. If this list is empty all emails will be sent. If there is one or more entries in this list then only emails which match one of the entries on this list will be sent. Matching is done based on a partial match anchored at the END of the email address e.g. .domain.com  matches all addresses for any subdomain of domain.com; @my.domain.com macthes all addresses at my.domain.com; name@domain.com matches name@domain.com and also my.name@domain.com","","/")
     ');
     
     $words='his,that,from,word,other,were,which,time,each,tell,also,play,small,home,hand,port,large,spell,even,land,here,must,high,kind,need,house,animal,point,mother,world,near,build,self,earth,father,work,part,take,place,made,after,back,little,only,round,man,year,came,show,every,good,under,name,very,just,form,great,think,help,line,differ,turn,much,mean,before,move,right,boy,old,many,write,like,long,make,thing,more,day,number,sound,most,people,water';
@@ -464,9 +517,43 @@ $dbSetup = function() {
     
     // set any missing path depths
     $DB->exec('update record set depth=length(path)-length(replace(path,",","")) WHERE depth=0');
+
+    // Create email templates if they don't exist
+    $emailTemplateDir = SITE_BASE_DIR.'/scripts/defaultEmailTemplates';
+    if (is_dir($emailTemplateDir)) {
+        $titleDisplayed = false;
+        $directory = new RecursiveDirectoryIterator($emailTemplateDir, RecursiveDirectoryIterator::SKIP_DOTS);
+        $iterator = new RecursiveIteratorIterator($directory, RecursiveIteratorIterator::SELF_FIRST);
+
+        foreach ($iterator as $fileinfo) {
+            if ($fileinfo->isFile() && $fileinfo->getExtension() === 'html') {
+                $fullPath = $fileinfo->getRealPath();
+                $templateName = substr($fullPath, strlen($emailTemplateDir) + 1);
+                $templateName = preg_replace('/\.html$/i','',$templateName);
+                $templateContent = file_get_contents( $fullPath );
+                list( $subject, $body ) = explode("\n",$templateContent,2);
+
+                $templateData = $DB->getRow('SELECT * FROM emailTemplate WHERE name=?',$templateName);
+                if (!$templateData) {
+                    if (!$titleDisplayed) {
+                        echo "Importing default email templates...\n";
+                        $titleDisplayed = true;
+                    }
+                    echo "    Adding $templateName. Subject: $subject\n";
+                    $DB->insert('emailTemplate',[
+                        'body' => $body,
+                        'subject' => $subject,
+                        'defaultStatus' => 'new',
+                        'disabled' => 0,
+                        'name' => $templateName
+                    ]);
+                }
+            }
+        }
+    }
 };
 
-$writableDirectories = ['data/images','data/tmp/uploads','data/system','data/acme'];
+$writableDirectories = ['data/images','data/tmp/uploads','data/system','data/acme','data/emailMergeData'];
 
 
 # ======================================================================================

@@ -437,6 +437,8 @@ function getUserAccessLimits( $options=[] ) {
         'recordType'    => 'recordType.projectId',
         'recordDataVer' => 'record.projectId',
         'role'          => '',
+        'emailTemplate' => '',
+        'email'         => '',
     ];
     
     static $ownerColumnLookup = [
@@ -454,6 +456,8 @@ function getUserAccessLimits( $options=[] ) {
         'recordType'    => '',
         'recordDataVer' => 'record.ownerId',
         'role'          => '',
+        'emailTemplate' => '',
+        'email'         => '',
     ];
     
     global $ENTITY, $USER_ID;

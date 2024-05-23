@@ -1,0 +1,17 @@
+Updating PHP Mailer
+===================
+
+This directory contains files from the PHPMailer project.
+
+In order to keep the Ampletracks installation as simple as possible we copy these files over rather than requiring users to install and run composer.
+
+To update the files in this directory to the latest version run the following:
+
+```
+wget https://github.com/PHPMailer/PHPMailer/archive/master.zip
+unzip master.zip
+mv PHPMailer-master/src/* ./
+mv PHPMailer-master/LICENSE ./
+rm -rf PHPMailer-master/
+rm master.zip
+```
