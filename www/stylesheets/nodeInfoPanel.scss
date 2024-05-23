@@ -3,6 +3,7 @@
 /* When the graph is full windows then put the node info panel on the right*/
 body.graph #nodeInfoPanel {
     float: right;
+    max-width: 25vw;
 }
 
 #nodeInfoPanel {
@@ -12,6 +13,7 @@ body.graph #nodeInfoPanel {
     float: left;
     font-size: 90%;
     position: relative;
+    overflow: scroll;
 
     &.loading {
         display: flex;

@@ -241,7 +241,6 @@ else {
         exit;
     }
 
-    echo "--$certNeedsRenewing--";
     // If it doesn't need renewing then no need to run again today
     if ($certNeedsRenewing==0) {
         saveState(9999);

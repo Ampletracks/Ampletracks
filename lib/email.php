@@ -24,4 +24,9 @@ $EMAIL = new emailDeliveryZepto([
 if (!$EMAIL->ok()) {
     $LOGGER->log('Failed to setup email delivery service: '.implode(' & ',$EMAIL->errors()));
     $EMAIL = false;
+
+    if (isset($requireEmail) && $requireEmail) {
+        displayError('This page cannot be used because email delivery has not been properly configured for this site');
+        exit;
+    }
 }
