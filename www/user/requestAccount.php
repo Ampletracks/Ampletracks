@@ -14,7 +14,6 @@ $INPUTS=[
 $requireLogin=false;
 include('../../lib/core/startup.php');
 
-$requireEmail = true;
 include(LIB_DIR.'email.php');
 
 if (ws('mode')=='request') {
@@ -53,16 +52,30 @@ if (ws('mode')=='request') {
         
         ws('createUserLink',preg_replace('!^https?://!','',$createUserLink));
 
-        $recipients = array_filter( explode(' ', getConfig('New account request email')));
-        if (empty($recipients)) {
+        $recipientEmails = array_filter( explode(' ', getConfig('New account request email')));
+        if (empty($recipientEmails)) {
             inputError('general','There was a problem sending your application to the site administrator - no administrator email address has been configured');
         } else {
-            $sendResult = $EMAIL->send([
-                'template' => 'request-account',
+            $recipients = [];
+            foreach( $recipientEmails as $email ) {
+                $recipients[] = ['email'=>$email];
+            }
+
+            $mergeData = [
+                'firstName' => ws('firstName'),
+                'lastName' => ws('lastName'),
+                'email' => ws('email'),
+                'mobile' => ws('mobile'),
+                'supportingStatement' => ws('supportingStatement'),
+            ];
+
+            $sendResult = $EMAIL->add([
+                'template' => 'user/account-request',
                 'to' => $recipients,
-                'priority' => 'medium',
-                'mergeData' => $WS
+                'priority' => 'high',
+                'mergeData' => $mergeData
             ]);
+
             if (!$sendResult) {
                 inputError('general','There was a problem sending your application to the site administrator - please try again later');
                 $LOGGER->log(implode(' & ',$EMAIL->errors()));

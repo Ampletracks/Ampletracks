@@ -4,6 +4,7 @@ define('PRIMARY_FILTER_NAME','recordType');
 
 if (!defined('IS_DEV')) define('IS_DEV',false);
 if (!defined('SITE_NAME')) define('SITE_NAME','AmpleTracks');
+if (!defined('IOD_ROLE')) define('IOD_ROLE',false);
 
 if (!defined('LABEL_SECURITY_CODE_HASH_COST')) define('LABEL_SECURITY_CODE_HASH_COST',11);
 if (!defined('LABEL_SECURITY_CODE_LENGTH')) define('LABEL_SECURITY_CODE_LENGTH',6);

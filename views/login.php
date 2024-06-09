@@ -92,7 +92,7 @@ $cobrandingLogoUrl = getConfig('Cobranding logo url');
                     NOT IMPLEMENTED YED
                     <li><a href="#">Forgotten your password?</a></li>
                     */ ?>
-                    <? if (defined('LOGIN_RECAPTCHA_SITE_KEY') && getConfig('New account request email')) { ?>
+                    <? if ((IS_DEV || defined('LOGIN_RECAPTCHA_SITE_KEY')) && getConfig('New account request email')) { ?>
                         <li>
                             <a id="requestAccountButton" href="/user/requestAccount.php">
                                 <?=cms('Request account link text',0,'Request your own account')?>
