@@ -118,7 +118,7 @@ $tables = array(
         'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
         'name' => "VARCHAR(255) NOT NULL DEFAULT ''",
         'email' => "VARCHAR(255) NOT NULL",
-        'index_emailName' => 'UNIQUE INDEX (`email`,`name`)'
+        'index_emailName' => 'UNIQUE INDEX (`email`(100),`name`(100))'
     ),
     'failedLogin' => array(
         'hashedUsername'    => "CHAR(32)",

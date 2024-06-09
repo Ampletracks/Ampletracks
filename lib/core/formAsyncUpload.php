@@ -50,13 +50,15 @@ class formAsyncUpload {
 
     // Returns a file size limit in bytes based on the PHP upload_max_filesize
     // and post_max_size
-    public static function getMaxUploadSize() {
+    public static function getMaxUploadSize($return_reason=false) {
       static $max_size = -1;
+      static $reason = '';
 
       if ($max_size < 0) {
         // Start with post_max_size.
         $post_max_size = self::parseSize(ini_get('post_max_size'));
         if ($post_max_size > 0) {
+          $reason = 'post_max_size';
           $max_size = $post_max_size;
         }
 
@@ -65,8 +67,10 @@ class formAsyncUpload {
         $upload_max = self::parseSize(ini_get('upload_max_filesize'));
         if ($upload_max > 0 && $upload_max < $max_size) {
           $max_size = $upload_max;
+          $reason = 'upload_max_filesize';
         }
       }
+      if ($return_reason) return $reason;
       return $max_size;
     }
 
@@ -299,15 +303,25 @@ class formAsyncUpload {
         echo '<div class="asyncUploadContainer">';
 
         $maxUploadSize = self::getMaxUploadSize();
-        // The upload size might actually be the POST size - the POST includes some other ancilliary data so take a bit off this
-        // just to be on the safe side!
-        $maxUploadSize -= 200;
-        
-         echo '<div class="editting">';
+        $reason = self::getMaxUploadSize(true);
+
+        if ($reason=='post_max_size') {
+            // The upload size might actually be the POST size - the POST includes some other ancilliary data so take a bit off this
+            // just to be on the safe side!
+            $maxUploadSize -= 200;
+        }
+
+        $maxSize = (int)$this->getState('maxSize')*1048576;
+        if ($maxUploadSize > $maxSize) {
+            $maxUploadSize=$maxSize;
+            $reason='';
+        }
+       
+        echo '<div class="editting">';
         // The file input gets moved out of whatever form it is in into its own form
         // The data-asyncuploadid has to be all lowercase - or else the browser just converts it to lower case
         printf('<input type="file" name="file" data-asyncuploadid="%s"/>',$token);
-        printf('<div class="maxSizeWarning">Maximum upload size is %s </div>',htmlspecialchars(formatBytes($maxUploadSize,0,true)));
+        printf('<div class="maxSizeWarning warning">Maximum upload size is %s </div>',htmlspecialchars(formatBytes($maxUploadSize,0,true)));
         
         // The hidden input stays in the original form and is submitted when the form is submitted
         printf('<input type="hidden" name="%s" value="%s"/>',htmlspecialchars($this->idHolder),$token);
@@ -359,7 +373,15 @@ class formAsyncUpload {
         // load the class to see if there is a validation function (this also loads the state)
         $fileClass = $this->loadClass();
         $fileObject = $this->getFileObject();
-        
+       
+        // Check the size of the uploaded file
+        if ($this->getState('maxSize')) {
+            $maxSize = $this->getState('maxSize')*1048576;
+            if (filesize($_FILES['file']['tmp_name']) > $maxSize) {
+                return array('ERROR','The file supplied was too big');
+            }
+        }
+
         $result = true;
 
         $info = $_FILES['file'];

@@ -1736,8 +1736,11 @@ class DataField_upload extends DataField {
             'Maximum size',
             function() use($prefix){
                 $maxUploadSize = formAsyncUpload::getMaxUploadSize();
+                $reason = formAsyncUpload::getMaxUploadSize(true);
                 formInteger($prefix.'maxSize',0,round($maxUploadSize)/1048576);
-                echo ' MB <div class="note">Set to zero to use the maximum set by the server which is '.formatBytes($maxUploadSize).'.</div>';
+                echo ' MB <div class="note">Set to zero to use the maximum set by the server which is '.formatBytes($maxUploadSize);
+                if (!empty($reason)) echo " (limited by $reason configuration)";
+                echo '</div>';
             }
         );
     }
@@ -1750,7 +1753,7 @@ class DataField_upload extends DataField {
             'dataFieldId'=>$this->id
         ));
 
-        foreach( explode(',','minWidth,minHeight,maxWidth,maxHeight') as $thing ) {
+        foreach( explode(',','maxSize,minWidth,minHeight,maxWidth,maxHeight') as $thing ) {
             $$thing = isset($this->params[$thing]) && $this->params[$thing]>0 ? $this->params[$thing] : '-';
         }
 
@@ -1801,7 +1804,7 @@ class DataField_image extends DataField {
     private $fieldName;
 
     const parameters = array(
-        'maxWidth', 'maxHeight', 'minWidth', 'minHeight', 'keepOriginal',
+        'maxSize', 'maxWidth', 'maxHeight', 'minWidth', 'minHeight', 'keepOriginal',
         'thumbnailWidth', 'thumbnailHeight', 'thumbnailResizeMode',
         'thumbnailBackgroundColour', 'thumbnailCompression', 'thumbnailSettingLastChangedAt',
         'previewWidth', 'previewHeight', 'previewResizeMode',
@@ -1814,6 +1817,18 @@ class DataField_image extends DataField {
 
     function displayDefinitionForm() {
         $prefix = parent::$parameterPrefix;
+
+        questionAndAnswer(
+            'Maximum file size',
+            function() use($prefix){
+                $maxUploadSize = formAsyncUpload::getMaxUploadSize();
+                $reason = formAsyncUpload::getMaxUploadSize(true);
+                formInteger($prefix.'maxSize',0,round($maxUploadSize)/1048576);
+                echo ' MB <div class="note">Set to zero to use the maximum set by the server which is '.formatBytes($maxUploadSize);
+                if (!empty($reason)) echo " (limited by $reason configuration)";
+                echo '</div>';
+            }
+        );
 
         questionAndAnswer(
             'Maximum width',
@@ -1980,6 +1995,7 @@ class DataField_image extends DataField {
             'minDims'=> $minWidth.'x'.$minHeight,
             'maxDims'=> $maxWidth.'x'.$maxHeight
         ));
+        $this->upload->setState('maxSize',isset($this->params['maxSize'])?$this->params['maxSize']:0);
 
         $sizes = array();
         $lastChanged = array();

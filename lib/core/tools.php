@@ -55,8 +55,6 @@ function formatBytes($size, $precision = 0, $roundDown=false) {
     $result = $roundDown ? floor($result) : round($result);
     $result = $result / pow(10,$precision);
     
-    if ($result==1) $suffix = preg_replace('/s$/','',$suffix);
-
     return $result . $suffix;
 }
 

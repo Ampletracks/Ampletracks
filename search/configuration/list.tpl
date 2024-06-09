@@ -3,18 +3,18 @@
 <table class="main data-table" >
     <thead>
 	<tr>
-		<th>
+		<th class="actions">
 			Actions<br />
 		</th>
-		<th>
+		<th class="name">
 		    Name<br />
 			<? formTextbox('filter_configuration:name_ct',10,255); ?>
 		</th>
-		<th>
+		<th class="description">
 			Description<br />
 			<? formTextbox('filter_configuration:description_ct',10,255); ?>
 		</th>
-		<th>
+		<th class="value">
 		    Value<br />
 			<? formTextbox('filter_configuration:value_ct',10,255); ?>
 		</th>
@@ -25,12 +25,12 @@
 
 <TEMPLATE NAME="LIST">
 <tr>
-<td>
+<td class="actions">
 	<a href="admin.php?id=@@id@@">Edit</a>
 </td>
-<td>@@name@@</td>
-<td>@@description@@</td>
-<td>
+<td class="name">@@name@@</td>
+<td class="description">@@description@@</td>
+<td class="value">
     <? if (preg_match('/password$/i',$rowData['name'])) { ?>
         <i>hidden</i>
     <? } else { ?>
