@@ -232,7 +232,11 @@ if (!isset($extraBodyClasses)) $extraBodyClasses=array();
 $extraBodyClasses = array_merge( $extraBodyClasses, array('admin','checkExit'));
 
 if(ws('mode') == 'update') {
-    addUserNotice(cms('Changes saved',0), 'success');
+    if ($proceed) {
+        addUserNotice(cms('Changes saved',0), 'success');
+    } else {
+        addUserNotice(cms('There was a problem saving the changes',0), 'warning');
+    }
 }
 include(VIEWS_DIR.'/header.php');
 ?>

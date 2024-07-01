@@ -42,6 +42,10 @@ a {
     color: var(--c-brand-a);
 }
 
+div.table-container {
+    overflow: auto;
+}
+
 table.data-table {
     width: 100%;
     margin-bottom: 2em;

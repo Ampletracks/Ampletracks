@@ -203,7 +203,8 @@ call_user_func(function () {
                                 </ul>
                             </li>
                         <? } ?>
-                        <? if (canDoMultiple('list', 'project,user,role,cms,configuration', 'or')) { ?>
+                        <? /* the next permissions check deliberately omits "user" since every user will have at least "own user list" permission */ ?>
+                        <? if (canDoMultiple('list', 'project,role,cms,configuration', 'or') || canDo('edit','*','recordTypeId')) { ?>
                             <li class="toggle-menu">
                                 <button class="toggle-menu__toggle">
                                     <?= getSVGIcon('menuDownArrow') ?>
@@ -225,7 +226,7 @@ call_user_func(function () {
                                             <a href="/role/list.php"><?=cms('Main Nav: Roles', 0, 'User Roles')?></a>
                                         </li>
                                     <? } ?>
-                                    <? if(canDo('edit', 'recordTypeId')) { ?>
+                                    <? if(canDo('edit', '*', 'recordTypeId')) { ?>
                                         <li>
                                             <a href="/label/print.php?mode=preview"><?=cms('Main Nav: Generate Labels', 0, 'Generate Labels')?></a>
                                         </li>

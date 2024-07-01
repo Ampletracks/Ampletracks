@@ -160,7 +160,7 @@ function getUserPermissionsForEntity( $entity='', $userId=0 ) {
             rolePermission.entity
         FROM
             userRole
-            # Join on to role to check it hasnt been delete
+            # Join on to role to check it hasnt been deleted
             INNER JOIN role ON role.id=userRole.roleId AND role.deletedAt=0
             INNER JOIN rolePermission ON rolePermission.roleId=role.id
             INNER JOIN impliedAction ON impliedAction.action=rolePermission.action
@@ -189,7 +189,6 @@ function getUserPermissionsForEntity( $entity='', $userId=0 ) {
         // in this case we still include the recordTypeId permissions, but the query will return the union
         // of all the recordTypeId permissions for all record types
         // this is principally for answering questions like "can the user list _ANY_ records"
-        // so if its not a recordTypeId query then just pull back everything except recordTypeId permissions
         $permissionQuery = $DB->query(
             $queryBase,
             $userId
@@ -207,6 +206,7 @@ function getUserPermissionsForEntity( $entity='', $userId=0 ) {
         $permissions[$userId][$permsEntity][$row['action']][$row['level']]=true;
     }
 
+    echo $entity;
     return $permissions[$userId][$entity];
 }
 
@@ -227,6 +227,14 @@ function getUserPermissionsForEntity( $entity='', $userId=0 ) {
 //          If $entity is not passed then the global $ENTITY will be used
 //          When checking for "list" permissions there may or may not be an entityId - just pass 0 for the entityId
 //          When checking for "create" permissions there is no entityId - just pass 0 for the entityId
+//    OR
+//    canDo($action, '*', $entity )
+//          This checks if the user can perform the specified action at any level (global, project or own) on the speficied entity.
+//          This is quite similar to canDo($action, $entity ), but we didn't want canDo($action, $entity ) to work like this
+//          unless the caller has specifically opted fot it. This is because if we (erroneously) do canDo('edit',$entity) (i.e. we
+//          omit the entity ID when testing for edit permissions) we want it to fail-safe i.e. deny access
+//          If you do definitely want to check for the edit permission at any level without passing a specific entity ID then you can
+//          use this call signature.
 //    OR
 //    canDo($action, $entity )
 //          This only works for create and list actions (i.e. where entityId is not required)
@@ -311,9 +319,13 @@ function canDo( ) {
             else $entity = $param2;
         } else {
             $param3 = array_shift($args);
+            if ($param2==='*') {
+                $entityId='*';
+                $entity = $param3;
+
             // See if we have been called with ($action, $ownerId, $projectId...) or ($action, $entityId, $entity)
             // $projectId will be either an integer, a comma separated list of integers, or an array of integers
-            if (strpos(' 123456789',substr($param3,0)) || is_array($param3)) {
+            } else if (strpos(' 123456789',substr($param3,0)) || is_array($param3)) {
                 // Looks like ($action, $ownerId, $projectId...)
                 $rowData = [
                     'ownerId' => $param2,
@@ -335,7 +347,7 @@ function canDo( ) {
     if ($entity==='') $entity = $ENTITY;
     if (!$userId) $userId = $USER_ID;
 
-    if ($entity=='record' && $entityId) {
+    if ($entity=='record' && (int)$entityId>0) {
         // If we have been given just a record and ID, look up the record type for this ID
         $recordTypeId = $DB->getValue('SELECT typeId FROM record WHERE id=?',$entityId);
         $entity='recordTypeId:'.$recordTypeId;
@@ -360,6 +372,12 @@ function canDo( ) {
     if (!count($permissions)) return false;
 
     if (isset($permissions['global'])) return true;
+
+    // if entityId=='*' then we're looking for permissions at any level without reference to a specific instance of the entity and its projects/ownership
+    if ($entityId==='*') {
+        if (isset($permissions['project']) || isset($permissions['own'])) return true;
+        return false;
+    }
 
     // OK... so we are relying on either project based or own user based permissions
     // so now lets look up the project and owner ID if we weren't given them

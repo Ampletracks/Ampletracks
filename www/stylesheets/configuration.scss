@@ -1,0 +1,14 @@
+
+table.main {
+
+    td.value, th.value {
+        width: 400px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        display: inline-block;
+        border: none;
+    }
+
+    border-right: 1px solid var(--c-border);
+}

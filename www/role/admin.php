@@ -70,8 +70,13 @@ function prepareDisplay( $id ) {
     $impliedActions_reversed = $DB->getHash('SELECT impliedAction, group_concat(action) FROM impliedAction GROUP BY impliedAction');
 
     global $recordTypeSelect;
+    /*
+        N.B. DO NOT REMOVE the " records" from the end of the record type name
+        If this is removed and the user creates a record type called "Project" or "User" then these record types
+        will replace the built-in entities in the dropdown list leading to a subtle and difficult to spot bug.
+    */
     $recordTypeSelect = $DB->getHash('
-        SELECT name, CONCAT("recordTypeId:",id) FROM recordType WHERE deletedAt=0
+        SELECT CONCAT(name," records"), CONCAT("recordTypeId:",id) FROM recordType WHERE deletedAt=0
     ');
     foreach($recordTypeSelect as $recordType) {
         $validPermissions[$recordType] = ['list|view|edit|delete|create', 'global|project|own' ];

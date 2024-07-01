@@ -80,6 +80,7 @@ function processInputs($mode, $id) {
     global $canEditLogin;
     $canEditLogin=false;
     compareUserPermissions($id);
+    // N.B. Making sure user has "user create" permission when $id==0 is done for us automatically by the Core adminPage (see lib/core/adminPage.php)
     if ($id==0 || $id==$USER_ID  || strpos('|same|less|',compareUserPermissions($id))) $canEditLogin=true;
 
     if (isSuperuser()) {
@@ -190,6 +191,18 @@ function reorderUserDefaults($userId) {
     $DB->exec('SET @orderId:=0');
     $updated = $DB->exec('UPDATE userDefaultAnswer SET orderId = @orderId:=@orderId+10 WHERE userId=? ORDER BY orderId ASC', $userId);
     if ($updated) defaultsChanged($userId);
+}
+
+function processUpdateBefore($id) {
+    if ($id==0 && ws('user_email')) {
+        global $DB;
+        // Check to see if a user with this email already exists
+        $alreadyExists = $DB->getRow('SELECT id FROM user WHERE deletedAt=0 AND email=@@user_email@@');
+        if ($alreadyExists) {
+            inputError('user_email','A user with this email address already exists');
+            return false;
+        }
+    }
 }
 
 function processUpdateAfter($userId) {

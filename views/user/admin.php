@@ -28,6 +28,7 @@
             </div>
         <? } ?>
     </div>
+    <? inputError('user_email'); ?>
 </div>
 <div class="questionAndAnswer">
     <div class="question">Mobile no.:</div>

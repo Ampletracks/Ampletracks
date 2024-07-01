@@ -365,14 +365,14 @@ function makeConditions( $prefix ) {
 
 					if ( $end == 'gt' || $end == 'lt' || $end == 'ge' || $end == 'le') {
 						// Reformat dates
-						$val = preg_replace( '/(\\d{1,2})\\D(\\d{1,2})\\D(\d{2,4})/','$1-$2-$3',$val,1,$matches);
+						$val = preg_replace( '/^(\\d{1,2})\\D(\\d{1,2})\\D(\d{2,4})$/','$1-$2-$3',$val,1,$matches);
 						if ($matches) {
 							$val = strtotime($val);
                             # when using gt or le with dates we want to go from the end of the day not the start
                             if ( $val && $end == 'gt' || $end == 'le' ) {
                                 $val+=86400;
                             }
-						} else {
+						} else if ($val!=='') {
 							$val = (int)preg_replace( '/[^0-9\\.]/','', $val );
 						}
 					}
