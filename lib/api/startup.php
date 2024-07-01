@@ -1,23 +1,25 @@
 <?
 namespace API;
 
-
-require('../../../lib/core/startup.php');
+require(dirname(__FILE__).'/../core/startup.php');
 require_once(LIB_DIR.'/api/tools.php');
 
 $authHeader = @getallheaders()['Authorization'];
-[$authType, $apiKey] = explode(' ', $authHeader.' ');
+[$authType, $signedAPIKey] = explode(' ', $authHeader.' ');
+$apiKey = checkSignedAPIKey($signedAPIKey);
 
 $userDetails = null;
-if($authType == 'Bearer') {
-    $userDetails = $DB->getRow('
-        SELECT user.id, user.email, user.firstName, user.lastName
-        FROM user
-        INNER JOIN userAPIKey ON userAPIKey.userId = user.id
-        WHERE userAPIKey.apiKey = ?
-        AND userAPIKey.deletedAt = 0
-        LIMIT 1
-    ', $apiKey);
+if($apiKey) { // will be null if checkSignedAPIKey() failed
+    if($authType == 'Bearer') {
+        $userDetails = $DB->getRow('
+            SELECT user.id, user.email, user.firstName, user.lastName
+            FROM user
+            INNER JOIN userAPIKey ON userAPIKey.userId = user.id
+            WHERE userAPIKey.apiKey = ?
+            AND userAPIKey.deletedAt = 0
+            LIMIT 1
+        ', $apiKey);
+    }
 }
 
 if($userDetails === null) {
@@ -53,12 +55,12 @@ array_shift($pathBits);
 //      with the rest of the path in $pathBits
 
 do { // allow us to jump out as needed
-    // Get the entity type and id
     if (count($pathBits) == 0) {
         // Nothing else to do here as there is no path e.g. user has called /api/v1/user/
         break;
     }
 
+    // Get the entity type and id
     // If the path is longer then the next bit should ALWAYS be an object ID of the form <prefix>_<API ID>
     $API_ID = $pathBits[0];
     $apiIdBits = explode('_', $API_ID);
@@ -69,8 +71,7 @@ do { // allow us to jump out as needed
     // Getting follow-on pages from previous API calls is a special case
     // These will take the form: /api/v1/<entity>/qry_<query_cache_id>...
 
-    // if this ISN'T a follow-on page request....
-    if ($apiIdBits[0] != 'qry') {
+    if ($apiIdBits[0] != 'qry') { // this ISN'T a follow-on page request....
 
         // From this point on we're expecting to find an API entity ID next in the path
         // Validate that the API is looks right

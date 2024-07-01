@@ -1,6 +1,10 @@
 <?
 namespace API;
 
+// Key string types
+define('API_KS_API_KEY', 'API Key');
+define('API_KS_ENTITY_ID', 'Entity API Id');
+
 // Use code to suggest an http return code for this exception
 class APIException extends \Exception {}
 
@@ -48,7 +52,7 @@ function getAPIId($entityType, $id) {
         $updated = false;
         $try = 0;
         while(!$updated && $try++ < 3) {
-            $newApiId = generateKeyString(false);
+            $newApiId = generateKeyString(API_KS_ENTITY_ID);
             $updated = $DB->update($entityType, ['id' => $id, 'apiId' => ''], ['apiId' => $newApiId]);
             if($updated) {
                 $idBase = $newApiId;
@@ -80,7 +84,7 @@ function createAPIKey($userId, $name = '') {
     $apiKeyId = 0;
     $try = 0; // unlikely, but we might randomly generate an existing code
     while(!$apiKeyId && $try++ < 3) {
-        $apiKey = generateKeyString(true);
+        $apiKey = generateKeyString(API_KS_API_KEY);
         $DB->setInsertType('INSERT IGNORE', true);
         $apiKeyId = $DB->insert('userAPIKey', ['userId' => $userId, 'apiKey' => $apiKey, 'name' => $name, 'createdAt' => time()]);
     }
@@ -88,6 +92,7 @@ function createAPIKey($userId, $name = '') {
     return [0 => $apiKeyId, 'id' => $apiKeyId, 1 => $apiKey, 'apiKey' => $apiKey];
 }
 
+// Not used?
 function getAPIKeyUserId($apiKey) {
     global $DB;
 
@@ -96,18 +101,49 @@ function getAPIKeyUserId($apiKey) {
     return $userId;
 }
 
+if(IS_DEV && !defined('API_KEY_SIGNING_SECRET')) {
+    define('API_KEY_SIGNING_SECRET', '#R##6F+p9ZQNPwAhM/J');
+}
+
+function signAPIKey($baseAPIKey) {
+    return $baseAPIKey.'!!'.hash_hmac('sha1', $baseAPIKey, API_KEY_SIGNING_SECRET, false);
+}
+
 /**
- * API Keys should use $base64 = true
- * Entity apiIds should use $base64 = false
+ * Returns the passed key if the signature is valid, null if not
  */
-function generateKeyString($base64) {
-    $base64 = (bool)$base64;
+function checkSignedAPIKey($signedAPIKey) {
+    [$baseAPIKey, $signature] = explode('!!', $signedAPIKey);
+    if(!$baseAPIKey || !$signature) {
+        return null;
+    }
+
+    if(!hash_equals(hash_hmac('sha1', $baseAPIKey, API_KEY_SIGNING_SECRET, false), $signature)) {
+        return null;
+    }
+
+    return $signedAPIKey;
+}
+
+/**
+ * $type: apiKey, entityAPIId
+ */
+function generateKeyString($type) {
+    $base64 = false;
+    $signed = false;
+    if($type == API_KS_API_KEY) {
+        $base64 = true;
+        $signed = true;
+    }
 
     $keyString = openssl_random_pseudo_bytes(20);
     $keyString = sha1($keyString, $base64); // binary if we're base64'ing it later, text if not
     if($base64) {
         $keyString = base64_encode($keyString);
         $keyString = str_replace(['+', '/', '='], ['-', '_', ''], $keyString); // web-safe base64 and get rid of padding '='s
+    }
+    if($signed) {
+        $keyString = signAPIKey($keyString);
     }
 
     return $keyString;

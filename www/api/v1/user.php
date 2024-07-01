@@ -2,10 +2,10 @@
 namespace API;
 
 $requireLogin = false;
-require(LIB_DIR.'/api/startup.php');
+require('../../../lib/api/startup.php');
 require_once(LIB_DIR.'/api/userTools.php');
 
-
+/*
 if ($method == 'GET') {
     $idListSql = "SELECT id FROM user...";
     $entityListSql = 'SELECT * FROM user... WHERE user.id IN (?)';
@@ -22,12 +22,8 @@ if ($method == 'GET') {
     require(LIB_DIR.'/core/adminPage.php');
     require(LIB_DIR.'/api/edit.php');
 }
+*/
 
-
-
-################################
-# Old code below here
-################################
 $respData = [];
 
 $idListSql = '';

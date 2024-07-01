@@ -46,9 +46,15 @@
     </div>
 
     <style>
+        span#nakmKeyHolder {
+            display: inline-block;
+            width: 100%;
+            overflow-x: scroll;
+        }
         span#nakmKey {
             font-weight: bold;
             font-size: larger;
+            white-space: nowrap;
         }
         .hilight {
             background-color: var(--c-brand-h);
@@ -56,7 +62,7 @@
     </style>
     <div id="newAPIKeyModal" class="newAPIKeyModal" style="display: none">
         Key "<span id="nakmName"></span>":<br>
-        &nbsp;<span id="nakmKey" class="nakmKey mono"></span><br>
+        <span id="nakmKeyHolder">&nbsp;<span id="nakmKey" class="nakmKey mono"></span></span><br>
         <b>N.B.</b> Note this down now as you won't be able to see it again
     </div>
 

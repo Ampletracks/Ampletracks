@@ -3,11 +3,11 @@ namespace API;
 
 require_once(LIB_DIR.'/api/tools.php');
 
-interface APIQuery {
-    // vvvv Need this one? vvvv
-    //public static function loadRecordsById(array $ids);
-    public static function formatRecordForOutput(array $data);
-}
+//interface APIQuery {
+//    // vvvv Need this one? vvvv
+//    //public static function loadRecordsById(array $ids);
+//    public static function formatRecordForOutput(array $data);
+//}
 
 class IdStreamer {
     private $idFileId = '';
