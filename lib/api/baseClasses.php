@@ -67,7 +67,6 @@ class IdStreamer {
         if(!is_resource($wh)) {
             throw new APIException('Failed', 500);
         }
-        $entityWidth = strlen($this->checkEntity);
         fwrite($wh, pack('Z'.$this->checkEntitySize(), $this->checkEntity));
         fwrite($wh, pack('N', (int)$USER_ID));
 
