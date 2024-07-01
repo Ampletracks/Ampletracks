@@ -96,7 +96,10 @@ if (defined('DB_NAME')) {
 // ===================================================================
 if (!defined('IS_DEV')) define('IS_DEV',false);
 
-if (preg_match('!/([^/]*?)/(.+/)?([^/]*?).php$!i',$_SERVER['SCRIPT_NAME'],$matches)) {
+if (preg_match('!^/api/v[^/]+/([^/]+)!',$_SERVER['SCRIPT_NAME'],$matches)) {
+    $ENTITY = $matches[1]; 
+    $PAGE_NAME = '';
+} else if (preg_match('!/([^/]*?)/(.+/)?([^/]*?).php$!i',$_SERVER['SCRIPT_NAME'],$matches)) {
     $PAGE_NAME = $matches[2];
     if (!isset($ENTITY)) $ENTITY = $matches[1];
 } else if (preg_match('!/([^/]*?).php$!i',$_SERVER['SCRIPT_NAME'],$matches)) {

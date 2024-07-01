@@ -2,18 +2,38 @@
 namespace API;
 
 $requireLogin = false;
-require('../../../lib/core/startup.php');
 require(LIB_DIR.'/api/startup.php');
 require_once(LIB_DIR.'/api/userTools.php');
 
-if(
-    ($ENTITY && $ENTITY != 'user') ||
-    ($API_ENTITY_ID == 0 && count($API_VARS) > 0)
-) {
-    errorExit(400);
+
+if ($method == 'GET') {
+    $idListSql = "SELECT id FROM user...";
+    $entityListSql = 'SELECT * FROM user... WHERE user.id IN (?)';
+
+    if (isset($API_INPUTS['filters'])) {
+        $idListSql = addConditions( $idListSql, $API_INPUTS, 'filter_' );
+    }
+
+    require(LIB_DIR.'/api/list.php');
+} else if ( $API_METHOD == 'PUT' ) {
+    $WS = $API_INPUTS;
+   
+    either one of these two lines...... 
+    require(LIB_DIR.'/core/adminPage.php');
+    require(LIB_DIR.'/api/edit.php');
 }
 
+
+
+################################
+# Old code below here
+################################
 $respData = [];
+
+$idListSql = '';
+$entityListSql = '';
+
+
 
 try {
     if($API_ENTITY_ID == 0) {
