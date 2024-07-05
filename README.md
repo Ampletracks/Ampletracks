@@ -67,7 +67,9 @@ The system is built around a number of entities:
 
 # Installation
 
-See the [INSTALL.md](./INSTALL.md) file
+For general installation guide see the [INSTALL.md](./INSTALL.md) file.
+
+For more specific details about the built-in automated SSL creation and renewal process see [SSL_CERT.md](./SSL_CERT.md) file.
 
 # Upgrading
 
