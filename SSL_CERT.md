@@ -68,6 +68,8 @@ http://<your_ampletracks_domain>/acme/checkOrders.php
 
 This can be done multiple times without any issues.
 
+When the approval process is working correctly loading checkOrders.php in the browser will still be quite slow (around 30 seconds) because it calls LetsEncrypt, which then has to call back to your server to validate owenrship, LetsEncrypt then has to wait for your server to respond before it can respond to the initial API request with the final answer.
+
 ### Automatic Renewal
 The cron job set up during installation ensures that the script runs regularly, checking for certificate renewal needs and renewing if necessary.
 
