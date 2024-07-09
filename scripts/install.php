@@ -19,6 +19,12 @@ $tables = array(
         'index_tableName' => "UNIQUE INDEX (`tableName`)",
         'index_prefix' => "UNIQUE INDEX (`prefix`)",
     ),
+    'apiInputSpecification' => array(
+        'endpointPath' => 'VARCHAR(255) NOT NULL',
+        'method' => 'VARCHAR(10) NOT NULL',
+        'requestBodySchemaJson' => 'TEXT NOT NULL',
+        'index_primary' => 'PRIMARY KEY (endpointPath, method)'
+    ),
     'cms' => array(
         'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
         'label' => "VARCHAR(255) NOT NULL",

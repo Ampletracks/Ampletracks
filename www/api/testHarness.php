@@ -118,7 +118,7 @@ include(VIEWS_DIR.'/header.php');
         <textarea id="response-body" readonly></textarea>
 
     <script>
-        const apiSpecUrl = 'ampletracksApi_v1.openapi.json';
+        const apiSpecUrl = 'v1/openApi.json';
 
         function loadApiSpec() {
             return $.ajax({
@@ -246,6 +246,14 @@ include(VIEWS_DIR.'/header.php');
 
                 $('#submit').click(function() {
                     handleSubmit(apiSpec);
+                });
+
+                // Make Ctrl-R resubmit the request
+                $(document).keydown(function(event) {
+                    if ((event.ctrlKey || event.metaKey) && event.key === 'r') {
+                        event.preventDefault();
+                        handleSubmit(apiSpec);
+                    }
                 });
             });
         });

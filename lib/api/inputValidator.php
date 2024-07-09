@@ -95,10 +95,12 @@ class ApiInputValidator {
                     $schema = $details['requestBody']['content']['application/json']['schema'];
                     $result = $DB->replace('apiInputSpecification', [
                         'endpointPath' => $path,
-                        'method' => strtoupper($method),
+                        'method' => strtoupper($method)
+                    ],[
                         'requestBodySchemaJson' => json_encode($schema)
                     ]);
                     if (!$result) {
+                        echo "--$result";
                         $errors[] = "Failed to insert schema for endpoint {$path} and method " . strtoupper($method);
                     }
                 }

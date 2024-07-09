@@ -3,6 +3,29 @@ namespace API;
 
 $requireLogin = false;
 require('../../../lib/api/startup.php');
+
+require(LIB_DIR.'/api/inputValidator.php');
+$inputSpecIngestionResult = \ApiInputValidator::ingestInputSpecifications('../ampletracksApi_v1.openapi.json');
+if ($inputSpecIngestionResult !== true) {
+    errorExit(500,'API Specification Ingestion failed with errors: ' . join(', ', $inputSpecIngestionResult));
+    exit;
+}
+
+// Validating API Inputs
+$inputValidator = new \ApiInputValidator('/api/endpoint/path');
+$initializationErrors = $inputValidator->errors();
+if ($initializationErrors) {
+    echo "Error: " . join(',', $initializationErrors);
+    exit;
+}
+
+$inputValidationErrors = $inputValidator->validateInput();
+if ($inputValidationErrors) {
+    echo "Input was not valid: " . join(',', $inputValidationErrors);
+} else {
+    $inputs = $inputValidator->getValidInputs();
+    // Process the valid inputs...
+}
 require_once(LIB_DIR.'/api/userTools.php');
 
 /*
