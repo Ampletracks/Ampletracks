@@ -1,5 +1,5 @@
 <TEMPLATE NAME="HEADER">
-    <table class="main userAPIKeyList">
+    <table class="data-table userAPIKeyList">
         <thead>
             <tr>
                 <th class="actions">Actions</th>
@@ -43,6 +43,9 @@
     </table>
     <div>
         <button type="button" class="btn" id="newAPIKey">New API key</button>
+        <? if ($numRows>0) { ?>
+            <a target="_blank" class="btn" href="/api/testHarness.php">Test API</a>
+        <? } ?>
     </div>
 
     <style>

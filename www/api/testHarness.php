@@ -45,6 +45,7 @@ if (ws('mode')=='call') {
     curl_setopt($ch, CURLOPT_CUSTOMREQUEST, ws('method'));  // Use GET method
     curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonData );  // Set the request body to the JSON data
     curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+        'Authorization: Bearer '.$apiKey,
         'Content-Type: application/json',
         'Content-Length: ' . strlen($jsonData)
     ));
@@ -203,9 +204,6 @@ include(VIEWS_DIR.'/header.php');
             $.ajax({
                 url: '',
                 method: 'POST',
-                headers: {
-                    'Authorization': 'Bearer ' + apiKey
-                },
                 data: {
                     'mode'      : 'call',
                     'endpoint'  : endpoint,

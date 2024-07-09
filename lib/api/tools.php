@@ -113,7 +113,7 @@ function signAPIKey($baseAPIKey) {
  * Returns the passed key if the signature is valid, null if not
  */
 function checkSignedAPIKey($signedAPIKey) {
-    [$baseAPIKey, $signature] = explode('!!', $signedAPIKey);
+    [$baseAPIKey, $signature] = explode('!!', $signedAPIKey.'!!');
     if(!$baseAPIKey || !$signature) {
         return null;
     }
