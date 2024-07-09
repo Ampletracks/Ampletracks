@@ -42,15 +42,18 @@
                     "properties": {
                       "name_contains": {
                         "type": "string",
-                        "description": "If present and not empty, only projects whose name contains this string will be returned"
+                        "description": "If present and not empty, only projects whose name contains this string will be returned",
+                        "internalName": "apiFilter_project:name_ct"
                       },
                       "name_equals": {
                         "type": "string",
-                        "description": "If present and not empty, only projects whose name contains this string will be returned"
+                        "description": "If present and not empty, only projects whose name contains this string will be returned",
+                        "internalName": "apiFilter_project:name_eq"
                       },
                       "memberUsrerId_equals": {
                         "type": "integer",
-                        "description": "If present and non-zero only projects assigned to the specified user will be returned"
+                        "description": "If present and non-zero only projects assigned to the specified user will be returned",
+                        "internalName": "apiFilter_user:id_eq"
                       }
                     },
                     "description": "If more than one filter is specified, only projects matching all filters will be returned",
