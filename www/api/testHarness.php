@@ -15,22 +15,26 @@ if (ws('mode')=='call') {
     $apiKey = $DB->getValue('SELECT apiKey FROM userAPIKey WHERE userId=? AND deletedAt=0 AND id=?',$USER_ID,ws('keyId'));
 
     if (!ws('keyId')) inputError('keyId','You must select an API key');
-    if (!ws('endpoint')) inputError('keyId','You must specify the enpoint');
-    if (!ws('method')) inputError('keyId','You must specify the method');
+    if (!ws('endpoint')) inputError('endpoint','You must specify the enpoint');
+    if (!ws('method')) inputError('method','You must specify the method');
     if (inputError()) {
         http_response_code('400');
-        dump(inputError('*'));
+        $allErrors = inputError('*');
+        $message = '';
+        foreach( $allErrors as $field => $errors ) {
+            foreach( $errors as $error ) {
+                $message.=$field.': '.$error."\n";
+            }
+        }
         echo json_encode([
             'code'      =>'502',
-            'message'   => ''
+            'message'   => $message
         ]);
         exit;
     }
 
     $url = 'https://'.$_SERVER['HTTP_HOST'].'/api/v1'.ws('endpoint');
     $mode = ws('mode') || 'GET';
-    echo $url;
-    dump($WS);
 
     // Initialize cURL session
     $ch = curl_init($url);
