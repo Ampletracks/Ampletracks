@@ -327,7 +327,7 @@ $tables = array(
     ), 
     'user' => array(
         'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
-        'apiId' => "VARCHAR(40) NOT NULL DEFAULT''",
+        'apiId' => "VARCHAR(40) NULL",
         'firstName' => "VARCHAR(255) NOT NULL",
         'lastName' => "VARCHAR(255) NOT NULL",
         'email' => "VARCHAR(255) NOT NULL",

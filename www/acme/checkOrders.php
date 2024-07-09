@@ -18,6 +18,7 @@ use LEClient\LEOrder;
 
 // First check if the ACME functionality is enabled and properly configured
 if(!defined('ACME_ACCOUNT_EMAIL') || !ACME_ACCOUNT_EMAIL) {
+	echo "ACME_ACCOUNT_EMAIL is not defined in configuration."; 
     exit;
 } else if(!filter_var(ACME_ACCOUNT_EMAIL, FILTER_VALIDATE_EMAIL)) {
 	$message = 'Invalid LETS_ENCRYPT_ACCOUNT_EMAIL ('. ACME_ACCOUNT_EMAIL.')';
