@@ -302,14 +302,14 @@ $_SEARCH_SPEC_LOOKUP_TABLE = array(
 		- see http://dev.mysql.com/doc/refman/4.1/en/string-comparison-functions.html
 */
 
-function makeConditions( $prefix ) {
+function makeConditions( $prefix, $paramSpacePrefix = '' ) {
 	global $WS, $DB;
 	global $_SEARCH_SPEC_LOOKUP_TABLE;
 	$condition_sql = '';
 	$limited_param_space=0;
 	if (is_array($prefix)) {
 		$param_space = $prefix;
-		$prefix = '';
+		$prefix = $paramSpacePrefix;
 		$limited_param_space=1;
 	} else {
 		$param_space = $WS;

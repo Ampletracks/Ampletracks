@@ -1,12 +1,11 @@
 <?
 namespace API;
 
+require_once(LIB_DIR.'/api/baseClasses.php');
+
 // Key string types
 define('API_KS_API_KEY', 'API Key');
 define('API_KS_ENTITY_ID', 'Entity API Id');
-
-// Use code to suggest an http return code for this exception
-class APIException extends \Exception {}
 
 function errorExit($code, $message = '') {
     $defaultMessages = [
@@ -35,6 +34,21 @@ function getAPIIdPrefix($entityType) {
     }
 
     return $idPrefix;
+}
+
+function checkSetApiIds($entityData, $entityType, $realIdCol = 'realId', $apiIdCol = 'id', $removeRealId = true) {
+    $idPrefix = getAPIIdPrefix($entityType);
+    foreach($entityData as $idx => $entity) {
+        if(strlen($entity[$apiIdCol]) <= strlen($idPrefix.'_')) {
+            $entity[$apiIdCol] = getAPIId($entityType, $entity[$realIdCol]);
+        }
+        if($removeRealId) {
+            unset($entity[$realIdCol]);
+        }
+        $entityData[$idx] = $entity;
+    }
+
+    return $entityData;
 }
 
 function getAPIId($entityType, $id) {

@@ -14,7 +14,7 @@ define('API_PER_PAGE_USER', 50);
 //        $this->currentPage = max((int)$page, 1);
 //
 //        if(!canDo('list', 'user')) {
-//            throw new APIException('Forbidden', 403);
+//            throw new ApiException('Forbidden', 403);
 //        }
 //
 //        if(is_array($filtersOrListId)) {
@@ -117,7 +117,7 @@ function getUserList($filtersOrListId, $listId = null, $page = 1) {
     global $DB;
 
     if(!canDo('list', 'user')) {
-        throw new APIException('Forbidden', 403);
+        throw new ApiException('Forbidden', 403);
     }
 
     if(is_array($filtersOrListId)) {
@@ -164,7 +164,7 @@ function getNextListPageUrl($pageNum) {
     ) {
         global $LOGGER;
         $LOGGER->log('getNextListPageUrl() called before $__userIdStreamer initiallised');
-        throw new APIException('Internal Error', 500);
+        throw new ApiException('Internal Error', 500);
     }
     $pageNum = max((int)$pageNum, 1);
     return '/user/listId/'.$__userIdStreamer->getIdFileId()."/page/$pageNum";
@@ -174,7 +174,7 @@ function createUser($userDetails) {
     global $DB;
 
     if(!canDo('create', 'user')) {
-        throw new APIException('Forbidden', 403);
+        throw new ApiException('Forbidden', 403);
     }
 
     $userId = 0;
@@ -194,7 +194,7 @@ function getUserData($userId) {
     global $DB;
 
     if(!canDo('view', $userId, 'user')) {
-        throw new APIException('Forbidden', 403);
+        throw new ApiException('Forbidden', 403);
     }
 
     $apiIdPrefix = getAPIIdPrefix('user');
@@ -229,7 +229,7 @@ function updateUser($userId, $updateData) {
     global $DB;
 
     if(!canDo('edit', $userId, 'user')) {
-        throw new APIException('Forbidden', 403);
+        throw new ApiException('Forbidden', 403);
     }
 
     $DB->update('user', ['id' => $userId], $updateData);
@@ -239,7 +239,7 @@ function deleteUser($userId) {
     global $DB;
 
     if(!canDo('delete', $userId, 'user')) {
-        throw new APIException('Forbidden', 403);
+        throw new ApiException('Forbidden', 403);
     }
 
     $DB->update('user', ['id' => $userId], ['deletedAt' => time()]);

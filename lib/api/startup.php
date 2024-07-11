@@ -101,13 +101,14 @@ do { // allow us to jump out as needed
 
     } else {
         $ENTITY = 'NEXT_PAGE';
+        $API_VARS['listId'] = $API_ID;
     }
 
     // Other url variables
     $idx = 1;
     while($idx < count($pathBits)) {
         if(isset($pathBits[$idx + 1])) {
-            $API_VARS[$pathBits[$idx]] = $API_VARS[$pathBits[$idx + 1]];
+            $API_VARS[$pathBits[$idx]] = $pathBits[$idx + 1];
         }
         $idx += 2;
     }

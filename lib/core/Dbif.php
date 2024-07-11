@@ -562,6 +562,7 @@ class Dbif {
                 return $this->getValue( $getIdSql );
             } else return 'updated';
         } else {
+            $this->setInsertType('REPLACE', true);
             if ($id = $this->insert( $tableName, array_merge( $keyData, $otherData ) )) return $returnId?$id:'inserted';
             else return false;
         }

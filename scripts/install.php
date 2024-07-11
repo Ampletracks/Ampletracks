@@ -238,6 +238,7 @@ $tables = array(
     ),
     'project' => array(
         'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
+        'apiId' => "VARCHAR(40) NOT NULL DEFAULT ''",
         'name' => "VARCHAR(255) NOT NULL",
         'deletedAt' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
         'index_name' => "UNIQUE INDEX(`name`,`deletedAt`)",
@@ -333,7 +334,7 @@ $tables = array(
     ), 
     'user' => array(
         'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
-        'apiId' => "VARCHAR(40) NULL",
+        'apiId' => "VARCHAR(40) NOT NULL DEFAULT ''",
         'firstName' => "VARCHAR(255) NOT NULL",
         'lastName' => "VARCHAR(255) NOT NULL",
         'email' => "VARCHAR(255) NOT NULL",
@@ -579,7 +580,8 @@ $dbSetup = function() {
     // Add these as needed, and add an `apiId` column to the relevant table definition
     $DB->exec('
         INSERT IGNORE INTO apiIdTablePrefix (tableName, prefix) VALUES
-        ("user", "u")
+        ("user", "u"),
+        ("project", "p")
     ');
 };
 

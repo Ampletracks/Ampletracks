@@ -3,6 +3,9 @@ namespace API;
 
 require_once(LIB_DIR.'/api/tools.php');
 
+// Use code to suggest an http return code for this exception
+class ApiException extends \Exception {}
+
 //interface APIQuery {
 //    // vvvv Need this one? vvvv
 //    //public static function loadRecordsById(array $ids);
@@ -14,6 +17,7 @@ class IdStreamer {
     private $idFileH = null;
     private $startIdx = 0;
     private $checkEntity = '';
+    private $numIds = 0;
 
     private const baseIdFileDir = DATA_DIR.'/apiIdFiles/';
     private const bytesPerId = 4; // MySql int
@@ -30,7 +34,7 @@ class IdStreamer {
         $this->checkEntity = strtolower($checkEntity);
 
         $queryOrFileId = trim($queryOrFileId);
-        if(stripos($queryOrFileId, 'SELECT') === 0) {
+        if(stripos($queryOrFileId, 'SELECT') === 0 || is_array($queryOrFileId)) {
             $this->querySetupIdFile($queryOrFileId);
         } else {
             $this->idFileId = $queryOrFileId;
@@ -57,7 +61,7 @@ class IdStreamer {
         $idFileDir = self::baseIdFileDir.'/'.$currHour;
         if(!is_dir($idFileDir)) {
             if(!mkdir($idFileDir, 0770, true)) {
-                throw new APIException('Failed', 500);
+                throw new ApiException('Failed', 500);
             }
         }
         $idFileName = sha1(openssl_random_pseudo_bytes(20), false);
@@ -65,7 +69,7 @@ class IdStreamer {
 
         $wh = fopen($idFileDir.'/'.$idFileName, 'wb');
         if(!is_resource($wh)) {
-            throw new APIException('Failed', 500);
+            throw new ApiException('Failed', 500);
         }
         fwrite($wh, pack('Z'.$this->checkEntitySize(), $this->checkEntity));
         fwrite($wh, pack('N', (int)$USER_ID));
@@ -74,6 +78,7 @@ class IdStreamer {
         $idQuery = $DB->query($querySql);
         while($idQuery->fetchInto($idRow)) {
             fwrite($wh, pack('N', (int)$idRow[0]));
+            $this->numIds++;
         }
         $idQuery->free();
         fclose($wh);
@@ -85,31 +90,33 @@ class IdStreamer {
         global $USER_ID;
 
         if(strlen($this->checkEntity) == 0) {
-            throw new APIException('Entity mismatch', 500);
+            throw new ApiException('Entity mismatch', 500);
         }
 
         [$idFilePrefix, $idFileName] = explode('_', $this->idFileId);
         if($idFilePrefix !=  'qry') {
-            throw new APIException('Bad id', 400);
+            throw new ApiException('Bad id', 400);
         }
         $idFileDir = self::baseIdFileDir.substr($idFileName, -2);
         $idFileName = substr($idFileName, 0, -2);
+        $idFilePath = $idFileDir.'/'.$idFileName;
 
-        $this->idFileH = fopen($idFileDir.'/'.$idFileName, 'rb');
+        $this->idFileH = fopen($idFilePath, 'rb');
         if(!is_resource($this->idFileH)) {
-          throw new APIException('Bum!');
+          throw new ApiException('Bum!');
         }
 
         $headerSize = $this->checkEntitySize() + self::bytesPerId;
         $fileCheckData = unpack('Z'.$this->checkEntitySize().'entity/NuserId', fread($this->idFileH, $headerSize));
         if($fileCheckData['entity'] !== $this->checkEntity) {
-            throw new APIException('Entity mismatch', 500);
+            throw new ApiException('Entity mismatch', 500);
         }
         if($fileCheckData['userId'] != $USER_ID) {
-            throw new APIException('Wrong user', 403);
+            throw new ApiException('Wrong user', 403);
         }
 
         fseek($this->idFileH, $headerSize + $this->startIdx * self::bytesPerId);
+        $this->numIds = (filesize($idFilePath) - $headerSize) / self::bytesPerId;
     }
 
     /**
@@ -126,8 +133,16 @@ class IdStreamer {
         }
     }
 
+    public function getNumIds() {
+        return $this->numIds;
+    }
+
     public function getIdFileId() {
         return $this->idFileId;
+    }
+
+    public function getPageUrl($page) {
+        return "/{$this->checkEntity}/{$this->getIdFileId()}/page/$page";
     }
 
     public function __destruct() {
