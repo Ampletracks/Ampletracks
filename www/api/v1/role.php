@@ -1,4 +1,6 @@
 <?
+namespace API;
+
 # define('API_ITEMS_PER_PAGE', 2);
 
 $API_SQL = [
