@@ -26,11 +26,18 @@ function apiErrorExit($code, $message = '') {
 function getAPIIdPrefix($entityType) {
     global $DB, $LOGGER;
 
-    $idPrefix = $DB->getValue('
-        SELECT prefix
-        FROM apiIdTablePrefix 
-        WHERE tableName = ?
-    ', $entityType);
+    //  Whenever adding a new one here be sure to add an `apiId` column and corresponding index to the relevant table definition
+    $prefixLookup = [
+        'user'          => 'u',
+        'recordType'    => 'rt',
+        'role'          => 'ro',
+        'dataField'     => 'df',
+        'record'        => 'r',
+        'project'       => 'p',
+    ];
+
+    $idPrefix = $prefixLookup[$entityType] ?? null;
+
     if(!$idPrefix) {
         $LOGGER->log("Bad entityType ->$entityType<-");
         throw new APIException('Failed', 500);
@@ -40,13 +47,12 @@ function getAPIIdPrefix($entityType) {
 }
 
 function checkSetApiIds($entities, $entityMap, $removeOriginal = true) {
-
     foreach($entities as $idx => $entity) {
         foreach( $entityMap as $entityType => $mapping ) {
             // If the output column is not specified then assume that the original ID column should be overwritten
             if (count($mapping)==2) $mapping[] = $mapping[0];
             list( $realIdCol, $apiIdCol, $apiOutputCol ) = $mapping;
-            if(empty($entity[$apiIdCol])) {
+            if(strlen($entity[$apiIdCol])<5) {
                 $entity[$apiOutputCol] = getAPIId($entityType, $entity[$realIdCol]);
             } else {
                 $entity[$apiOutputCol] = $entity[$apiIdCol];
@@ -176,6 +182,8 @@ function generateKeyString($type) {
 
 function getAPIList($entity, $sql, $apiIdMapping, $apiVars, $filters, $itemsPerPage) {
 
+    if (function_exists('api\processListInputs')) processListInputs($filters);
+
     if(!canDo('list', $entity)) {
         throw new ApiException('Forbidden', 403);
     }
@@ -204,6 +212,11 @@ function getAPIList($entity, $sql, $apiIdMapping, $apiVars, $filters, $itemsPerP
 
     $items = $DB->getRows($sql['getData'], $ids);
     $items = checkSetApiIds($items, $apiIdMapping );
+    if (function_exists('api\processListItem')) {
+        foreach( $items as $idx=>$item ) {
+            processListItem($items[$idx]);
+        }
+    }
 
     $numRecords = $idStreamer->getNumIds();
     $numPages = ceil($numRecords / $itemsPerPage);

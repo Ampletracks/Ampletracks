@@ -118,6 +118,63 @@
             "api_key": []
           }
         ]
+      },
+      "post": {
+        "summary": "Create a new project",
+        "description": "",
+        "operationId": "",
+        "tags": [],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "The name of the new project",
+                    "internalName": "project_name"
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "ID of the newly created project"
+                    }
+                  },
+                  "required": [
+                    "id"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error: Bad request"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error: Unauthorised request"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error: Forbidden"
+          }
+        }
       }
     },
     "/project/{projectId}": {
@@ -264,6 +321,79 @@
             "api_key": []
           }
         ]
+      },
+      "post": {
+        "summary": "Create a new record type",
+        "description": "",
+        "operationId": "",
+        "tags": [],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "The name of the recordType",
+                    "internalName": "recordType_name"
+                  },
+                  "publicPreviewMessage": {
+                    "type": "string",
+                    "description": "The message displayed to non-logged-in users when they view a record of this type.",
+                    "internalName": "recordType_publicPreviewMessage"
+                  },
+                  "builtInFieldsToDisplay": {
+                    "type": "string",
+                    "description": "A pipe delimited list of the built in fields to display of the list page. Valid built in fields for inclusion in this list are: id,labelId,project,path,relationships.",
+                    "internalName": "recordType_builtInFieldsToDisplay",
+                    "default": "id|labelId|project|path|relationships"
+                  },
+                  "colour": {
+                    "type": "string",
+                    "description": "The hex code (including leading #) of the colour to be used when drawing records of this type on node graphs.",
+                    "internalName": "recordType_colour"
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "ID of the newly created project object"
+                    }
+                  },
+                  "required": [
+                    "id"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error: Bad request"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error: Unauthorised request"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error: Forbidden"
+          }
+        }
       }
     },
     "/recordType/{recordTypeId}": {
@@ -348,11 +478,13 @@
                     "properties": {
                       "name_equals": {
                         "type": "string",
-                        "description": "If present and not empty only roles whose name matches this string will be returned"
+                        "description": "If present and not empty only roles whose name matches this string will be returned",
+                        "internalName": "apiFilter_role:name_eq"
                       },
                       "name_contains": {
                         "type": "string",
-                        "description": "If present and not empty only roles whose name contains this string will be returned"
+                        "description": "If present and not empty only roles whose name contains this string will be returned",
+                        "internalName": "apiFilter_role:name_ct"
                       }
                     },
                     "description": "If more than one filter is specified, only roles matching all filters will be returned"
@@ -405,6 +537,63 @@
             "api_key": []
           }
         ]
+      },
+      "post": {
+        "summary": "Create a new role",
+        "description": "",
+        "operationId": "",
+        "tags": [],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "The name of the new role",
+                    "internalName": "role_name"
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "ID of the newly created role"
+                    }
+                  },
+                  "required": [
+                    "id"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error: Bad request"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error: Unauthorised request"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error: Forbidden"
+          }
+        }
       }
     },
     "/role/{roleId}": {
@@ -986,25 +1175,42 @@
                     "properties": {
                       "disabledState_equals": {
                         "type": "boolean",
-                        "description": "Set to true for only disabled users, set to false for only enabled users. Omit this field to get both enabled and disabled users"
+                        "description": "Set to true for only disabled users, set to false for only enabled users. Omit this field to get both enabled and disabled users",
+                        "internalName": "apiFilter_disabledStateFilter"
                       },
                       "firstName_equals": {
-                        "type": "string"
+                        "type": "string",
+                        "internalName": "apiFilter_user:firstName_eq"
                       },
                       "lastName_equals": {
-                        "type": "string"
+                        "type": "string",
+                        "internalName": "apiFilter_user:lastName_eq"
                       },
                       "firstName_contains": {
-                        "type": "string"
+                        "type": "string",
+                        "internalName": "apiFilter_user:firstName_ct"
                       },
                       "lastName_contains": {
-                        "type": "string"
+                        "type": "string",
+                        "internalName": "apiFilter_user:lastName_ct"
                       },
                       "email_equals": {
-                        "type": "string"
+                        "type": "string",
+                        "internalName": "apiFilter_user:email_eq"
                       },
                       "email_contains": {
-                        "type": "string"
+                        "type": "string",
+                        "internalName": "apiFilter_user:email_ct"
+                      },
+                      "last_login_after": {
+                        "$ref": "#/components/schemas/Unix Timestamp Field",
+                        "description": "If set then only users who have logged in after this time will be returned",
+                        "internalName": "apiFilter_user:lastLoggedInAt_gt"
+                      },
+                      "last_login_before": {
+                        "$ref": "#/components/schemas/Unix Timestamp Field",
+                        "description": "If set then only users who have logged in before this time will be returned",
+                        "internalName": "apiFilter_user:lastLoggedInAt_lt"
                       }
                     }
                   }
@@ -1013,7 +1219,45 @@
             }
           }
         },
-        "responses": {},
+        "responses": {
+          "200": {
+            "description": "",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/User Object",
+                        "description": "User details"
+                      }
+                    },
+                    "metadata": {
+                      "$ref": "#/components/schemas/Dataset Response Metadata",
+                      "description": "Metadata about the response"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "metadata"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error: Bad request"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error: Unauthorised request"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error: Forbidden"
+          }
+        },
         "security": [
           {
             "api_key": []
@@ -1026,8 +1270,79 @@
         "operationId": "",
         "tags": [],
         "parameters": [],
-        "requestBody": {},
-        "responses": {}
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "firstName": {
+                    "type": "string",
+                    "description": "The first name of the user",
+                    "internalName": "user_firstName"
+                  },
+                  "lastName": {
+                    "type": "string",
+                    "description": "The last name of the user",
+                    "internalName": "user_lastName"
+                  },
+                  "email": {
+                    "type": "string",
+                    "description": "The enail address of the user",
+                    "internalName": "user_email"
+                  },
+                  "password": {
+                    "type": "string",
+                    "description": "The first name of the user",
+                    "internalName": "password"
+                  },
+                  "mobile": {
+                    "type": "string",
+                    "description": "The mobile number of the user",
+                    "internalName": "user_mobile"
+                  }
+                },
+                "required": [
+                  "firstName",
+                  "lastName",
+                  "email",
+                  "password"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "ID of the newly created user"
+                    }
+                  },
+                  "required": [
+                    "id"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error: Bad request"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error: Unauthorised request"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error: Forbidden"
+          }
+        }
       }
     },
     "/user/{userId}": {
@@ -1156,7 +1471,21 @@
           },
           "email": {
             "type": "string",
-            "description": "Email address"
+            "description": "Email address",
+            "format": "email"
+          },
+          "lastLoggedInAt": {
+            "$ref": "#/components/schemas/Unix Timestamp Field",
+            "description": "Unix timestamp of user's last login - this will be zero if the user has never logged in"
+          },
+          "lastLoginIp": {
+            "type": "string",
+            "description": "IP address that user last logged in from",
+            "format": "ipv4"
+          },
+          "mobile": {
+            "type": "string",
+            "description": "Mobile number"
           },
           "projects": {
             "type": "array",
@@ -1168,7 +1497,7 @@
           },
           "createdAt": {
             "$ref": "#/components/schemas/Unix Timestamp Field",
-            "description": "User creation date and time"
+            "description": "Unix timestamp of user creation"
           },
           "isDisabled": {
             "type": "boolean",
@@ -1191,7 +1520,9 @@
           "projects",
           "createdAt",
           "isDisabled",
-          "roles"
+          "roles",
+          "lastLoginIp",
+          "lastLoggedInAt"
         ]
       },
       "Unix Timestamp Field": {

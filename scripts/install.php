@@ -13,12 +13,6 @@ $tables = array(
         'index_time' => "INDEX (`time`,`entityId`)",
         'index_entityId' => "INDEX (`entityId`)",
     ),
-    'apiIdTablePrefix' => array(
-        'tableName' => "VARCHAR(128) NOT NULL",
-        'prefix' => "VARCHAR(4) NOT NULL",
-        'index_tableName' => "UNIQUE INDEX (`tableName`)",
-        'index_prefix' => "UNIQUE INDEX (`prefix`)",
-    ),
     'apiInputSpecification' => array(
         'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
         'endpointPath' => 'VARCHAR(255) NOT NULL',
@@ -596,16 +590,6 @@ $dbSetup = function() {
 
     }
 
-    // Add these as needed, and add an `apiId` column (and corresponding index) to the relevant table definition
-    $DB->exec('
-        INSERT IGNORE INTO apiIdTablePrefix (tableName, prefix) VALUES
-        ("user", "u"),
-        ("recordType", "rt"),
-        ("dataField", "df"),
-        ("role", "ro"),
-        ("record", "r"),
-        ("project", "p")
-    ');
 };
 
 $writableDirectories = ['data/images','data/tmp/uploads','data/system','data/acme','data/emailMergeData'];
@@ -640,6 +624,10 @@ $upgrades = array(
     6 => function() {
         global $DB;
         $DB->exec('UPDATE dataField SET allowUserDefault=1 WHERE typeId IN (SELECT id FROM dataFieldType WHERE hasValue)');
+    },
+    7 => function() {
+        global $DB;
+        $DB->exec('UPDATE user SET apiId=NULL WHERE apiId=""');
     },
 
     // =====================================================================================================
