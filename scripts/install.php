@@ -20,10 +20,11 @@ $tables = array(
         'index_prefix' => "UNIQUE INDEX (`prefix`)",
     ),
     'apiInputSpecification' => array(
+        'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
         'endpointPath' => 'VARCHAR(255) NOT NULL',
         'method' => 'VARCHAR(10) NOT NULL',
         'requestBodySchemaJson' => 'TEXT NOT NULL',
-        'index_primary' => 'PRIMARY KEY (endpointPath, method)'
+        'index_enpointPath' => 'UNIQUE INDEX (`endpointPath`, `method`)'
     ),
     'cms' => array(
         'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
@@ -55,6 +56,7 @@ $tables = array(
     ),
     'dataField' => array(
         'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
+        'apiId' => "VARCHAR(40) NULL",
         'orderId' => "SMALLINT(5) UNSIGNED NOT NULL",
         'recordTypeId' => "INT(10) UNSIGNED NOT NULL",
         'name' => "VARCHAR(255) DEFAULT NULL",
@@ -76,6 +78,7 @@ $tables = array(
         'dependencyCombinator' => "ENUM ('and','or') DEFAULT 'and'",
         'questionLastChangedAt' =>  "INT(10) UNSIGNED NOT NULL DEFAULT 0",
         'index_orderId' => "INDEX (`recordTypeId`,`orderId`)",
+        'index_apiId' => "UNIQUE INDEX (`apiId`)",
         'index_recordTypeId' => "INDEX (`recordTypeId`,`displayOnList`)",
     ),
     'dataFieldDependency' => array(
@@ -238,13 +241,15 @@ $tables = array(
     ),
     'project' => array(
         'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
-        'apiId' => "VARCHAR(40) NOT NULL DEFAULT ''",
+        'apiId' => "VARCHAR(40) NULL",
         'name' => "VARCHAR(255) NOT NULL",
         'deletedAt' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
         'index_name' => "UNIQUE INDEX(`name`,`deletedAt`)",
+        'index_apiId' => "UNIQUE INDEX (`apiId`)",
     ),
     'record' => array(
         'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
+        'apiId' => "VARCHAR(40) NULL",
         'typeId' => "INT(10) UNSIGNED NOT NULL",
         'createdBy' => "INT(10) UNSIGNED NOT NULL",
         'createdAt' => "INT(10) UNSIGNED NOT NULL",
@@ -263,6 +268,8 @@ $tables = array(
         'index_parentId' => "INDEX (`parentId`)",
         'index_path' => "INDEX (`path`(256),`depth`)",
         'index_depth' => "INDEX (`depth`)",
+        'index_apiId' => "UNIQUE INDEX (`apiId`)",
+
     ),
     'recordData' => array(
         'recordId' => "INT(10) UNSIGNED NOT NULL",
@@ -298,6 +305,7 @@ $tables = array(
     ),
     'recordType' => array(
         'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
+        'apiId' => "VARCHAR(40) NULL",
         'name' => "VARCHAR(255) NOT NULL",
         'colour' => "CHAR(7) DEFAULT ''",
         'publicPreviewMessage' => "MEDIUMTEXT NOT NULL",
@@ -307,12 +315,15 @@ $tables = array(
         'deletedAt' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
         'index_name' => "UNIQUE INDEX(`name`,`deletedAt`)",
         'index_projectId' => "INDEX(`projectId`,`name`,`deletedAt`)",
+        'index_apiId' => "UNIQUE INDEX (`apiId`)",
     ),
     'role' => array(
         'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
+        'apiId' => "VARCHAR(40) NULL",
         'name' => "VARCHAR(255) NOT NULL",
         'deletedAt' => "INT(10) UNSIGNED NOT NULL",
         'index_name' => "UNIQUE INDEX(`name`)",
+        'index_apiId' => "UNIQUE INDEX (`apiId`)",
     ),
     'rolePermission' => array(
         'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
@@ -334,7 +345,7 @@ $tables = array(
     ), 
     'user' => array(
         'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
-        'apiId' => "VARCHAR(40) NOT NULL DEFAULT ''",
+        'apiId' => "VARCHAR(40) NULL",
         'firstName' => "VARCHAR(255) NOT NULL",
         'lastName' => "VARCHAR(255) NOT NULL",
         'email' => "VARCHAR(255) NOT NULL",
@@ -348,15 +359,15 @@ $tables = array(
         'defaultsLastChangedAt' =>  "INT(10) UNSIGNED NOT NULL DEFAULT 0",
         'fontScale' => "TINYINT UNSIGNED NOT NULL DEFAULT 0",
         'index_email' => "UNIQUE INDEX (`email`,`deletedAt`)",
-        'index_apiKey' => "UNIQUE INDEX (`apiId`)",
+        'index_apiId' => "UNIQUE INDEX (`apiId`)",
         'index_lastName' => "INDEX (`lastName`(40),`deletedAt`,`firstName`(40))",
         'index_deletedAt' => "INDEX (`deletedAt`)",
     ),
     'userAPIKey' => array(
         'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
         'userId' => "INT(10) UNSIGNED NOT NULL",
-        'name' => "VARCHAR(255) NOT NULL DEFAULT''",
-        'apiKey' => "VARCHAR(128) NOT NULL DEFAULT''",
+        'name' => "VARCHAR(255) NOT NULL DEFAULT ''",
+        'apiKey' => "VARCHAR(128) NOT NULL DEFAULT ''",
         'createdAt' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
         'deletedAt' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
         'index_apiKey' => "UNIQUE INDEX (`apiKey`)",
@@ -575,18 +586,29 @@ $dbSetup = function() {
                 }
             }
         }
+
+        // Load in OpenAPI JSON definition for API
+        require(SITE_BASE_DIR.'/lib/api/inputValidator.php');
+        $inputSpecIngestionResult = \ApiInputValidator::ingestInputSpecifications(SITE_BASE_DIR.'/www/api/v1/openApi.json.php');
+        if ($inputSpecIngestionResult !== true) {
+            echo "ERROR: API Specification Ingestion failed with errors:\n\t" . join("\n\t", $inputSpecIngestionResult)."\n";
+        }
+
     }
 
-    // Add these as needed, and add an `apiId` column to the relevant table definition
+    // Add these as needed, and add an `apiId` column (and corresponding index) to the relevant table definition
     $DB->exec('
         INSERT IGNORE INTO apiIdTablePrefix (tableName, prefix) VALUES
         ("user", "u"),
+        ("recordType", "rt"),
+        ("dataField", "df"),
+        ("role", "ro"),
+        ("record", "r"),
         ("project", "p")
     ');
 };
 
 $writableDirectories = ['data/images','data/tmp/uploads','data/system','data/acme','data/emailMergeData'];
-
 
 # ======================================================================================
 # Version specific changes

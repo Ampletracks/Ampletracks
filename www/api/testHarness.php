@@ -195,6 +195,17 @@ include(VIEWS_DIR.'/header.php');
             $('#request-body').val(exampleJson);
         }
 
+        function displayResult( status, response ) {
+            $('#response-code').val(status);
+            let formattedText;
+            try {
+                formattedText = JSON.stringify($.parseJSON(response), null, 2);
+            } catch (error) {
+                formattedText = response;
+            }
+            $('#response-body').val(formattedText);
+        }
+
         function handleSubmit(apiSpec) {
             const apiKey = $('#api-key').val();
             const endpoint = $('#endpoints').val();
@@ -212,12 +223,10 @@ include(VIEWS_DIR.'/header.php');
                     'keyId'     : apiKey
                 },
                 success: function(response, textStatus, xhr) {
-                    $('#response-code').val(xhr.status);
-                    $('#response-body').val(JSON.stringify(response, null, 2));
+                    displayResult( xhr.status, response );
                 },
                 error: function(xhr) {
-                    $('#response-code').val(xhr.status);
-                    $('#response-body').val(xhr.responseText);
+                    displayResult( xhr.status, xhr.responseText );
                 }
             });
         }

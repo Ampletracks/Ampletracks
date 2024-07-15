@@ -15,7 +15,7 @@ $listSql = '
         # check that the primary data field is set and valid
         LEFT JOIN dataField ON dataField.id=recordType.primaryDataFieldId AND dataField.recordTypeId=recordType.id AND !dataField.deletedAt
     WHERE
-        !recordType.deletedAt
+        recordType.deletedAt=0
 ';
 
 function extraButtonsAfter(){ ?>

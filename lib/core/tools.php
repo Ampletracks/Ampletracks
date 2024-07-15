@@ -324,7 +324,7 @@ function makeConditions( $prefix, $paramSpacePrefix = '' ) {
 		# "seemingly_OK_variable_but_includes|filter_bogus_filter_eq"
 		# This might get past some CHECKS with the author of the code thinking its OK
 		# 'cos it doesn't start filter_ but the explode below would have acted on the filter.
-		if (!preg_match( "/^$prefix/i", $full_var )) continue;
+		if (!empty($prefix) && !preg_match( "/^$prefix/i", $full_var )) continue;
 
 		if ( is_object($val) ) continue;
 

@@ -76,6 +76,7 @@ class IdStreamer {
 
         $DB->returnArray();
         $idQuery = $DB->query($querySql);
+
         while($idQuery->fetchInto($idRow)) {
             fwrite($wh, pack('N', (int)$idRow[0]));
             $this->numIds++;
@@ -123,9 +124,11 @@ class IdStreamer {
      * Generator
      */
     public function getIds($maxCount) {
+        if (!$this->numIds) return;
+
         for($i = 0; $i < $maxCount; $i++) {
             $rawIdData = fread($this->idFileH, self::bytesPerId);
-            if($rawIdData === false) {
+            if(empty($rawIdData)) {
                 break;
             }
             $idData = unpack('Nid', $rawIdData);

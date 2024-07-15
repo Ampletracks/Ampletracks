@@ -7,7 +7,7 @@ require_once(LIB_DIR.'/api/baseClasses.php');
 define('API_KS_API_KEY', 'API Key');
 define('API_KS_ENTITY_ID', 'Entity API Id');
 
-function errorExit($code, $message = '') {
+function apiErrorExit($code, $message = '') {
     $defaultMessages = [
         400 => 'Bad request',
         401 => 'Unauthenticated',
@@ -16,7 +16,10 @@ function errorExit($code, $message = '') {
     ];
 
     http_response_code($code);
-    echo $message ?: ($defaultMessages[$code] ?? '');
+    echo json_encode([
+        'code' => $code,
+        'message' => $message ?: ($defaultMessages[$code] ?? '')
+    ]);
     exit;
 }
 
@@ -36,19 +39,27 @@ function getAPIIdPrefix($entityType) {
     return $idPrefix;
 }
 
-function checkSetApiIds($entityData, $entityType, $realIdCol = 'realId', $apiIdCol = 'id', $removeRealId = true) {
-    $idPrefix = getAPIIdPrefix($entityType);
-    foreach($entityData as $idx => $entity) {
-        if(strlen($entity[$apiIdCol]) <= strlen($idPrefix.'_')) {
-            $entity[$apiIdCol] = getAPIId($entityType, $entity[$realIdCol]);
+function checkSetApiIds($entities, $entityMap, $removeOriginal = true) {
+
+    foreach($entities as $idx => $entity) {
+        foreach( $entityMap as $entityType => $mapping ) {
+            // If the output column is not specified then assume that the original ID column should be overwritten
+            if (count($mapping)==2) $mapping[] = $mapping[0];
+            list( $realIdCol, $apiIdCol, $apiOutputCol ) = $mapping;
+            if(empty($entity[$apiIdCol])) {
+                $entity[$apiOutputCol] = getAPIId($entityType, $entity[$realIdCol]);
+            } else {
+                $entity[$apiOutputCol] = $entity[$apiIdCol];
+            }
+            if($removeOriginal) {
+                if ($realIdCol != $apiOutputCol) unset($entity[$realIdCol]);
+                if ($apiIdCol != $apiOutputCol) unset($entity[$apiIdCol]);
+            }
+            $entities[$idx] = $entity;
         }
-        if($removeRealId) {
-            unset($entity[$realIdCol]);
-        }
-        $entityData[$idx] = $entity;
     }
 
-    return $entityData;
+    return $entities;
 }
 
 function getAPIId($entityType, $id) {
@@ -67,7 +78,7 @@ function getAPIId($entityType, $id) {
         $try = 0;
         while(!$updated && $try++ < 3) {
             $newApiId = generateKeyString(API_KS_ENTITY_ID);
-            $updated = $DB->update($entityType, ['id' => $id, 'apiId' => ''], ['apiId' => $newApiId]);
+            $updated = $DB->update($entityType, ['id' => $id, 'apiId' => null], ['apiId' => $newApiId]);
             if($updated) {
                 $idBase = $newApiId;
             }
@@ -161,4 +172,49 @@ function generateKeyString($type) {
     }
 
     return $keyString;
+}
+
+function getAPIList($entity, $sql, $apiIdMapping, $apiVars, $filters, $itemsPerPage) {
+
+    if(!canDo('list', $entity)) {
+        throw new ApiException('Forbidden', 403);
+    }
+
+    $page = 1;
+    if($entity == 'NEXT_PAGE') {
+        $listIdOrSql = $apiVars['listId'];
+        $page = $apiVars['page'];
+    } else {
+        $listIdOrSql = $sql['idList'];
+        $limits = getUserAccessLimits(['entity' => $entity, 'prefix' => '']);
+        $allFilters = array_merge($filters, $limits);
+        addConditions( $listIdOrSql, $allFilters );
+    }
+    $startIdx = ($page - 1) * $itemsPerPage;
+
+    $idStreamer = new IdStreamer($listIdOrSql, $entity, $startIdx);
+    $ids = [];
+    foreach($idStreamer->getIds($itemsPerPage) as $id) {
+        $ids[] = $id;
+    }
+
+    global $DB;
+    $apiIdPrefix = getAPIIdPrefix($entity);
+    $DB->returnHash();
+
+    $items = $DB->getRows($sql['getData'], $ids);
+    $items = checkSetApiIds($items, $apiIdMapping );
+
+    $numRecords = $idStreamer->getNumIds();
+    $numPages = ceil($numRecords / $itemsPerPage);
+    $nextPageUrl = $page < $numPages ? '/api/v1'.$idStreamer->getPageUrl($page + 1) : '';
+    return [
+        'data' => $items,
+        'metadata' => [
+            'numRecords' => $numRecords,
+            'numPages' => $numPages,
+            'nextPageUrl' => $nextPageUrl,
+            'pageNumber' => $page,
+        ],
+    ];
 }

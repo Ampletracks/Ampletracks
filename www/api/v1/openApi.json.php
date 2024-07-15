@@ -51,15 +51,12 @@
                         "internalName": "apiFilter_project:name_eq"
                       },
                       "memberUsrerId_equals": {
-                        "type": "integer",
-                        "description": "If present and non-zero only projects assigned to the specified user will be returned",
-                        "internalName": "apiFilter_user:id_eq"
+                        "type": "string",
+                        "description": "If present and non-zero only projects assigned to the specified user will be returned"
                       }
                     },
                     "description": "If more than one filter is specified, only projects matching all filters will be returned",
-                    "required": [
-                      "disabledState_equals"
-                    ]
+                    "required": []
                   }
                 }
               },
@@ -205,22 +202,18 @@
                   "filters": {
                     "type": "object",
                     "properties": {
-                      "projectId_equals": {
-                        "type": "integer",
-                        "description": "If present and non-zero, only record types assigned to this project will be returned"
-                      },
                       "name_equals": {
                         "type": "string",
-                        "description": "If present and not empty only record types whose name matches this string will be returned"
+                        "description": "If present and not empty only record types whose name matches this string will be returned",
+                        "internalName": "apiFilter_recordType:name_eq"
                       },
                       "name_contains": {
                         "type": "string",
-                        "description": "If present and not empty only record types  whose name contains this string will be returned"
+                        "description": "If present and not empty only record types  whose name contains this string will be returned",
+                        "internalName": "apiFilter_recordType:name_ct"
                       }
                     },
-                    "required": [
-                      "field_0"
-                    ],
+                    "required": [],
                     "description": "If more than one filter is specified, only record types matching all filters will be returned"
                   }
                 }
@@ -522,9 +515,7 @@
                     "description": "If more than one filter is specified, only records matching all filters will be returned"
                   }
                 },
-                "required": [
-                  "field_0"
-                ]
+                "required": []
               }
             }
           }
@@ -1118,7 +1109,6 @@
         },
         "required": [
           "status",
-          "field_0",
           "code",
           "message"
         ]
@@ -1146,8 +1136,7 @@
         "required": [
           "numRecords",
           "pageNumber",
-          "numPages",
-          "field_0"
+          "numPages"
         ]
       },
       "User Object": {
@@ -1227,10 +1216,6 @@
           "publicPreviewMessage": {
             "type": "string",
             "description": "The HTML message shown at the top of the page when an unauthorized user scans a label or follows a share link for a record of this type. for "
-          },
-          "projectId": {
-            "type": "string",
-            "description": "The project that this record type is assigned to"
           },
           "colour": {
             "type": "string",
@@ -1357,8 +1342,7 @@
               }
             },
             "required": [
-              "<data field API name>",
-              "field_0"
+              "<data field API name>"
             ]
           }
         },

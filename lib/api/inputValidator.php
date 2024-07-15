@@ -64,7 +64,6 @@ class ApiInputValidator {
 
     public function __construct($endpointPath, $method = null) {
         global $DB;
-
         $this->endpointPath = $endpointPath;
         $this->method = $method ?: $_SERVER['REQUEST_METHOD'];
 
@@ -209,8 +208,17 @@ class ApiInputValidator {
         return $errors;
     }
 
-    public function getValidInputs() {
-        return $this->validInputs;
+    public function getValidInputs( $prefix = '' ) {
+        if (empty($prefix)) return $this->validInputs;
+
+        $return = [];
+        foreach( $this->validInputs as $key=>$value ) {
+            if (strpos($key, $prefix) === 0) {
+                $return[substr($key,strlen($prefix))] = $value;
+            }
+        }
+
+        return $return;
     }
 }
 

@@ -656,12 +656,14 @@ class Dbif {
 		foreach( $where_data as $key=>$value ) {
 			if (is_array($value)) {
 				$sql .= "`$key` IN (?) AND ";
+    			$values[] = $value;
+			} else if (is_null($value)) {
+				$sql .= "ISNULL(`$key`) AND ";
 			} else {
 				$sql .= "`$key` = ? AND ";
-			}
-			$values[] = $value;
+       			$values[] = $value;
+            }
 		}
-
 		$values[0] = substr($sql,0,-4);
 		return $values;
 	}
