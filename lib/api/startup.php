@@ -156,6 +156,30 @@ if($API_ENTITY_ID == 0) {
         }
         echo json_encode($responseData);
         exit;
+    } else if($API_METHOD == 'POST') {
+        $WS = array_merge($WS, $inputValidator->getValidInputs());
+        $WS['mode'] = 'update';
+        unset($WS['id']); // Shouldn't ever be set but may as well make sure
+        include(LIB_DIR.'/core/adminPage.php');
+
+        if(!$WS['id']) {
+            $allErrors  = inputError('*');
+            if(count($allErrors)) {
+                apiErrorExit(400, $allErrors[array_key_first($allErrors)][0]);
+            } else if(stripos($DB->lastError, 'duplicate entry') !== false) {
+                apiErrorExit(400, "Duplicate $ENTITY data");
+            } else {
+                apiErrorExit(400);
+            }
+        }
+
+        try {
+            $apiId = getAPIId($ENTITY, $WS['id']);
+        } catch (ApiException $ex) {
+            apiErrorExit($ex->getCode(), $ex->getMessage());
+        }
+        echo json_encode(['id' => $apiId]);
+        exit;
     }
 }
 
