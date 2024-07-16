@@ -210,7 +210,7 @@ function getAPIList($entity, $sql, $apiIdMapping, $apiVars, $filters, $itemsPerP
     $apiIdPrefix = getAPIIdPrefix($entity);
     $DB->returnHash();
 
-    $items = $DB->getRows($sql['getData'], $ids);
+    $items = $DB->getRows($sql['getData'], $apiIdPrefix, $ids);
     $items = checkSetApiIds($items, $apiIdMapping );
     if (function_exists('api\processListItem')) {
         foreach( $items as $idx=>$item ) {
