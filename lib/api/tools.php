@@ -48,12 +48,16 @@ function getAPIIdPrefix($entityType) {
 
 function checkSetApiIds($entities, $entityMap, $removeOriginal = true) {
     foreach($entities as $idx => $entity) {
-        foreach( $entityMap as $entityType => $mapping ) {
+        foreach( $entityMap as $mapping ) {
             // If the output column is not specified then assume that the original ID column should be overwritten
-            if (count($mapping)==2) $mapping[] = $mapping[0];
-            list( $realIdCol, $apiIdCol, $apiOutputCol ) = $mapping;
+            if (count($mapping)==3) $mapping[] = $mapping[1];
+            list( $entityType, $realIdCol, $apiIdCol, $apiOutputCol ) = $mapping;
             if(strlen($entity[$apiIdCol])<5) {
-                $entity[$apiOutputCol] = getAPIId($entityType, $entity[$realIdCol]);
+                if (empty($entity[$realIdCol])) {
+                    $entity[$apiOutputCol] = null;
+                } else {
+                    $entity[$apiOutputCol] = getAPIId($entityType, $entity[$realIdCol]);
+                }
             } else {
                 $entity[$apiOutputCol] = $entity[$apiIdCol];
             }

@@ -146,7 +146,7 @@ if ($ENTITY != 'NEXT_PAGE') {
 if($API_ENTITY_ID == 0) {
     if($API_METHOD == 'GET') {
         if (!isset($API_ITEMS_PER_PAGE)) $API_ITEMS_PER_PAGE=100;
-        if (!isset($API_ID_MAPPINGS)) $API_ID_MAPPINGS = [ $ENTITY => ['id','apiId']];
+        if (!isset($API_ID_MAPPINGS)) $API_ID_MAPPINGS = [ [ $ENTITY, 'id', 'apiId' ] ];
 
         $filters = $inputValidator->getValidInputs('apiFilter_');
         try {

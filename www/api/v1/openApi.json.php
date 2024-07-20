@@ -678,30 +678,37 @@
                     "properties": {
                       "name_equals": {
                         "type": "string",
-                        "description": "If present, only records whose name matches this string will be returned"
+                        "description": "If present, only records whose name matches this string will be returned. The name is taken from the contents of the \"Primary Data Field\" for  the record type.",
+                        "internalName": "apiFilter_name:data_eq"
                       },
                       "name_contains": {
                         "type": "string",
-                        "description": "If present, only records whose name contains this string will be returned"
+                        "description": "If present, only records whose name contains this string will be returned.  The name is taken from the contents of the \"Primary Data Field\" for  the record type.",
+                        "internalName": "apiFilter_name:data_ct"
                       },
                       "ownerId_equals": {
                         "type": "string",
-                        "description": "If present and non-zero, only records belonging to the user with this ID will be returned"
+                        "description": "If present and non-zero, only records belonging to the user with this ID will be returned",
+                        "internalName": "apiFilter_owner:apiId_eq"
                       },
                       "projectId_equals": {
                         "type": "string",
-                        "description": "If present and non-zero, only records belonging to the project with this ID will be returned"
+                        "description": "If present and non-zero, only records belonging to the project with this ID will be returned",
+                        "internalName": "apiFilter_project:apiId_eq"
                       },
                       "recordTypeId_equals": {
                         "type": "string",
-                        "description": "If present and non-zero, only records of this type will be returned"
+                        "description": "If present and non-zero, only records of this type will be returned",
+                        "internalName": "apiFilter_recordType:apiId_eq"
                       },
                       "path_startsWith": {
                         "type": "string",
-                        "description": "If present and not empty, only records whose absolute path starts with this string will be returned i.e. pass the absolute path of a record (INCLUDING THE TRAILING SLASH) to find all descendants of that record"
+                        "description": "If present and not empty, only records whose absolute path starts with this string will be returned i.e. pass the absolute path of a record (INCLUDING THE TRAILING SLASH) to find all descendants of that record",
+                        "internalName": "apiFilter_record:path_sw"
                       }
                     },
-                    "description": "If more than one filter is specified, only records matching all filters will be returned"
+                    "description": "If more than one filter is specified, only records matching all filters will be returned",
+                    "required": []
                   }
                 },
                 "required": []

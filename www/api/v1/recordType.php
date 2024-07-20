@@ -26,8 +26,8 @@ $API_SQL = [
 ];
 
 $API_ID_MAPPINGS = [
-    'recordType' => [ 'id', 'apiId' ],
-    'dataField' => [ 'primaryDataFieldId', 'primaryDataFieldApiId' ]
+    [ 'recordType', 'id', 'apiId' ],
+    [ 'dataField', 'primaryDataFieldId', 'primaryDataFieldApiId' ]
 ];
 
 require('../../../lib/api/startup.php');
