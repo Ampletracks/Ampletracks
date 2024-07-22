@@ -58,7 +58,6 @@ class emailDeliverySMTP {
         $mail->SMTPSecure = $this->encyrptionMechanism=='SMTPS' ? PHPMailer::ENCRYPTION_SMTPS : PHPMailer::ENCRYPTION_STARTTLS;
         $mail->Port       = $this->port;                            //TCP port to connect to; use 587 if you have set `SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS`
 
-        dump($details);
         try {
             //Recipients
             $mail->setFrom($details['from']['email'], $details['from']['name']);
@@ -106,7 +105,6 @@ class emailDeliverySMTP {
         } catch (Exception $e) {
             $this->errors[] = $mail->ErrorInfo;
         }
-
-        return count($this->errors);
+        return count($this->errors) ? false:true;
     }
 }

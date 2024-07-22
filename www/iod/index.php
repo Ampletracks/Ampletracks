@@ -106,8 +106,8 @@ if (ws('mode')=='request') {
         
         ws('link',preg_replace('!^https?://!','',$link));
 
-firstName,lastName,email,link,password
-        $recipient = $userParams['email'];
+        $name = trim($userParams['firstName'].' '.$userParams['lastName']);
+        $recipient = ['name'=>$name, 'email'=>$userParams['email']];
 
         $sendResult = $EMAIL->add([
             'template' => 'iod/confirm-request',

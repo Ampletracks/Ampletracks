@@ -356,7 +356,7 @@ class emailQueue {
         return $addresses;
     }
 
-    public function unpackAndSend( $emailId, $debug ) {
+    public function unpackAndSend( $emailId, $debug=false ) {
         global $DB;
 
         if ($debug) {
@@ -462,8 +462,8 @@ class emailQueue {
             $deliveryRetryTime=600; // Seconds
             $DB->exec('
                 UPDATE email SET
-                    sendAtempts = sendAttempts+1,
-                    lastSentAttemptedAt = UNIX_TIMESTAMP(),
+                    sendAttempts = sendAttempts+1,
+                    lastSendAttemptedAt = UNIX_TIMESTAMP(),
                     # Retry delivery after 10 minutes
                     sendAfter = UNIX_TIMESTAMP()+?,
                     status = IF(sendAttempts>?,"error",status),
