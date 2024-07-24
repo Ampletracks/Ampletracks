@@ -205,7 +205,7 @@ call_user_func(function () {
                                 </ul>
                             </li>
                         <? } ?>
-                        <? if (canDoMultiple('list', 'project,user,role,cms,configuration', 'or')) { ?>
+                        <? if (canDoMultiple('list', 'project,role,cms,configuration', 'or') || canDo('edit', 'recordTypeId')) { ?>
                             <li class="toggle-menu">
                                 <a class="toggle-menu__toggle" href="#"><?=cms('Main Nav: Admin', 0, 'Admin')?></a>
                                 <button class="toggle-menu__toggle">

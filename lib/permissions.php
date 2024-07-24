@@ -176,10 +176,17 @@ function getUserPermissionsForEntity( $entity='', $userId=0 ) {
     $recordTypeId=0;
     if (strpos($entity,'recordTypeId:')===0) {
         $recordTypeId = substr($entity,strpos($entity,':')+1);
-        $permissionQuery = $DB->query(
-            $queryBase.'AND rolePermission.entity="recordTypeId" AND rolePermission.recordTypeId=?',
-            $userId,$recordTypeId
-        );
+        if ($recordTypeId=='*') {
+            $permissionQuery = $DB->query(
+                $queryBase.'AND rolePermission.entity="recordTypeId"',
+                $userId
+            );
+        } else {
+            $permissionQuery = $DB->query(
+                $queryBase.'AND rolePermission.entity="recordTypeId" AND rolePermission.recordTypeId=?',
+                $userId,$recordTypeId
+            );
+        }
     } else {
         // If we got here and the non-RecordTypeId-permissionsLoaded flag is already set for this user
         // then the absence of permissions for this entity means there just aren't any permissions, not that we haven't loaded them
