@@ -271,18 +271,27 @@ function getAPIItem( $entity, $entityId, $sql, $apiIdMapping ) {
 }
 
 function validateApiId( $apiId, $entity ) {
+    global $DB;
 
     $apiIdBits = explode('_', $apiId);
     if (count($apiIdBits) != 2) return "The $entity ID is invalid";
     
     // Do a lookup on this and resolve this to the internal ID
-    $entityCheck = getAPIIdPrefix( $ENTITY );
+    $entityCheck = getAPIIdPrefix( $entity );
 
     if (!$entityCheck) {
-        return empty($ENTITY)?'No API object type specified':'No such API object type:'.$ENTITY;
+        return empty($entity)?'No API object type specified':'No such API object type:'.$entity;
     } else if ($entityCheck!==$apiIdBits[0]) {
         return "The object ID doesn't match the requested object type";
     }
 
-    return true;
+    // As getAPIIdPrefix is effectively a whitelist we should be safe to use $entity directly
+    $entityId = (int)$DB->getValue('
+        SELECT id
+        FROM `'.$entity.'`
+        WHERE apiId = ?
+    ', $apiIdBits[1]);
+    if(!$entityId) return 'No '.ucfirst($entity).' found with id: '.$apiId;
 
+    return $entityId;
+}

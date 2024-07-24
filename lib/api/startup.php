@@ -70,10 +70,6 @@ do { // allow us to jump out as needed
     // Get the entity type and id
     // If the path is longer then the next bit should ALWAYS be an object ID of the form <prefix>_<API ID>
     $API_ID = $pathBits[0];
-    $apiIdBits = explode('_', $API_ID);
-    if (count($apiIdBits) != 2) {
-        apiErrorExit(400,"The object ID is invalid");
-    }
 
     // Getting follow-on pages from previous API calls is a special case
     // These will take the form: /api/v1/<entity>/qry_<query_cache_id>...
@@ -81,29 +77,12 @@ do { // allow us to jump out as needed
         $ENTITY = 'NEXT_PAGE';
         $API_VARS['listId'] = $API_ID;
     } else {
-        $result = validateApiId( $API_ID, $ENTITY );
-        // Do a lookup on this and resolve this to the internal ID
-        $entityCheck = getAPIIdPrefix( $ENTITY );
-
-        if (!$entityCheck) {
-            apiErrorExit(400,empty($ENTITY)?'No API object type specified':'No such API object type:'.$ENTITY);
-        } else if ($entityCheck!==$apiIdBits[0]) {
-            apiErrorExit(400,"The object ID doesn't match the requested object type");
+        $API_ENTITY_ID = validateApiId( $API_ID, $ENTITY );
+        if (!is_int($API_ENTITY_ID)) {
+            apiErrorExit(400, $result );
         }
 
         $inputValidatorPath .= '/{'.$ENTITY.'Id}';
-
-        // As apiIdTablePrefix is effectively a whitelist we should be safe to use $ENTITY directly
-        $API_ENTITY_ID = (int)$DB->getValue('
-            SELECT id
-            FROM `'.$ENTITY.'`
-            WHERE apiId = ?
-        ', $apiIdBits[1]);
-        if(!$API_ENTITY_ID) {
-            apiErrorExit(404,'No '.ucfirst($ENTITY).' found with id: '.$apiIdBits[1]);
-        }
-
-    } else {
     }
 
     // Other url variables
@@ -184,25 +163,30 @@ if($API_ENTITY_ID == 0) {
     // $pathbits will now either be empty, or it will have a sub-entity
     if (count($pathBits) && !empty($pathBits[0])) {
 
-        // See if there is a sub-entity ID after the sub-entity
-        array_shift($pathBits);
-        if (count($pathBits) && !empty($pathBits[0])) {
-            // So we have a sub-entity ID - check this
-        }
-
-        check that the 
         // OK... so we have a subentity
         // cleanse the subEntity
         $subEntity = strtolower(preg_replace('/[^a-zA-Z_-]/','',$pathBits[0]));
+
+        // See if there is a sub-entity ID after the sub-entity
+        array_shift($pathBits);
+        $subEntityId = 0;
+        if (count($pathBits) && !empty($pathBits[0])) {
+            // So we have a sub-entity ID - check this
+            $subEntityId = validateApiId( $pathBits[0], $subEntity );
+            if (!is_int($subEntityId)) {
+                apiErrorExit(404, $subEntityId);
+            }
+        }
+
         $handlerName = 'api\handle'.ucfirst($subEntity);
         if (!function_exists($handlerName)) {
             apiErrorExit(404, 'No such endpoint');
         } else {
             try {
                 // First do the same lookup we would do for the individual record
-                $responseData = getAPIItem($ENTITY, $API_ENTITY_ID, $API_SQL, $API_ID_MAPPINGS, $API_VARS );
+                $responseData = getAPIItem($ENTITY, $API_ENTITY_ID, $API_SQL, $API_ID_MAPPINGS, [] );
                 // Then pass the result of this to the handler - the handler can grab this by reference to make any changes they want
-                $handlerName( $responseData );
+                $handlerName( $responseData, $API_METHOD, $subEntityId );
             } catch (ApiException $ex) {
                 apiErrorExit($ex->getCode(), $ex->getMessage());
             }

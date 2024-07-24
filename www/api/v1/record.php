@@ -101,9 +101,22 @@ function processItem( &$record ) {
     ];
 }
 
-function handleRelationship( &$responseData ) {
+function handleRelationship( &$responseData, $method, $relationshipId ) {
     global $DB;
     $record = $responseData['data']['summary'];
+    $relationshipIdFilter = '';
+
+    if ($relationshipId>0) {
+        if ($method=='DELETE') {
+            $result = deleteRelationship($relationshipId);
+            if ($result !== true) {
+                throw new ApiException(ucfirst($entity).' not found', 400 );
+            }
+            $responseData = ['status'=>'OK'];
+        } else {
+            $relationshipIdFilter = ' AND relationship.id='.(int)$relationshipId;
+        }
+    }
 
     $DB->returnHash();
     // As far as permissions go we already know they can access this record because that was checking in tools.php=>getAPIItem()
@@ -136,7 +149,7 @@ function handleRelationship( &$responseData ) {
             LEFT JOIN recordData ON recordData.recordId=record.id AND recordData.dataFieldId=toRecordType.primaryDataFieldId
         WHERE
             relationship.fromRecordId=?
-    ';
+    '.$relationshipIdFilter;
 
     $limits = getUserAccessLimits(['entity' => 'record', 'prefix' => '']);
     addConditions( $sql, $limits );
