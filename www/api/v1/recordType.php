@@ -4,13 +4,13 @@ namespace API;
 # define('API_ITEMS_PER_PAGE', 2);
 
 $API_SQL = [
-    'idList' => '
+    'getIdList' => '
         SELECT DISTINCT recordType.id
         FROM recordType
         WHERE
             recordType.deletedAt=0
     ',
-    'getData' => '
+    'getListData' => '
         SELECT
             recordType.id,
             recordType.name,

@@ -345,6 +345,7 @@ global $parentName;
                             }
                         </script>
                     </div>
+                    <? inputError('relationship'); ?>
                 </div>
             </section>
         <? }

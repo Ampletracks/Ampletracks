@@ -5,14 +5,14 @@ namespace API;
 
 
 $API_SQL = [
-    'idList' => '
+    'getIdList' => '
         SELECT DISTINCT
             user.id
         FROM user
             LEFT JOIN userProject ON userProject.userId=user.id
         WHERE user.deletedAt=0
     ',
-    'getData' => '
+    'getListData' => '
         SELECT
             user.id                           ,
             CONCAT("u_", user.apiId) AS apiId ,

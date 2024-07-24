@@ -5,7 +5,7 @@ namespace API;
 
 
 $API_SQL = [
-    'idList' => '
+    'getIdList' => '
         SELECT
             record.id AS id
         FROM
@@ -18,10 +18,11 @@ $API_SQL = [
         WHERE 
             record.deletedAt=0
     ',
-    'getData' => '
+    'getListData' => '
         SELECT
             record.id AS id,
             record.apiId AS apiId,
+            record.id AS recordInternalId,
             name.data AS name,
             project.id AS projectId,
             project.apiId AS projectApiId,
@@ -51,5 +52,110 @@ $API_ID_MAPPINGS = [
     [ 'user', 'ownerId', 'ownerApiId' ],
     [ 'recordType', 'recordTypeId', 'recordTypeApiId' ],
 ];
+
+function processItem( &$record ) {
+    global $DB;
+    $DB->returnHash();
+    $query = $DB->query('
+        SELECT
+            dataField.apiName AS fieldName,
+            dataField.id AS dataFieldId,
+            dataField.apiId AS dataFieldApiId,
+            dataFieldType.name AS fieldType,
+            recordData.data AS value,
+            recordData.hidden AS isHidden,
+            recordData.valid AS isValid,
+            recordData.inherited AS isInherited,
+            inheritedFromRecord.id AS inheritedFromRecordId,
+            inheritedFromRecord.apiId AS inheritedFromRecordApiId
+        FROM
+            recordData
+            INNER JOIN dataField ON dataField.id=recordData.dataFieldId
+            INNER JOIN dataFieldType ON dataFieldType.id=dataField.typeId
+            LEFT JOIN record inheritedFromRecord ON inheritedFromRecord.id=recordData.fromRecordId
+        WHERE
+            # dataField.apiName<>"" AND
+            recordData.recordId=?
+    ',$record['id']);
+    $dataFields = [];
+    while( $query->fetchInto($row) ) {
+        foreach( $row as $column=>$value ) {
+            if (substr($column,0,2)=='is') $row[$column] = (bool)$row[$column];
+        }
+        $dataFields[] = $row;
+    }
+
+    //$dataFields is passed by reference
+    checkSetApiIds($dataFields, [
+        [ 'dataField', 'dataFieldId', 'dataFieldApiId' ],
+        [ 'record', 'inheritedFromRecordId', 'inheritedFromRecordApiId' ],
+    ] );
+
+    foreach( $dataFields as $idx=>$dataField ) {
+        if (is_null($dataField['inheritedFromRecordId'])) unset($dataFields[$idx]['inheritedFromRecordId']);
+    }
+
+    $record = [
+        'summary' => $record,
+        'dataFields' => $dataFields
+    ];
+}
+
+function handleRelationship( &$responseData ) {
+    global $DB;
+    $record = $responseData['data']['summary'];
+
+    $DB->returnHash();
+    // As far as permissions go we already know they can access this record because that was checking in tools.php=>getAPIItem()
+    // If they couldn't access the record this function wouldn't have been called.
+    // Now we need to ensure we only show relationships where they can access the TO record as well
+    // So we alias the toRecord to just record so that the limits will work again...
+
+    $sql = '
+        SELECT
+            relationshipLink.description,
+            fromRecord.id AS fromRecordId,
+            fromRecord.apiId AS fromRecordApiId,
+            record.id AS toRecordId,
+            record.apiId AS toRecordApiId,
+            fromRecordType.id AS fromRecordTypeId,
+            fromRecordType.apiId AS fromRecordTypeApiId,
+            toRecordType.id AS toRecordTypeId,
+            toRecordType.apiId AS toRecordTypeApiId,
+            fromRecordType.name AS fromRecordType,
+            toRecordType.name AS toRecordType,
+            recordData.data AS toRecordName
+        FROM
+            relationship
+            INNER JOIN relationshipLink ON relationshipLink.id=relationship.relationshipLinkId
+            # See comment above for explanation of why this table is not aliased to toRecord
+            INNER JOIN record fromRecord ON fromRecord.id=relationship.fromRecordId AND fromRecord.deletedAt=0
+            INNER JOIN record ON record.id=relationship.toRecordId AND record.deletedAt=0
+            INNER JOIN recordType fromRecordType ON fromRecordType.id=relationshipLink.fromRecordTypeId
+            INNER JOIN recordType toRecordType ON toRecordType.id=relationshipLink.toRecordTypeId
+            LEFT JOIN recordData ON recordData.recordId=record.id AND recordData.dataFieldId=toRecordType.primaryDataFieldId
+        WHERE
+            relationship.fromRecordId=?
+    ';
+
+    $limits = getUserAccessLimits(['entity' => 'record', 'prefix' => '']);
+    addConditions( $sql, $limits );
+
+    $query = $DB->query($sql,$record['id']);
+
+    $responseData=[];
+    while( $query->fetchInto($row) ) {
+        $responseData[] = $row;
+    }
+
+    // $responseData is passed by reference
+    checkSetApiIds($responseData, [
+        [ 'record', 'fromRecordId', 'fromRecordApiId' ],
+        [ 'record', 'toRecordId', 'toRecordApiId' ],
+        [ 'recordType', 'fromRecordTypeId', 'fromRecordTypeApiId' ],
+        [ 'recordType', 'toRecordTypeId', 'toRecordTypeApiId' ],
+    ] );
+
+}
 
 require('../../../lib/api/startup.php');

@@ -614,14 +614,7 @@
                   "type": "object",
                   "properties": {
                     "data": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/Role Object"
-                      }
-                    },
-                    "metadata": {
-                      "$ref": "#/components/schemas/Dataset Response Metadata",
-                      "description": "Metadata about the response"
+                      "$ref": "#/components/schemas/Role Object"
                     }
                   },
                   "required": [
@@ -705,6 +698,11 @@
                         "type": "string",
                         "description": "If present and not empty, only records whose absolute path starts with this string will be returned i.e. pass the absolute path of a record (INCLUDING THE TRAILING SLASH) to find all descendants of that record",
                         "internalName": "apiFilter_record:path_sw"
+                      },
+                      "internalId_equals": {
+                        "type": "integer",
+                        "description": "If present and non-zero, only the record with the specified internalId will be returned",
+                        "internalName": "apiFilter_record:id_eq"
                       }
                     },
                     "description": "If more than one filter is specified, only records matching all filters will be returned",
@@ -793,14 +791,8 @@
                   "type": "object",
                   "properties": {
                     "data": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/Record Object"
-                      }
-                    },
-                    "metadata": {
-                      "$ref": "#/components/schemas/Dataset Response Metadata",
-                      "description": "Metadata about the response"
+                      "$ref": "#/components/schemas/Record Object",
+                      "description": "The record data"
                     }
                   },
                   "required": [
@@ -1073,7 +1065,43 @@
         "tags": [],
         "parameters": [],
         "requestBody": {},
-        "responses": {},
+        "responses": {
+          "200": {
+            "description": "",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Relationship Object",
+                        "description": "The relationships"
+                      }
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error: Bad request"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error: Unauthorised request"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error: Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error: Not found"
+          }
+        },
         "security": [
           {
             "api_key": []
@@ -1090,7 +1118,16 @@
           },
           "required": true
         }
-      ]
+      ],
+      "get": {
+        "summary": "Get a list of the relationships for the record specified",
+        "description": "",
+        "operationId": "",
+        "tags": [],
+        "parameters": [],
+        "requestBody": {},
+        "responses": {}
+      }
     },
     "/record/{recordId}/label": {
       "post": {
@@ -1593,8 +1630,12 @@
             "description": "This is taken from whatever field is identified as the \"Primary Data Field\" in the record type"
           },
           "id": {
+            "type": "string",
+            "description": "The record ID - this is the API ID, not the internal record ID i.e. it starts with \"r_\""
+          },
+          "recordInternalId": {
             "type": "integer",
-            "description": "The record ID"
+            "description": "The internal record ID - this is the internal Ampletracks record ID. This is what is used to make the path string"
           },
           "projectId": {
             "type": "integer",
@@ -1624,7 +1665,8 @@
           "parentRecordId",
           "path",
           "ownerId",
-          "recordTypeId"
+          "recordTypeId",
+          "recordInternalId"
         ]
       },
       "Record Object": {
@@ -1687,6 +1729,53 @@
         "required": [
           "summary",
           "data"
+        ]
+      },
+      "Relationship Object": {
+        "type": "object",
+        "properties": {
+          "fromRecordId": {
+            "type": "string",
+            "description": "The id of the source record"
+          },
+          "toRecordId": {
+            "type": "string",
+            "description": "The id of the destination record"
+          },
+          "fromRecordTypeId": {
+            "type": "string",
+            "description": "The record type ID of the source record"
+          },
+          "toRecordTypeId": {
+            "type": "string",
+            "description": "The record type ID of the destination record"
+          },
+          "description": {
+            "type": "string",
+            "description": "The description of the relationship e.g. \"Is stored in...\""
+          },
+          "fromRecordTypeName": {
+            "type": "string",
+            "description": "The name of the source record type"
+          },
+          "toRecordTypeName": {
+            "type": "string",
+            "description": "The name of the destination record type"
+          },
+          "id": {
+            "type": "string",
+            "description": "The ID of the relationship"
+          }
+        },
+        "required": [
+          "fromRecordId",
+          "toRecordId",
+          "fromRecordTypeId",
+          "toRecordTypeId",
+          "description",
+          "fromRecordTypeName",
+          "toRecordTypeName",
+          "id"
         ]
       }
     },

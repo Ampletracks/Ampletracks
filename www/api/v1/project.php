@@ -4,13 +4,13 @@ namespace API;
 # $API_ITEMS_PER_PAGE = 2;
 
 $API_SQL = [
-    'idList' => '
+    'getIdList' => '
         SELECT DISTINCT project.id
         FROM project
         INNER JOIN userProject ON userProject.projectId = project.id
         WHERE project.deletedAt=0
     ',
-    'getData' => '
+    'getListData' => '
         SELECT
             project.id AS id,
             project.name,

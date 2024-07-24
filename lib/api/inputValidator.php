@@ -68,7 +68,9 @@ class ApiInputValidator {
         $this->method = $method ?: $_SERVER['REQUEST_METHOD'];
 
         $schemaJSON = $DB->getValue('SELECT requestBodySchemaJson FROM apiInputSpecification WHERE endpointPath=? AND method=?', $this->endpointPath, $this->method);
-        if ($schemaJSON) {
+        if ($schemaJSON==='') {
+            $this->schema = [];
+        } else if ($schemaJSON) {
             $this->schema = json_decode($schemaJSON, true);
         } else {
             $this->internalErrors[] = "No schema found for endpoint {$this->endpointPath} and method {$this->method}";
@@ -92,16 +94,18 @@ class ApiInputValidator {
             foreach ($methods as $method => $details) {
                 if (isset($details['requestBody']['content']['application/json']['schema'])) {
                     $schema = $details['requestBody']['content']['application/json']['schema'];
-                    $result = $DB->replace('apiInputSpecification', [
-                        'endpointPath' => $path,
-                        'method' => strtoupper($method)
-                    ],[
-                        'requestBodySchemaJson' => json_encode($schema)
-                    ]);
-                    if (!$result) {
-                        echo "--$result";
-                        $errors[] = "Failed to insert schema for endpoint {$path} and method " . strtoupper($method);
-                    }
+                } else {
+                    $schema = '';
+                }
+                $result = $DB->replace('apiInputSpecification', [
+                    'endpointPath' => $path,
+                    'method' => strtoupper($method)
+                ],[
+                    'requestBodySchemaJson' => json_encode($schema)
+                ]);
+                if (!$result) {
+                    echo "--$result";
+                    $errors[] = "Failed to insert schema for endpoint {$path} and method " . strtoupper($method);
                 }
             }
         }
@@ -114,11 +118,17 @@ class ApiInputValidator {
     }
 
     public function validateInput() {
-        $input = json_decode(file_get_contents('php://input'), true);
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            return ['Invalid JSON input: ' . json_last_error_msg()];
+        if ($this->schema==='') return [];
+        
+        $inputBody = file_get_contents('php://input');
+        if (empty($inputBody)) {
+            $input = [];
+        } else {
+            $input = json_decode($inputBody, true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                return ['Invalid JSON input: ' . json_last_error_msg()];
+            }
         }
-
         $validationErrors = $this->validateSchema($this->schema, $input, '');
         return $validationErrors;
     }

@@ -12,11 +12,15 @@ $INPUTS = [
 include('../../lib/core/startup.php');
 
 if (ws('mode')=='call') {
-    $apiKey = $DB->getValue('SELECT apiKey FROM userAPIKey WHERE userId=? AND deletedAt=0 AND id=?',$USER_ID,ws('keyId'));
-
     if (!ws('keyId')) inputError('keyId','You must select an API key');
     if (!ws('endpoint')) inputError('endpoint','You must specify the enpoint');
     if (!ws('method')) inputError('method','You must specify the method');
+
+    if (!inputError()) {
+        $apiKey = $DB->getValue('SELECT apiKey FROM userAPIKey WHERE userId=? AND deletedAt=0 AND id=?',$USER_ID,ws('keyId'));
+        if (!$apiKey) inputError('keyId','You must select a valid API key');
+    }
+
     if (inputError()) {
         http_response_code('400');
         $allErrors = inputError('*');
@@ -95,6 +99,9 @@ include(VIEWS_DIR.'/header.php');
             <option value="">Select an endpoint</option>
         </select>
 
+        <label for="path-parameters">Path Parameters</label>
+        <div id="path-parameters"></div>
+
         <label for="methods">Methods</label>
         <select id="methods">
             <option value="">Select a method</option>
@@ -164,6 +171,18 @@ include(VIEWS_DIR.'/header.php');
             }
         }
 
+        function populatePathParameters(apiSpec, endpoint) {
+            const pathParameters = apiSpec.paths[endpoint].parameters || [];
+            $('#path-parameters').empty();
+            pathParameters.forEach(param => {
+                if (param.in === 'path') {
+                    $('#path-parameters').append(`
+                        <label for="param-${param.name}">${param.name}</label>
+                        <input type="text" id="param-${param.name}" placeholder="Enter ${param.name}">
+                    `);
+                }
+            });
+        }
         function generateExampleFromSchema(schema) {
             if (schema.example) {
                 return schema.example;
@@ -176,7 +195,7 @@ include(VIEWS_DIR.'/header.php');
                         example[key] = property.example;
                     } else if (property.type === 'string') {
                         example[key] = 'string';
-                    } else if (property.type === 'number') {
+                    } else if (property.type === 'number' || property.type === 'integer') {
                         example[key] = 0;
                     } else if (property.type === 'boolean') {
                         example[key] = true;
@@ -208,10 +227,19 @@ include(VIEWS_DIR.'/header.php');
 
         function handleSubmit(apiSpec) {
             const apiKey = $('#api-key').val();
-            const endpoint = $('#endpoints').val();
+            let endpoint = $('#endpoints').val();
             const method = $('#methods').val().toLowerCase();
             const requestBody = $('#request-body').val();
-            
+
+            // Replace path parameters in the endpoint
+            const pathParameters = apiSpec.paths[endpoint].parameters || [];
+            pathParameters.forEach(param => {
+                if (param.in === 'path') {
+                    const paramValue = $(`#param-${param.name}`).val();
+                    endpoint = endpoint.replace(`{${param.name}}`, paramValue);
+                }
+            });
+
             $.ajax({
                 url: '',
                 method: 'POST',
@@ -238,6 +266,7 @@ include(VIEWS_DIR.'/header.php');
                 $('#endpoints').change(function() {
                     const endpoint = $(this).val();
                     populateMethods(apiSpec, endpoint);
+                    populatePathParameters(apiSpec, endpoint);
                 });
 
                 $('#methods').change(function() {

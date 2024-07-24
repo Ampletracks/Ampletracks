@@ -46,26 +46,26 @@ function getAPIIdPrefix($entityType) {
     return $idPrefix;
 }
 
-function checkSetApiIds($entities, $entityMap, $removeOriginal = true) {
+function checkSetApiIds(&$entities, $entityMap, $removeOriginal = true) {
     foreach($entities as $idx => $entity) {
         foreach( $entityMap as $mapping ) {
             // If the output column is not specified then assume that the original ID column should be overwritten
             if (count($mapping)==3) $mapping[] = $mapping[1];
             list( $entityType, $realIdCol, $apiIdCol, $apiOutputCol ) = $mapping;
+            $apiId=null;
             if(strlen($entity[$apiIdCol])<5) {
-                if (empty($entity[$realIdCol])) {
-                    $entity[$apiOutputCol] = null;
-                } else {
-                    $entity[$apiOutputCol] = getAPIId($entityType, $entity[$realIdCol]);
+                if (!empty($entity[$realIdCol])) {
+                    $apiId = getAPIId($entityType, $entity[$realIdCol]);
                 }
             } else {
-                $entity[$apiOutputCol] = $entity[$apiIdCol];
+                $apiId = $entity[$apiIdCol];
             }
+            if (!empty($apiId)) $apiId = getAPIIdPrefix($entityType).'_'.$apiId;
+            $entities[$idx][$apiOutputCol] = $apiId;
             if($removeOriginal) {
-                if ($realIdCol != $apiOutputCol) unset($entity[$realIdCol]);
-                if ($apiIdCol != $apiOutputCol) unset($entity[$apiIdCol]);
+                if ($realIdCol != $apiOutputCol) unset($entities[$idx][$realIdCol]);
+                if ($apiIdCol != $apiOutputCol) unset($entities[$idx][$apiIdCol]);
             }
-            $entities[$idx] = $entity;
         }
     }
 
@@ -197,7 +197,7 @@ function getAPIList($entity, $sql, $apiIdMapping, $apiVars, $filters, $itemsPerP
         $listIdOrSql = $apiVars['listId'];
         $page = $apiVars['page'];
     } else {
-        $listIdOrSql = $sql['idList'];
+        $listIdOrSql = $sql['getIdList'];
         $limits = getUserAccessLimits(['entity' => $entity, 'prefix' => '']);
         $allFilters = array_merge($filters, $limits);
         addConditions( $listIdOrSql, $allFilters );
@@ -211,10 +211,9 @@ function getAPIList($entity, $sql, $apiIdMapping, $apiVars, $filters, $itemsPerP
     }
 
     global $DB;
-    $apiIdPrefix = getAPIIdPrefix($entity);
     $DB->returnHash();
 
-    $items = $DB->getRows($sql['getData'], $apiIdPrefix, $ids);
+    $items = $DB->getRows($sql['getListData'], $ids);
     $items = checkSetApiIds($items, $apiIdMapping );
     if (function_exists('api\processListItem')) {
         foreach( $items as $idx=>$item ) {
@@ -235,3 +234,55 @@ function getAPIList($entity, $sql, $apiIdMapping, $apiVars, $filters, $itemsPerP
         ],
     ];
 }
+
+function getAPIItem( $entity, $entityId, $sql, $apiIdMapping ) {
+    global $DB;
+
+    if (isset($sql['getItem'])) {
+        $query = $sql['getItem'];
+        $queryParams = $entityId;
+    } else {
+        $query = $sql['getListData'];
+        $queryParams = [$entityId];
+    }
+
+    $limits = getUserAccessLimits(['entity' => $entity, 'prefix' => '']);
+    addConditions( $query, $limits );
+    $DB->returnHash();
+    $item = $DB->getRow($query,$queryParams);
+
+    if (function_exists('api\processItem')) {
+        processItem($item);
+    // If we used the getListData SQL instead of the getItem then look for a processListItem function
+    } else if (!isset($sql['getItem'])) {
+        if (function_exists('api\processListItem')) {
+            processListItem($items[$idx]);
+        }
+    }
+
+    if (!$item) {
+        throw new ApiException(ucfirst($entity).' not found', 404);
+    }
+
+    return [
+        'data' => $item,
+    ];
+
+}
+
+function validateApiId( $apiId, $entity ) {
+
+    $apiIdBits = explode('_', $apiId);
+    if (count($apiIdBits) != 2) return "The $entity ID is invalid";
+    
+    // Do a lookup on this and resolve this to the internal ID
+    $entityCheck = getAPIIdPrefix( $ENTITY );
+
+    if (!$entityCheck) {
+        return empty($ENTITY)?'No API object type specified':'No such API object type:'.$ENTITY;
+    } else if ($entityCheck!==$apiIdBits[0]) {
+        return "The object ID doesn't match the requested object type";
+    }
+
+    return true;
+

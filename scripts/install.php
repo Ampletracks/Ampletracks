@@ -55,6 +55,7 @@ $tables = array(
         'recordTypeId' => "INT(10) UNSIGNED NOT NULL",
         'name' => "VARCHAR(255) DEFAULT NULL",
         'exportName' => "VARCHAR(255) DEFAULT NULL",
+        'apiName' => "VARCHAR(255) DEFAULT NULL",
         'typeId' => "TINYINT(3) UNSIGNED NOT NULL",
         'optional' => "TINYINT(3) UNSIGNED NOT NULL DEFAULT 1",
         'saveInvalidAnswers' => "ENUM('never','never but save version','only if unset','only if unset but save version','always') NOT NULL DEFAULT 'only if unset but save version'",

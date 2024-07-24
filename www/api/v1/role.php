@@ -4,13 +4,13 @@ namespace API;
 # define('API_ITEMS_PER_PAGE', 2);
 
 $API_SQL = [
-    'idList' => '
+    'getIdList' => '
         SELECT DISTINCT role.id
         FROM role
         WHERE
             role.deletedAt=0
     ',
-    'getData' => '
+    'getListData' => '
         SELECT
             role.id,
             CONCAT("r_", role.apiId) AS apiId,
