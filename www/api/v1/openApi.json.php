@@ -1058,6 +1058,34 @@
       ]
     },
     "/record/{recordId}/relationship/": {
+      "get": {
+        "summary": "Get a list of the relationships for the record specified",
+        "description": "",
+        "operationId": "",
+        "tags": [],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "data": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/Relationship Object"
+                    }
+                  }
+                },
+                "required": [
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {}
+      },
       "post": {
         "summary": "Create a new relationship from the specified record to another record",
         "description": "",
@@ -1118,15 +1146,117 @@
           },
           "required": true
         }
-      ],
+      ]
+    },
+    "/record/{recordId}/relationship/{relationshipId}": {
       "get": {
-        "summary": "Get a list of the relationships for the record specified",
         "description": "",
         "operationId": "",
         "tags": [],
         "parameters": [],
         "requestBody": {},
-        "responses": {}
+        "responses": {
+          "200": {
+            "description": "",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Relationship Object",
+                      "description": "The relationship details"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error: Bad request"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error: Unauthorised request"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error: Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error: Not found"
+          }
+        },
+        "summary": "Get details for a single relationship"
+      },
+      "parameters": [
+        {
+          "in": "path",
+          "name": "recordId",
+          "description": "The record ID - should start 'r_'",
+          "schema": {
+            "type": "string"
+          },
+          "required": true
+        },
+        {
+          "in": "path",
+          "name": "relationshipId",
+          "description": "The relationship ID - should start 'rl_'",
+          "schema": {
+            "type": "string"
+          },
+          "required": true
+        },
+        {
+          "delete": {
+            "summary": "Delete a relationship between two records",
+            "description": "",
+            "operationId": "",
+            "tags": [],
+            "parameters": [],
+            "requestBody": {},
+            "responses": {
+              "200": {
+                "description": "",
+                "content": {},
+                "headers": {}
+              }
+            }
+          }
+        }
+      ],
+      "delete": {
+        "summary": "Delete a relationship",
+        "description": "",
+        "operationId": "",
+        "tags": [],
+        "parameters": [],
+        "requestBody": {},
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/Error: Bad request"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error: Unauthorised request"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error: Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error: Not found"
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
       }
     },
     "/record/{recordId}/label": {
@@ -1675,7 +1805,7 @@
           "summary": {
             "$ref": "#/components/schemas/Record Summary Object"
           },
-          "data": {
+          "dataFields": {
             "type": "object",
             "properties": {
               "<data field API name>": {
@@ -1728,7 +1858,7 @@
         },
         "required": [
           "summary",
-          "data"
+          "dataFields"
         ]
       },
       "Relationship Object": {
@@ -1765,6 +1895,10 @@
           "id": {
             "type": "string",
             "description": "The ID of the relationship"
+          },
+          "toRecordName": {
+            "type": "string",
+            "description": "The name of the destination record (taken from the primary data field). This key will always be present but may be empty if no value has yet be provided for the primary data field for this record."
           }
         },
         "required": [
@@ -1775,7 +1909,8 @@
           "description",
           "fromRecordTypeName",
           "toRecordTypeName",
-          "id"
+          "id",
+          "toRecordName"
         ]
       }
     },
@@ -1829,6 +1964,28 @@
           "application/json": {
             "schema": {
               "$ref": "#/components/schemas/Response Error"
+            }
+          }
+        }
+      },
+      "OK": {
+        "description": "An general response to be used when nothing other that an OK status needs to be returned",
+        "headers": {},
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "OK"
+                  ]
+                }
+              },
+              "required": [
+                "status"
+              ]
             }
           }
         }

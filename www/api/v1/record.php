@@ -103,16 +103,20 @@ function processItem( &$record ) {
 
 function handleRelationship( &$responseData, $method, $relationshipId ) {
     global $DB;
+    include_once( LIB_DIR.'/relationshipTools.php');
+
     $record = $responseData['data']['summary'];
     $relationshipIdFilter = '';
 
     if ($relationshipId>0) {
         if ($method=='DELETE') {
-            $result = deleteRelationship($relationshipId);
+            echo "hello";
+            $result = \deleteRelationship($relationshipId);
             if ($result !== true) {
                 throw new ApiException(ucfirst($entity).' not found', 400 );
             }
             $responseData = ['status'=>'OK'];
+            return;
         } else {
             $relationshipIdFilter = ' AND relationship.id='.(int)$relationshipId;
         }
@@ -126,6 +130,8 @@ function handleRelationship( &$responseData, $method, $relationshipId ) {
 
     $sql = '
         SELECT
+            relationship.id AS id,
+            relationship.apiId AS apiId,
             relationshipLink.description,
             fromRecord.id AS fromRecordId,
             fromRecord.apiId AS fromRecordApiId,
@@ -163,6 +169,7 @@ function handleRelationship( &$responseData, $method, $relationshipId ) {
 
     // $responseData is passed by reference
     checkSetApiIds($responseData, [
+        [ 'relationship', 'id', 'apiId' ],
         [ 'record', 'fromRecordId', 'fromRecordApiId' ],
         [ 'record', 'toRecordId', 'toRecordApiId' ],
         [ 'recordType', 'fromRecordTypeId', 'fromRecordTypeApiId' ],

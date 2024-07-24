@@ -185,12 +185,14 @@ $tables = array(
     ),
     'relationship' => array(
         'id'                    => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
+        'apiId'                 => "VARCHAR(40) NULL",
         'relationshipLinkId'    => "INT(10) UNSIGNED NOT NULL",
         'fromRecordId'             => "INT(10) UNSIGNED NOT NULL",
         'toRecordId'             => "INT(10) UNSIGNED NOT NULL",
         'reciprocalRelationshipId'    => "INT(10) UNSIGNED NOT NULL",
         'index_fromRecordId'        => "UNIQUE INDEX(`fromRecordId`,`relationshipLinkId`,`toRecordId`)",
         'index_toRecordId'        => "INDEX(`toRecordId`,`fromRecordId`)",
+        'index_apiId' => "UNIQUE INDEX (`apiId`)",
     ),
     'relationshipPair' => array(
         'id'            => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",

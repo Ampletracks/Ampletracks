@@ -145,15 +145,19 @@ include(VIEWS_DIR.'/header.php');
             const methods = Object.keys(apiSpec.paths[endpoint]);
             $('#methods').empty().append('<option value="">Select a method</option>');
             methods.forEach(method => {
+                if (method.toUpperCase()=='PARAMETERS') return;
                 $('#methods').append(`<option value="${method}">${method.toUpperCase()}</option>`);
             });
         }
 
         function populateExamples(apiSpec, endpoint, method) {
-            $('#examples').empty().append('<option value="">Select an example</option>');
-            const examples = apiSpec.paths[endpoint][method].requestBody.content['application/json'].examples;
+            $('#examples').prop('disabled',true).empty().append('<option value="">Select an example</option>');
+
+            const bodyContent = apiSpec.paths[endpoint][method].requestBody.content;
+            if (!bodyContent) return;
+
+            const examples = bodyContent['application/json'].examples;
             if (examples) {
-                console.log('1',examples);
                 Object.keys(examples).forEach(example => {
                     console.log('xx',examples[example]);
                     const exampleData = examples[example].value;
@@ -162,12 +166,15 @@ include(VIEWS_DIR.'/header.php');
                         $('#examples').append(`<option value="${btoa(JSON.stringify(exampleData,null,2))}">${example}</option>`);
                     }
                 });
+                $('#examples').prop('disabled',false);
             } else {
                 // Generate example from schema if no examples are available
                 const schema = apiSpec.paths[endpoint][method].requestBody.content['application/json'].schema;
                 const example = generateExampleFromSchema(schema);
-                console.log('hello');
-                $('#examples').append(`<option value="${btoa(JSON.stringify(example,null,2))}">Generated Example</option>`);
+                if (example) {
+                    $('#examples').append(`<option value="${btoa(JSON.stringify(example,null,2))}">Generated Example</option>`);
+                    $('#examples').prop('disabled',false);
+                }
             }
         }
 

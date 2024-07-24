@@ -72,15 +72,17 @@ function createRelationship($fromRecordId, $toRecordId, $relationshipLinkId, $us
     return true;
 }
 
-function deleteRelationship( $id ) {
+function deleteRelationship( $id, $userId = null ) {
+    global $USER_ID, $DB;
+    if (is_null($userId)) $userId = $USER_ID;
 
     // In order to delete a relationship they must have edit rights to both of the records involved
     list($from,$to) = $DB->getRow('SELECT fromRecordId,toRecordId FROM relationship WHERE id=?',$id);
-    if (!( canDo('edit',$from,'record') && canDo('edit',$to,'record'))) {
+    if (!( canDo('edit',$from,'record',$userId) && canDo('edit',$to,'record',$userId))) {
         return "You do not have permission to delete this relationship";
     }
 
     $DB->exec('DELETE FROM relationship WHERE id=? OR reciprocalRelationshipId=?',$id,$id);
     return true;
-    
+
 }

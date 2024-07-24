@@ -30,6 +30,7 @@ function getAPIIdPrefix($entityType) {
     $prefixLookup = [
         'user'          => 'u',
         'recordType'    => 'rt',
+        'relationship'  => 'rl',
         'role'          => 'ro',
         'dataField'     => 'df',
         'record'        => 'r',
@@ -59,8 +60,8 @@ function checkSetApiIds(&$entities, $entityMap, $removeOriginal = true) {
                 }
             } else {
                 $apiId = $entity[$apiIdCol];
+                if (!empty($apiId)) $apiId = getAPIIdPrefix($entityType).'_'.$apiId;
             }
-            if (!empty($apiId)) $apiId = getAPIIdPrefix($entityType).'_'.$apiId;
             $entities[$idx][$apiOutputCol] = $apiId;
             if($removeOriginal) {
                 if ($realIdCol != $apiOutputCol) unset($entities[$idx][$realIdCol]);
