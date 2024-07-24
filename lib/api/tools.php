@@ -137,8 +137,8 @@ function getAPIKeyUserId($apiKey) {
     return $userId;
 }
 
-if(IS_DEV && !defined('API_KEY_SIGNING_SECRET')) {
-    define('API_KEY_SIGNING_SECRET', '#R##6F+p9ZQNPwAhM/J');
+if(!defined('API_KEY_SIGNING_SECRET')) {
+    define('API_KEY_SIGNING_SECRET', getLocalSecret('API Signing Secret'));
 }
 
 function signAPIKey($baseAPIKey) {

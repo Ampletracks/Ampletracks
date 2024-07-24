@@ -14,7 +14,7 @@ $API_SQL = [
         SELECT
             project.id AS id,
             project.name,
-            CONCAT(?, "_", project.apiId) AS apiId
+            CONCAT("p_", project.apiId) AS apiId
         FROM project
         WHERE project.deletedAt=0 AND project.id IN (?)
     '

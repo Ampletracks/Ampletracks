@@ -9,7 +9,7 @@ require(dirname(__FILE__).'/../core/startup.php');
 
 require_once(LIB_DIR.'/api/tools.php');
 
-$authHeader = @getallheaders()['Authorization'];
+$authHeader = @\getallheaders()['Authorization'];
 [$authType, $signedAPIKey] = explode(' ', $authHeader.' ');
 $apiKey = checkSignedAPIKey($signedAPIKey);
 

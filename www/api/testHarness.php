@@ -60,6 +60,7 @@ if (ws('mode')=='call') {
 
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+
     // Check for cURL errors
     if (curl_errno($ch)) {
         // Return a "BAD GATEWAY" code
@@ -69,7 +70,8 @@ if (ws('mode')=='call') {
             'message' => curl_error($ch)
         ]);
     } else {
-        header('Content-type',$contentType);
+        $contentType = preg_replace('/;.*/','',$contentType);
+        header("Content-type: $contentType");
         http_response_code($httpCode);
         echo $response;
     }
