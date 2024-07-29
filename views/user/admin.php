@@ -135,6 +135,8 @@
         });
     </script>
 
-    <h2>API Keys</h2>
-    <? $apiKeyList->display(true); ?>
+    <? if(ws('id') == $USER_ID) { ?>
+        <h2>API Keys</h2>
+        <? $apiKeyList->display(true); ?>
+    <? } ?>
 <? } ?>

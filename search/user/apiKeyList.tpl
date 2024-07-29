@@ -72,9 +72,13 @@
     <script>
         $(function () {
             $('#newAPIKey').on('click', function () {
-                prompt('New API Key Name?', async function (name) {
-                    const keyResp = await fetch(`admin.php?mode=createAPIKey&id=<?wsp('id')?>&name=${encodeURIComponent(name)}`);
+                prompt('New API Key Name?', async function (name, allData) {
+                    const keyResp = await fetch(`admin.php?mode=createAPIKey&id=<?wsp('id')?>&name=${encodeURIComponent(name)}&password=${encodeURIComponent(allData.password)}`);
                     const keyData = await keyResp.json();
+                    if(keyData.status != 'OK') {
+                        alert(keyData.message, 'Error creating key');
+                        return;
+                    }
                     const newAPIKey = keyData.apiKey;
 
                     $('#nakmName').text(name);
@@ -114,7 +118,12 @@
                     newRow.insertBefore(templateRow).show();
 
                     return true;
-                });
+                },
+                `
+                <label>Password:
+                    <input type="password" name="password" style="width: 100%; margin-top: 10px;">
+                </label>
+                `);
             });
         });
     </script>

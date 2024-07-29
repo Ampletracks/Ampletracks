@@ -25,6 +25,7 @@ $INPUTS = array(
     ),
     'createAPIKey' => array(
         'name' => 'TEXT',
+        'password' => 'TEXT',
     ),
     'deleteAPIKey' => array(
         'apiKeyId' => 'INT',
@@ -79,13 +80,24 @@ function processInputs($mode, $id) {
 
     if ($mode == 'createAPIKey') {
         if (!canDo('edit', $id)) {
+            echo json_encode(['status' => 'ERROR', 'message' => 'Not allowed']);
             exit;
+        } else if($id != $USER_ID) {
+            echo json_encode(['status' => 'ERROR', 'message' => 'You may not generate API keys for other users']);
+            exit;
+        } else {
+            $pwHash = $DB->getValue('SELECT password FROM user WHERE id = ?', $USER_ID);
+            if(!ws('password') || !password_verify(ws('password'), $pwHash)) {
+                echo json_encode(['status' => 'ERROR', 'message' => 'Bad password']);
+                exit;
+            }
         }
         require_once(LIB_DIR.'/api/tools.php');
 
         $keyData = \API\createAPIKey($id, ws('name'));
         unset($keyData[0]);
         unset($keyData[1]);
+        $keyData['status'] = 'OK';
 
         echo json_encode($keyData);
         exit;
