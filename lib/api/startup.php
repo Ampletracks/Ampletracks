@@ -131,6 +131,9 @@ if($API_ENTITY_ID == 0) {
         exit;
     } else if($API_METHOD == 'POST') {
         $WS = array_merge($WS, $inputValidator->getValidInputs());
+        if(function_exists('api\processCreateInputs')) {
+            processCreateInputs($filters);
+        }
         $WS['mode'] = 'update';
         unset($WS['id']); // Shouldn't ever be set but may as well make sure
         include(LIB_DIR.'/core/adminPage.php');
