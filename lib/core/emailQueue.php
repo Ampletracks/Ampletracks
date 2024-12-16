@@ -34,8 +34,8 @@ class emailQueue {
             return false;
         }
         if (empty($options['userLookupSql'])) return $this->error($options, 'The user lookup queries for email delivery have note been defined');
-        if (empty($options['defaultFromName'])) return $this->error($options, 'The email configuration details (email from name) have not been defined in the site configuration file');
         if (empty($options['defaultFromEmail'])) return $this->error($options, 'The email configuration details (email from address) have not been defined in the site configuration file');
+        if (empty($options['defaultFromName'])) $options['defaultFromName']=SITE_NAME;
 
         $reflection = new ReflectionClass($this);
         $vars = $reflection->getProperties(ReflectionProperty::IS_PRIVATE);

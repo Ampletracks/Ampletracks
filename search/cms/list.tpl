@@ -25,7 +25,7 @@
 <tr>
 <td class="actions">
 	<a href="admin.php?mode=edit&id=@@id@@" />Edit</a>
-	<a onclick="return window.confirm('Are you sure you want to delete this cms')" href="admin.php?mode=delete&amp;id=@@id@@">Delete</a>
+	<a deletePrompt="Are you sure you want to delete this cms" href="admin.php?mode=delete&amp;id=@@id@@">Delete</a>
 </td>
 <td>@@label@@</td>
 <td><?=$rowData['allowMarkup']?$rowData['content']:htmlspecialchars($rowData['content'])?></td>

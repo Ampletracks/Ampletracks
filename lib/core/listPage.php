@@ -120,7 +120,7 @@ include(VIEWS_DIR.'/header.php');
 ?>
 
 <? if (ws('previousAction')) { ?>
-    <div class="notify">
+    <div class="flashMessage notify"><div>
         <? if (ws('previousAction')=='delete') {
             echo cms('The selected record was deleted');
 
@@ -132,7 +132,7 @@ include(VIEWS_DIR.'/header.php');
         } else {
             echo cms('Changes saved');
         } ?>
-    </div>
+    </div></div>
 <? }?>
 
 <form id="filterForm" action="list.php" method="post">

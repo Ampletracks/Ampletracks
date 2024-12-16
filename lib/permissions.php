@@ -213,7 +213,6 @@ function getUserPermissionsForEntity( $entity='', $userId=0 ) {
         $permissions[$userId][$permsEntity][$row['action']][$row['level']]=true;
     }
 
-    echo $entity;
     return $permissions[$userId][$entity];
 }
 
@@ -442,7 +441,7 @@ function addUserAccessLimits( $options=[] ) {
  *      'ownerIdColumn' - defaults to best guess based on entity
  *      'entity'
  *          - defaults to $ENTITY
- *          - If entity is "record" then this should be set to 'recordTypeId:<entityId>'
+ *          - If entity is "record" then this should be set to 'recordTypeId:<recordTypeId>'
  *      'userId' - defaults to $USER_ID
  *      'prefix' - prefix to be used when adding limits to the return hash. Defaults to 'limit_'
  */
