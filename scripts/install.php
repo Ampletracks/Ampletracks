@@ -162,6 +162,14 @@ $tables = array(
         'assignedAt'            => "INT(10) UNSIGNED NOT NULL",
         'index_recordId'        => "INDEX (recordId)",
     ),
+    'login' => array(
+        'userId'                => "INT(10) UNSIGNED NOT NULL",
+        'loggedInAt'            => "INT(10) UNSIGNED NOT NULL",
+        'ipAddress'             => "INT(10) UNSIGNED NOT NULL",
+        'shownWarning'          => "TINYINT UNSIGNED NOT NULL DEFAULT 0",
+        'index_userId'          => "INDEX (userId,loggedInAt,ipAddress)",
+        'index_loggedInAt'      => "INDEX (loggedInAt)",
+    ),
     'number' => array(
         'number'            => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
     ),
@@ -476,7 +484,9 @@ $dbSetup = function() {
         ("Email sending throttle per minute","This determines the maximum number of queued emails the system will send per minute. This throttle is applied in addition to the per day and per hour throttles. N.B. This throttle will not prevent the delivery of any \"immediate priority\" emails such as forgotten password retreival emails, however immediate priority emails that have been sent do count towards the throttle. Empty (or any non-integer value) means unlimited.","100","/cron/email.php"),
         ("Email sending throttle per hour","This determines the maximum number of queued emails the system will send per hour. This throttle is applied in addition to the per minute and per day throttles. N.B. This throttle will not prevent the delivery of any \"immediate priority\" emails such as forgotten password retreival emails, however immediate priority emails that have been sent do count towards the throttle. Empty (or any non-integer value) means unlimited.","1000","/cron/email.php"),
         ("Email sending throttle per day","This determines the maximum number of queued emails the system will send per day. This throttle is applied in addition to the per minute and per hour throttles. N.B. This throttle will not prevent the delivery of any \"immediate priority\" emails such as forgotten password retreival emails, however immediate priority emails that have been sent do count towards the throttle. Empty (or any non-integer value) means unlimited.","50000","/cron/email.php"),
-        ("Only send emails to","Emails will only be sent to these addresses/domains. This is primarily intended for testing/development sites where you don\'t want emails being sent out to most users, but it might have other applications. This is a comma separated list. If this list is empty all emails will be sent. If there is one or more entries in this list then only emails which match one of the entries on this list will be sent. Matching is done based on a partial match anchored at the END of the email address e.g. .domain.com  matches all addresses for any subdomain of domain.com; @my.domain.com macthes all addresses at my.domain.com; name@domain.com matches name@domain.com and also my.name@domain.com","","/")
+        ("Only send emails to","Emails will only be sent to these addresses/domains. This is primarily intended for testing/development sites where you don\'t want emails being sent out to most users, but it might have other applications. This is a comma separated list. If this list is empty all emails will be sent. If there is one or more entries in this list then only emails which match one of the entries on this list will be sent. Matching is done based on a partial match anchored at the END of the email address e.g. .domain.com  matches all addresses for any subdomain of domain.com; @my.domain.com macthes all addresses at my.domain.com; name@domain.com matches name@domain.com and also my.name@domain.com","","/"),
+        ("Show login warning","Set this to \"yes\" to show the user a warning message every time they log in from a new IP address. One possble application for this is to remind users of any confidentiality agreements, or export constraints. The message will be repeated as determined by \"Login warning repeat period\" setting.","","/"),
+        ("Login warning repeat period","The number of days between repetitions of the login warning for each user on any given IP address. Set this to 1 to have users see the warnings every day for every IP address they come from. Default is 180 days i.e. 6 months. If you set this to zero then the login warning will be repeated on every login.","180","/")
     ');
     
     $words='his,that,from,word,other,were,which,time,each,tell,also,play,small,home,hand,port,large,spell,even,land,here,must,high,kind,need,house,animal,point,mother,world,near,build,self,earth,father,work,part,take,place,made,after,back,little,only,round,man,year,came,show,every,good,under,name,very,just,form,great,think,help,line,differ,turn,much,mean,before,move,right,boy,old,many,write,like,long,make,thing,more,day,number,sound,most,people,water';
@@ -519,7 +529,8 @@ $dbSetup = function() {
     $DB->exec('update record set depth=length(path)-length(replace(path,",","")) WHERE depth=0');
 
     // Create email templates if they don't exist
-    $emailTemplateDir = SITE_BASE_DIR.'/scripts/defaultEmailTemplates';
+    $emailTemplateSubDir = '/scripts/defaultEmailTemplates';
+    $emailTemplateDir = SITE_BASE_DIR.$emailTemplateSubDir;
     if (is_dir($emailTemplateDir)) {
         $titleDisplayed = false;
         $directory = new RecursiveDirectoryIterator($emailTemplateDir, RecursiveDirectoryIterator::SKIP_DOTS);
@@ -528,7 +539,7 @@ $dbSetup = function() {
         foreach ($iterator as $fileinfo) {
             if ($fileinfo->isFile() && $fileinfo->getExtension() === 'html') {
                 $fullPath = $fileinfo->getRealPath();
-                $templateName = substr($fullPath, strlen($emailTemplateDir) + 1);
+                $templateName = substr($fullPath, strpos($emailTemplateDir,$emailTemplateSubDir) + strlen($emailTemplateSubDir)-1);
                 $templateName = preg_replace('/\.html$/i','',$templateName);
                 $templateContent = file_get_contents( $fullPath );
                 list( $subject, $body ) = explode("\n",$templateContent,2);
