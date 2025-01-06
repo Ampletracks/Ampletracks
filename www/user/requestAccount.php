@@ -14,6 +14,7 @@ $INPUTS=[
 $requireLogin=false;
 include('../../lib/core/startup.php');
 
+$requireEmail=true;
 include(LIB_DIR.'email.php');
 
 if (ws('mode')=='request') {
@@ -78,7 +79,7 @@ if (ws('mode')=='request') {
 
             if (!$sendResult) {
                 inputError('general','There was a problem sending your application to the site administrator - please try again later');
-                $LOGGER->log(implode(' & ',$EMAIL->errors()));
+                $LOGGER->log(implode(' & ',$EMAIL->getErrors()));
             }
             if (!inputError()) {
                 include(VIEWS_DIR.'user/requestAccountSuccess.php');

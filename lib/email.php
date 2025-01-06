@@ -40,7 +40,6 @@ $EMAIL = new emailQueue([
 ]);
 
 if (!$EMAIL->ok()) {
-    print_r($EMAIL->getErrors());
     $LOGGER->log('Failed to setup email delivery service: '.implode(' & ',$EMAIL->getErrors()));
     $EMAIL = false;
 

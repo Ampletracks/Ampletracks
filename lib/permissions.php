@@ -176,10 +176,17 @@ function getUserPermissionsForEntity( $entity='', $userId=0 ) {
     $recordTypeId=0;
     if (strpos($entity,'recordTypeId:')===0) {
         $recordTypeId = substr($entity,strpos($entity,':')+1);
-        $permissionQuery = $DB->query(
-            $queryBase.'AND rolePermission.entity="recordTypeId" AND rolePermission.recordTypeId=?',
-            $userId,$recordTypeId
-        );
+        if ($recordTypeId=='*') {
+            $permissionQuery = $DB->query(
+                $queryBase.'AND rolePermission.entity="recordTypeId"',
+                $userId
+            );
+        } else {
+            $permissionQuery = $DB->query(
+                $queryBase.'AND rolePermission.entity="recordTypeId" AND rolePermission.recordTypeId=?',
+                $userId,$recordTypeId
+            );
+        }
     } else {
         // If we got here and the non-RecordTypeId-permissionsLoaded flag is already set for this user
         // then the absence of permissions for this entity means there just aren't any permissions, not that we haven't loaded them
@@ -206,7 +213,6 @@ function getUserPermissionsForEntity( $entity='', $userId=0 ) {
         $permissions[$userId][$permsEntity][$row['action']][$row['level']]=true;
     }
 
-    echo $entity;
     return $permissions[$userId][$entity];
 }
 
@@ -435,7 +441,7 @@ function addUserAccessLimits( $options=[] ) {
  *      'ownerIdColumn' - defaults to best guess based on entity
  *      'entity'
  *          - defaults to $ENTITY
- *          - If entity is "record" then this should be set to 'recordTypeId:<entityId>'
+ *          - If entity is "record" then this should be set to 'recordTypeId:<recordTypeId>'
  *      'userId' - defaults to $USER_ID
  *      'prefix' - prefix to be used when adding limits to the return hash. Defaults to 'limit_'
  */

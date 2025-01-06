@@ -109,12 +109,6 @@ if (
             $USER_ID=$userData['ID'];
             logAction('user',$USER_ID,'Logged in');
 
-            // Update the last login time
-            $DB->update('user',['id'=>$userData['ID']],[
-                'lastLoggedInAt'    => time(),
-                'lastLoginIp'       => inet_aton($_SERVER['REMOTE_ADDR'])
-            ]);
-
             // If they clicked the "persist login" checkbox then give them a longer-lived cookie
             if (isset($_REQUEST['persistLogin'])) {
                 list($time,$sig) = explode(':',$_REQUEST['persistLogin'].':::');
@@ -125,6 +119,43 @@ if (
                     $cookie .= ':'.hash_hmac('sha256',$cookie,$persistLoginCookieSigningSecret);
                     setcookie( $persistLoginCookieName, $cookie, $expiry, '/', '', $_SERVER['HTTPS']=='on', true );
                 }
+            }
+
+            $ipAddress = inet_aton($_SERVER['REMOTE_ADDR']);
+
+            // Update the last login time
+            $DB->update('user',['id'=>$userData['ID']],[
+                'lastLoggedInAt'    => time(),
+                'lastLoginIp'       => $ipAddress
+            ]);
+
+            // If this is the first time they have logged in from this IP in the last 6 months then
+            // we might show a warning message (depending on server configuration)
+            $showLoginWarning=0;
+            if (getConfigBoolean('Show login warning')) {
+                $repeatPeriod = getConfig('Login warning repeat period');
+                if ($repeatPeriod=='') $repeatPeriod=86400*30*6;
+                else $repeatPeriod *= 86400;
+
+                if ($repeatPeriod==0) $numLoginsFromIp=0;
+                else $numLoginsFromIp = $DB->getValue('SELECT COUNT(*) FROM login WHERE userId=? AND ipAddress=? AND loggedInAt>?',$userData['ID'],$ipAddress,time()-$repeatPeriod);
+
+                if ($numLoginsFromIp==0) {
+                    $showLoginWarning=1;
+                }
+            }
+
+            // Add the login to the login table
+            $DB->insert('login',[
+                'userId' => $userData['ID'],
+                'loggedInAt' => time(),
+                'ipAddress' => $ipAddress,
+                'shownWarning' => $showLoginWarning
+            ]);
+
+            if ($showLoginWarning) {
+                header('Location: /loginWarning.php');
+                exit;
             }
         }
     }
