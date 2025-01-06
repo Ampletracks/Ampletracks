@@ -52,7 +52,7 @@
     </div>
     <div class="questionAndAnswer">
         <div class="question">
-            <?=cms('Data Field: Export name',0,'Export name')?>:
+            <?=cms('Data Field: API name',0,'API name')?>:
         </div>
         <div class="answer">
             <? formTextBox('dataField_apiName',50,200); ?>
@@ -132,9 +132,9 @@
 <?
     foreach( $dataFields as $typeId=>$dataField ) {
         printf('<div dependsOn="dataField_typeId eq %d">',$typeId);
-        if ($dataField->hasValue()) {
-            
-        }
+        // If the data field needs to know the record type ID then tell it
+        // e.g. for graph fields which need to present a dropdown where the user can select the upload field the graph relates to
+		if (method_exists($dataField, 'setRecordTypeId')) $dataField->setRecordTypeId(ws('dataField_recordTypeId'));
         $dataField->displayDefinitionForm('fieldParameters_');
         echo '</div>';
     }

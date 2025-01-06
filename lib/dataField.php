@@ -24,6 +24,7 @@ class DataField {
         14 => "Type To Search",
         15 => "Suggested Textbox",
         16 => "Chemical Formula",
+        17 => "Graph",
     );
 
     static $saveDefaultJavascriptDisplayed = false;
@@ -501,7 +502,7 @@ class DataField {
         }
     }
 
-    function displayRow( $isPublic = true ) {
+    function displayRow( $isPublic = true, $hideLabel = false ) {
         $extraClasses = [];
         $title = '';
         if($this->displayToPublic && !$isPublic) {
@@ -510,9 +511,11 @@ class DataField {
         }
         ?>
         <div class="questionAndAnswer <?=htmlspecialchars($this->getType())?> <?=htmlspecialchars(implode(' ', $extraClasses))?>" <?=$this->getDependencyAttributes()?> <?=$title ? 'title="'.$title.'"' : ''?>>
-            <div class="question">
-                <? $this->displayLabel(); ?>
-            </div>
+			<? if (!$hideLabel) { ?>
+				<div class="question">
+					<? $this->displayLabel(); ?>
+				</div>
+			<? } ?>
             <div class="answer">
                 <? if ($isPublic) {
                     $this->displayPublicValue();
@@ -875,7 +878,7 @@ class DataField_commentary extends DataField {
         );
     }
 
-    function displayRow( $isPublic = true ) {
+    function displayRow( $isPublic = true, $hideLabel = false ) {
         ?>
         <div class="questionAndAnswer commentary" <?=$this->getDependencyAttributes()?>>
             <? if (strlen($this->question)) { ?><h2><?=htmlspecialchars($this->question)?></h2><? } ?>
@@ -908,7 +911,7 @@ class DataField_divider extends DataField {
 
     }
 
-    function displayRow( $isPublic = true ) {
+    function displayRow( $isPublic = true, $hideLabel = false ) {
         ?>
         <div class="questionAndAnswer divider" <?=$this->getDependencyAttributes()?>>
             <h2><?=htmlspecialchars($this->question)?></h2>
@@ -2171,8 +2174,8 @@ class DataField_chemicalFormula extends DataField {
         return true;
     }
 
-    function displayDefinitionForm() {
-    }
+    function displayDefinitionForm() { ?>
+    <? }
 
     function displayInput() {
         if (!self::$javascriptDone) {
@@ -2204,3 +2207,169 @@ class DataField_chemicalFormula extends DataField {
 
 }
 
+
+/*
+======================================================================================================
+GRAPH
+======================================================================================================
+*/
+
+class DataField_graph extends DataField {
+
+    private static $javascriptDone = false;
+    
+    private $recordTypeId = null;
+    
+    private $upload = false;
+
+    const parameters = array('default','uploadDataFieldId');
+
+    function __construct( $params ) {
+        parent::__construct($params);
+    }
+
+    function validate( &$value ) {
+        if (!is_string($value)) return 'Invalid type of data supplied';
+        return true;
+    }
+
+	function displayRow( $isPublic = true, $hideLabel = true ) {
+		return parent::displayRow( $isPublic, $hideLabel );
+	}
+	
+	function displayJavascript($definitionOnly) {
+        if (!self::$javascriptDone) {
+            self::$javascriptDone = true;
+            ?>
+				<script src="/javascript/chart/defineChart.js"></script>
+				<script>
+				// ECharts standard options
+				const chartOptions = {
+					'themes' : ['default', 'dark', 'vintage','shine'],
+					'pointTypes' : ['none','circle', 'rect', 'roundRect', 'triangle', 'diamond', 'pin', 'arrow'],
+					'lineTypes' : ['solid', 'dashed', 'dotted']
+				};
+				</script>
+			<?
+			if (!$definitionOnly) {
+				?>
+				<script src="/javascript/chart/xlsx.mini.min.js"></script>
+				<script src="/javascript/chart/echarts.min.js"></script>
+				<script src="/javascript/chart/themes/dark.js"></script>
+				<script src="/javascript/chart/themes/vintage.js"></script>
+				<script src="/javascript/chart/themes/shine.js"></script>				
+				<script src="/javascript/chart/csvReader.js"></script>
+				<script src="/javascript/chart/createChart.js"></script>
+				<script>
+					$('body').on('click','button.chartSettings',function(){
+						$(this).hide().parent().find('.chartDefinition').show();
+					});
+				</script>
+				<?
+			}
+		}
+	}
+	
+    function displayDefinitionForm() {
+		// We need to know the record Type ID in order to be able to build the connected upload field ID
+		if (empty($this->recordTypeId)) echo '<div class="error">Field error: the record type ID has not been set</div>';
+		$prefix = parent::$parameterPrefix;
+	
+		$uploadFieldTypeId = array_search('Upload',DataField::typeLookup);
+		$uploadDataFieldSelect = new formOptionbox($prefix.'uploadDataFieldId');
+		$uploadDataFieldSelect->addLookup('
+			SELECT
+				name, id
+			FROM dataField
+			WHERE
+				dataField.deletedAt=0 AND
+				dataField.recordTypeId=? AND
+				dataField.typeId=?
+		',$this->recordTypeId,$uploadFieldTypeId);
+
+        questionAndAnswer(
+            'Chart data from this file',
+            function () use($uploadDataFieldSelect) {
+                $uploadDataFieldSelect->display();
+                ?>
+                <div class="note">The source data for the chart will be loaded from this file.</div>
+                <?
+            }
+        );
+		
+		
+		$this->displayJavascript(true);
+		
+		formHidden($prefix.'default',null,null,'id="chartDefinition"');
+		
+		?>
+		<h2>Default Chart Definition</h2>
+		<div class="section" id="chartFormContainer">
+		</div>
+		<script>
+			defineChart( $('#chartFormContainer').get(0), $('#chartDefinition').get(0), chartOptions);
+		</script>
+		<?
+    }
+
+	function setRecordTypeId( $recordTypeId ) {
+		$this->recordTypeId=$recordTypeId;
+	}
+	
+	function setup($recordId) {
+		include_once(LIB_DIR.'/dataFieldFileUpload.php');
+		if (empty($this->params['uploadDataFieldId'])) return false;
+        $this->upload = new dataFieldFileUpload([
+            'recordId'=>$recordId,
+            'dataFieldId'=>$this->params['uploadDataFieldId']
+        ]);
+        return true;
+    }
+    
+    function displayInput() {
+		echo '<div class="graphContainer">';
+		echo '<button class="chartSettings"></button>';
+		echo '<div class="chartContainer" style="width:600px;height:400px;" id="chart_'.$this->id.'"><div>Loading Chart Data...</div><div class="throbber"></div></div>';
+		$this->displayJavascript(false);
+        $inputName = $this->inputName();
+        formHidden($inputName,$this->getAnswer(),null,'id="chartDefinition_'.$this->id.'"');
+        ?>
+        <div class="chartDefinition" style="display:none">
+			<h2>Chart Definition</h2>
+			<div class="section" id="chartFormContainer_<?=$this->id?>">
+			</div>
+			<script>
+				let chartDefinition = $('#chartDefinition_<?=$this->id?>');
+				defineChart( $('#chartFormContainer_<?=$this->id?>').get(0), chartDefinition.get(0), chartOptions);
+				
+				chartDefinition.on('change',function(){
+					
+					let chartOptions = JSON.parse(chartDefinition.val());
+					let chartOptionOverrides = {
+						src: <?= json_encode($this->upload->downloadUrl())?>, 
+						target: document.getElementById('chart_<?=$this->id?>'),
+						tooltip: {
+							show: true,
+							formatter: '{b}: {c}'
+						},
+						onError: function(error) {
+							console.error('Error:', error);
+						},
+						onLoaded: function() {
+							console.log('Loading XLSX file...');
+						}
+					}
+									
+					// Reload the graph
+					graphXlsx({...chartOptions,...chartOptionOverrides});
+				});
+				
+				chartDefinition.trigger('change');
+				
+			</script>
+		</div>
+		<?
+		echo '</div>';
+    }
+
+}

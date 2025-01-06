@@ -187,6 +187,23 @@ div.answer {
     div.chemical-input {
         padding-bottom: 0;
     }
+
+    div.graphContainer {
+        width: 100%;
+        div.chartContainer {
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        button.chartSettings {
+            float:right;
+            background:none;
+            border:none;
+            @include backgroundIcon(0.3, 16, 12, right, black);
+        }
+    }
 }
 
 div.questionAndAnswerContainer.publicView {

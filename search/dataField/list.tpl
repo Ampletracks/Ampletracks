@@ -39,11 +39,11 @@
 		<td class="displayOnList">
 			<?
 			if (canDo('edit',$rowData['id'])) {
-				if ($rowData['hasValue']) {
+				if ($rowData['canDisplayOnList']) {
 					formCheckbox('','1',$rowData['displayOnList'],'class="displayOnList"');
 				}
 			} else {
-				if ($rowData['hasValue']) echo $rowData['displayOnList']?'yes':'no';
+				if ($rowData['canDisplayOnList']) echo $rowData['displayOnList']?'yes':'no';
 			}
 			?>
 		</td>

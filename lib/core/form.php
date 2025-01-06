@@ -25,7 +25,11 @@ function formAddClassToExtra( &$extra, $class ) {
 
 function formColour( $name, $default=null, $extra='' ) {
     $type = 'color';
-    formBox( 'color', $name, 0, '', $default, $extra );
+    formBox( 'color', $name, 0, '', $default, $extra, function($default){
+		$default = trim($default);
+		if (strpos($default,'#')!==0) return '#ffffff';
+		else return $default;
+	});
 }
 
 // set the size to a negative number to indicate a PASSWORD box
@@ -43,18 +47,24 @@ function formInteger( $name, $min=null, $max=null, $step=null, $default=null, $e
     else $step=round($step);
 
     formAddClassToExtra( $extra, 'integer' );
-    formFloat( $name, $min, $max, $step, $default, $extra );
+    formFloat( $name, $min, $max, $step, $default, $extra, function($default){
+		return (int)$default;
+	});
 }
 
 // You can set the size of the input (i.e. number of decimal places displayed) by setting the step size e.g. 0.001 for 3 d.p.
-function formFloat( $name, $min=null, $max=null, $step=null, $default=null, $extra='' ) {
+function formFloat( $name, $min=null, $max=null, $step=null, $default=null, $extra='',$validateDefault=null ) {
     foreach( array('min','max','step') as $thing ) {
         if (!is_null($$thing) && !strlen($$thing)) $$thing=null;
         if (!is_null($$thing)) $extra.=' '.$thing.'='.htmlspecialchars($$thing);
     }
     $size = is_null($max)?'':ceil(log10($max));
 
-    formBox( 'number', $name, $size, $size, $default, $extra );
+	if (is_null($validateDefault)) $validateDefault=function($default){
+		return (float)$default;
+	};
+	
+    formBox( 'number', $name, $size, $size, $default, $extra, $validateDefault );
 }
 
 function formEmail( $name, $size=10, $maxlength='', $default=null, $extra='' ) {
@@ -119,10 +129,11 @@ function formDate( $name, $default=0, $min=0, $max=0, $extra='' ) {
     }
 }
 
-function formBox( $type, $name, $size=10, $maxlength='', $default=null, $extra='' ) {
+function formBox( $type, $name, $size=10, $maxlength='', $default=null, $extra='', $validateDefault=null ) {
     global $WS;
     if (is_array($default)) $default = $default[0];
     else if (isset( $WS[$name] )) $default = $WS[$name];
+    if (is_callable($validateDefault)) $default = $validateDefault($default);
 
     echo '<input type="'.$type.'" name="'.htmlspecialchars($name).'" ';
     if ($size>0) echo 'SIZE="'.$size.'" ';
