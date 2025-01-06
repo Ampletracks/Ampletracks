@@ -226,6 +226,36 @@ class DataField {
         self::$parameterPrefix = $prefix;
     }
 
+    static function findValuesUserCanSee($dataFieldId,$extraWhere='', $userId=null,$recordTypeId=null) {
+        global $USER_ID, $DB;
+        if (is_null($recordTypeId)) {
+            $recordTypeId = $DB->getValue('SELECT recordTypeId FROM dataField WHERE id=?',$dataFieldId);
+        }
+        if (is_null($userId)) $userId=$USER_ID;
+
+        $limits = getUserAccessLimits([
+            'entity' => 'recordTypeId:'.$recordTypeId,
+            'prefix' => ''
+        ]);
+        $userAccessConditions = makeConditions( $limits );
+
+        $return = $DB->getColumn('
+            SELECT DISTINCT
+                recordData.data
+            FROM recordData
+                INNER JOIN record ON record.id=recordData.recordId
+            WHERE
+                '.$userAccessConditions.'
+                '.$extraWhere.'
+                recordData.dataFieldId = ? AND
+                recordData.hidden = 0 AND
+                recordData.valid = 1
+            ORDER BY data
+        ', $dataFieldId);
+
+        return $return;
+    }
+
     function __construct( $params ) {
         if (isset($params['parameters']) && strlen($params['parameters'])) $unserializedParameters = @unserialize( $params['parameters'] );
         if (!isset($unserializedParameters) || !is_array($unserializedParameters)) $unserializedParameters = array();
@@ -2127,7 +2157,7 @@ SUGGESTED TEXTBOX
 
 class DataField_suggestedTextbox extends DataField_typeToSearch {
 
-    const parameters = array( 'width', 'maxLength', 'minLength', 'hint', 'predefinedOptions' );
+    const parameters = array( 'width', 'maxLength', 'minLength', 'hint', 'predefinedOptions', 'allowAdditions', 'suggestAdditions' );
 
     function __construct( $params ) {
         parent::__construct($params);
@@ -2137,7 +2167,36 @@ class DataField_suggestedTextbox extends DataField_typeToSearch {
     }
 
     function getDefinitionHelp() {
-        return 'hello';
+    }
+
+    static function sanitizeParameters( &$parameters, $dataFieldId ) {
+        // trim all the predefined options
+        $options = preg_split('/[\r\n]+/',$parameters['predefinedOptions']);
+        $options = array_map('trim',$options);
+        $parameters['predefinedOptions'] = implode("\n",$options);
+
+        $parameters['allowAdditions'] = (bool)$parameters['allowAdditions'];
+        if ($parameters['allowAdditions']) $parameters['suggestAdditions'] = (bool)$parameters['suggestAdditions'];
+        else $parameters['suggestAdditions'] = false;
+    }
+
+    function validate( &$value ) {
+        $parentResult = parent::validate( $value );
+        if ($parentResult!==true) return $parentResult;
+
+        if ($this->allowAdditions) return true;
+
+        $value = trim($value);
+        $options = explode("\n",$this->predefinedOptions);
+        $options = array_combine( array_map('strtoupper',$options), $options );
+
+        if (!isset($options[strtoupper($value)])) {
+            return "You cannot add your own value - you must choose one of the predefined options";
+        }
+
+        $value = $options[strtoupper($value)];
+
+        return true;
     }
 
     function displayDefinitionForm() {
@@ -2146,8 +2205,47 @@ class DataField_suggestedTextbox extends DataField_typeToSearch {
             'Predefined options',
             function () use($prefix) {
                 formTextarea($prefix.'predefinedOptions', 40, 10);
+                echo '<div class="note">Enter each option on a new line</div>';
             }
         );
+        questionAndAnswer(
+            'Allow values not listed here',
+            function () use($prefix) {
+                formYesNo($prefix.'allowAdditions',false,true);
+                echo '<div class="note">If set to "yes" then the user can enter new values not listed in the predefined options</div>';
+            }
+        );
+        echo '<div class="questionAndAnswer dataFieldParameter_prompt" dependsOn="'.$prefix.'allowAdditions eq 1">';
+        questionAndAnswer(
+            'Suggest user-contributed answers to other users',
+            function () use($prefix) {
+                formYesNo($prefix.'suggestAdditions',false,true);
+            }
+        );
+        echo '</div>';
+    }
+
+    function displayFilter() {
+        $inputName = $this->filterNames()[0];
+        $searchUrl = $this->searchUrl;
+        $extraQueryParams = 'mode=search&dataFieldId='.$this->id.'&';
+
+        if(strpos($searchUrl, '?') !== false) { // assume the url finishes with 'someSearchParam='
+            $searchUrl = str_replace('?', '?'.$extraQueryParams, $searchUrl);
+        } else {
+            $searchUrl .= '?'.$extraQueryParams;
+        }
+
+        formTypeToSearch([
+            'class' => 'dataField',
+            'url' => $searchUrl,
+            'showNoResults' => false,
+            'name' => $inputName,
+            'default' => ws($inputName)
+        ]);
+
+        self::$nextId++;
+        return;
     }
 }
 

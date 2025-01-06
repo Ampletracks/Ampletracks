@@ -14,7 +14,7 @@ $INPUTS = array(
 include( '../../lib/core/startup.php' );
 include_once( LIB_DIR.'/dataField.php');
 
-$dataFieldParams = $DB->getValue('SELECT parameters FROM dataField WHERE id = ?', ws('dataFieldId'));
+list( $dataFieldParams, $recordTypeId ) = $DB->getRow('SELECT parameters, recordTypeId FROM dataField WHERE id = ?', ws('dataFieldId'));
 DataField::unserializeParameters($dataFieldParams);
 $searchResults = array();
 $predefinedOptions = explode("\n", $dataFieldParams['predefinedOptions']);
@@ -28,19 +28,26 @@ foreach($predefinedOptions as $predefinedOption) {
     }
 }
 
-$recordDataResults = $DB->getHash('
-    SELECT DISTINCT
-        data,
-        data AS value,
-        data AS item
-    FROM recordData
-    WHERE dataFieldId = ?
-    AND data LIKE ?
-    ORDER BY data
-', ws('dataFieldId'), '%'.ws('ttsSearch').'%');
-//$LOGGER->log("dFI ".ws('dataFieldId').", sT ->".ws('searchText')."<- gets:\n".print_r($recordDataResults, true));
+// Search mode means that the input is being displayed in a search context. This meanse
+// That we show the user all the existing values regardless of whether user-contributed additions are
+// currently allowed. This is because, the setting may have changed and user-contributed values
+// might have been allowed in the past
+if ( ws('mode')=='search' || ( $dataFieldParams['allowAdditions'] && $dataFieldParams['suggestAdditions'] )) {
+    $values = DataField::findValuesUserCanSee(
+        ws('dataFieldId'),
+        'recordData.data LIKE "%'.$DB->escape(ws('ttsSearch')).'%" AND',
+        null,
+        $recordTypeId
+    );
+    $recordDataResults = [];
+    foreach( $values as $value ) {
+        $recordDataResults[ $value ] = [ 'value' => $value, 'item' => $value ];
+    }
+    //$LOGGER->log("dFI ".ws('dataFieldId').", sT ->".ws('searchText')."<- gets:\n".print_r($recordDataResults, true));
 
-$searchResults = array_merge($searchResults, $recordDataResults);
+    $searchResults = array_merge($searchResults, $recordDataResults);
+}
+
 ksort($searchResults);
 $searchResults = array_values($searchResults);
 
