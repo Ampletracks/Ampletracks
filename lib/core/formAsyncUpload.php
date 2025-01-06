@@ -273,9 +273,9 @@ class formAsyncUpload {
         
         // The classfile can return the name of the main file object    
         $class = include_once($classFile);
-    
+
         // but if it doesn't try and guess it from the filename
-        if($class===1) {
+        if($class==1) {
             $class=preg_replace('/(\\.class)?(\\.php)$/i','',basename($classFile));
         }
         
@@ -312,6 +312,10 @@ class formAsyncUpload {
         }
 
         $maxSize = (int)$this->getState('maxSize')*1048576;
+        // If the max size is set to zero - this means no user imposed limit
+        // In this case use the server limit instead
+        if ($maxSize==0) $maxSize = $maxUploadSize;
+
         if ($maxUploadSize > $maxSize) {
             $maxUploadSize=$maxSize;
             $reason='';
@@ -422,7 +426,6 @@ class formAsyncUpload {
         $class = $this->loadClass();
         
         if ($class===false) return false;
-        
         $this->fileObject = new $class($this->attributes);
         $this->fileObject->setUpload($this);
         

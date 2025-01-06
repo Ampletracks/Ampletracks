@@ -1206,10 +1206,10 @@ class Dbif {
 	}
 	
 	// This table relies on the fact that the associated table has the following rows
-	// lockTs
+	// lockedAt
 	// lockId
 	// In order to prevent a row from being locked in future set the lockId to 0
-	// but leave the lockTs set to something greater than 0
+	// but leave the lockedAt set to something greater than 0
 	// If only one column is requested (by passing cols as a string) then the values of this column from all rows are returned as an array
 	// If more than one column is requested (by passing an array of cols) then an array of arrays is returned.
 	function lockRows( $tableName, $cols='', $numRows=100, $lockTimeout=3600 ) {
@@ -1217,10 +1217,10 @@ class Dbif {
 		$lockId = getmypid()*10000+mt_rand(0,9999);
 	
 		// unlock any rows for which the lock has timed out
-		$this->exec("UPDATE `$tableName` SET lockId=0, lockTs=0 WHERE lockId>0 AND lockTs<(UNIX_TIMESTAMP()-".((int)$lockTimeout).")");
+		$this->exec("UPDATE `$tableName` SET lockId=0, lockedAt=0 WHERE lockId>0 AND lockedAt<(UNIX_TIMESTAMP()-".((int)$lockTimeout).")");
 	
 		// attempt to lock some new rows
-		$numLocked = $this->exec("UPDATE `$tableName` SET lockTs=UNIX_TIMESTAMP(), lockId=? WHERE lockId=0 AND lockTs=0 LIMIT ".((int)$numRows),$lockId);
+		$numLocked = $this->exec("UPDATE `$tableName` SET lockedAt=UNIX_TIMESTAMP(), lockId=? WHERE lockId=0 AND lockedAt=0 LIMIT ".((int)$numRows),$lockId);
 		// if there were no rows locked then return an ampty array
 		if (!$numLocked) return( array() );
 		

@@ -3,7 +3,11 @@
 $primaryFilterIdField = 'dataField.recordTypeId';
 
 $listSql = "
-    SELECT dataField.*, dataFieldType.name AS type, dataFieldType.hasValue
+    SELECT
+		dataField.*,
+		dataFieldType.name AS type,
+		# 17=> graph - this is a special case insofar as it DOES have a value, but this can't be displayed on list
+		(dataFieldType.hasValue AND dataFieldType.id<>17) AS canDisplayOnList
     FROM dataField
         INNER JOIN dataFieldType ON dataFieldType.id=dataField.typeId
     WHERE !deletedAt

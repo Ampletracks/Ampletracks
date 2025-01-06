@@ -17,6 +17,8 @@
 		filter: invert(10%) sepia(83%) saturate(7434%) hue-rotate(21deg) brightness(93%) contrast(128%);
 	} @else if $color==white {
         filter: invert(100%) sepia(100%) saturate(0%) hue-rotate(108deg) brightness(104%) contrast(104%);
+	} @else if $color==black {
+        filter: invert(0%) sepia(1%) saturate(7471%) hue-rotate(354deg) brightness(108%) contrast(99%);
 	}
 }
 

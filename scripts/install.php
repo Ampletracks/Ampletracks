@@ -528,7 +528,8 @@ $dbSetup = function() {
         };
         $DB->exec(substr($sql,0,-1));
     }
-    
+   
+    // When adding new datafield types don't forget to also add the new type at the top of lib/dataField.php
     $DB->exec('INSERT IGNORE INTO dataFieldType (id,name,hasValue,disabled) VALUES
     ( 1,"Divider","0","0"),
     ( 2,"Commentary","0","0"),
@@ -545,7 +546,8 @@ $dbSetup = function() {
     (13,"Float","1","0"),
     (14,"Type To Search","1","1"),
     (15,"Suggested Textbox","1","0"),
-    (16,"Chemical Formula","1","0")
+    (16,"Chemical Formula","1","0"),
+    (17,"Graph","1","0")
     ');
     
     // set any missing path depths
