@@ -7,7 +7,7 @@
             <li>Regular expressions should be <a href="https://perldoc.perl.org/perlre" targer="_blank">Perl compatible</a></li>
         </ul>
     </div>
-<table class="main userDefaultsList">
+<table class="data-table userDefaultsList">
 	<thead>
 	<tr>
 		<th class="actions">Actions</th>

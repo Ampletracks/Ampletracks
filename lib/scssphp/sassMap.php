@@ -125,7 +125,10 @@ class scss_formatter_extra_compressed extends ScssPhp\ScssPhp\Formatter\Compress
 #================================================
 
 $stdin = fopen('php://stdin', 'r');
-if (isset($LOG) && strlen($LOG) ) $LOG = fopen($LOG,'a');
+if (isset($LOG) && strlen($LOG) ) {
+    $LOG = fopen($LOG,'a');
+    fputs( $LOG, "Starting at ".date('Y m dc')."\n==============================\n" );
+}
 
 use ScssPhp\ScssPhp\Compiler;
 

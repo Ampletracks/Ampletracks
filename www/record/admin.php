@@ -29,6 +29,8 @@ $INPUTS = array(
 
 function postStartup($mode,$id) {
     include( LIB_DIR.'/dataField.php');
+    include( LIB_DIR.'/relationshipTools.php');
+
     global $DB, $dontProcessUploads, $USER_ID;
 
     $permissionsModeMap['showRelationships']='view';
@@ -253,16 +255,11 @@ function processInputs($mode,$id) {
 
     if ($mode=='deleteRelationship' && $id) {
 
-        // In order to delete a relationship they must have edit rights to at least one of the 2 records involved
-        list($from,$to) = $DB->getRow('SELECT fromRecordId,toRecordId FROM relationship WHERE id=?',$id);
-        if (!( canDo('edit',$from,'record') || canDo('edit',$to,'record'))) {
-            echo "You do not have permission to delete this relationship";
-            exit;
-        }
+        $result = deleteRelationship( $id );
+        if ($result===true) $result = 'OK';
 
-		$DB->exec('DELETE FROM relationship WHERE id=? OR reciprocalRelationshipId=?',$id,$id);
-		echo 'OK';
-		exit;
+        echo $result;
+        exit;
 	}
 
     if ($mode=='showRelationships' && $id) {
@@ -474,51 +471,12 @@ function processUpdateAfter( $id, $isNew ) {
 	$newRelationship = false;
 	$toRecordId = (int)ws('toRecordId');
 	$relationshipLinkId = (int)ws('relationshipLinkId');
-	if ($toRecordId && $relationshipLinkId) {
-		// Check the validity of the relationship they are trying to create
-		// And get the reciprocalRelationshipLinkId at the same time
-		$toRecordTypeId = $DB->getValue('SELECT typeId FROM record WHERE id=?',$toRecordId);
-		$reciprocalRelationshipLinkId = $DB->getValue('
-			SELECT reciprocalRelationshipLink.id
-			FROM relationshipLink
-				INNER JOIN relationshipLink reciprocalRelationshipLink ON
-					reciprocalRelationshipLink.relationshipPairId=relationshipLink.relationshipPairId AND
-					reciprocalRelationshipLink.fromRecordTypeId=relationshipLink.toRecordTypeId AND
-					reciprocalRelationshipLink.toRecordTypeId=relationshipLink.fromRecordTypeId AND
-                    reciprocalRelationshipLink.id <> relationshipLink.id
-			WHERE
-				relationshipLink.id=? AND relationshipLink.fromRecordTypeId=? AND relationshipLink.toRecordTypeId=?
-		',$relationshipLinkId, ws('record_typeId'),$toRecordTypeId);
+  	if ($toRecordId && $relationshipLinkId) {
+        $result = createRelationship( $id, $toRecordId, $relationshipLinkId );
+        if ($result===true) $newRelationship=true;
+        else inputError('relationship','Problem creating relationship: '.$result);
+    }
 
-		// check that this isn't a duplicate relationship
-		$isDuplicate = $DB->getValue(
-			'SELECT id FROM relationship WHERE fromRecordId=? AND toRecordId=? AND relationshipLinkId=?',
-			$id,$toRecordId,$relationshipLinkId
-		);
-		if (!$isDuplicate && $reciprocalRelationshipLinkId) {
-			// Insert the forward relationship
-			$forwardRelationshipId = $DB->insert('relationship',array(
-				'fromRecordId'             => $id,
-				'toRecordId'               => $toRecordId,
-				'relationshipLinkId'       => $relationshipLinkId,
-				'reciprocalRelationshipId' => 0,
-			));
-			if ($forwardRelationshipId) {
-				// Then the reciprocal relationship
-				$reciprocalRelationshipId = $DB->insert('relationship',array(
-					'fromRecordId'             => $toRecordId,
-					'toRecordId'               => $id,
-					'relationshipLinkId'       => $reciprocalRelationshipLinkId,
-					'reciprocalRelationshipId' => $forwardRelationshipId,
-				));
-				// Update the forward relationship to point to the new reciprocal
-				$DB->update('relationship',['id'=>$forwardRelationshipId],['reciprocalRelationshipId'=>$reciprocalRelationshipId]);
-
-				$newRelationship = true;
-			}
-		}
-	}
-	
     // if we created a new record and no specific parent was set then set the parent to be the item itself
     if ($isNew) {
         if (ws('record_parentId')) {

@@ -50,6 +50,17 @@
             </div>
         </div>
     </div>
+    <div class="questionAndAnswer">
+        <div class="question">
+            <?=cms('Data Field: Export name',0,'Export name')?>:
+        </div>
+        <div class="answer">
+            <? formTextBox('dataField_apiName',50,200); ?>
+            <div class="info">
+                This is name used when exporting records via the API. If this is empty then this field will not be included when records are accessed via the API.
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="questionAndAnswer">

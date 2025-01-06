@@ -95,7 +95,7 @@
 <div class="questionAndAnswer">
     <div class="question">Font scale factor (percent):</div>
     <div class="answer">
-        <? formInteger('user_fontScale', 10, 255); ?>
+        <? formInteger('user_fontScale', 0, 255); ?>
         <div class="info">
             <?=cms('This doesn\'t take effect until the next login. Any value less than 10 deactivates font scaling.',1) ?>
         </div>
@@ -134,4 +134,9 @@
             });
         });
     </script>
+
+    <? if(ws('id') == $USER_ID) { ?>
+        <h2>API Keys</h2>
+        <? $apiKeyList->display(true); ?>
+    <? } ?>
 <? } ?>

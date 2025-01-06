@@ -13,6 +13,13 @@ $tables = array(
         'index_time' => "INDEX (`time`,`entityId`)",
         'index_entityId' => "INDEX (`entityId`)",
     ),
+    'apiInputSpecification' => array(
+        'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
+        'endpointPath' => 'VARCHAR(255) NOT NULL',
+        'method' => 'VARCHAR(10) NOT NULL',
+        'requestBodySchemaJson' => 'TEXT NOT NULL',
+        'index_enpointPath' => 'UNIQUE INDEX (`endpointPath`, `method`)'
+    ),
     'cms' => array(
         'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
         'label' => "VARCHAR(255) NOT NULL",
@@ -43,10 +50,12 @@ $tables = array(
     ),
     'dataField' => array(
         'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
+        'apiId' => "VARCHAR(40) NULL",
         'orderId' => "SMALLINT(5) UNSIGNED NOT NULL",
         'recordTypeId' => "INT(10) UNSIGNED NOT NULL",
         'name' => "VARCHAR(255) DEFAULT NULL",
         'exportName' => "VARCHAR(255) DEFAULT NULL",
+        'apiName' => "VARCHAR(255) DEFAULT NULL",
         'typeId' => "TINYINT(3) UNSIGNED NOT NULL",
         'optional' => "TINYINT(3) UNSIGNED NOT NULL DEFAULT 1",
         'saveInvalidAnswers' => "ENUM('never','never but save version','only if unset','only if unset but save version','always') NOT NULL DEFAULT 'only if unset but save version'",
@@ -64,6 +73,7 @@ $tables = array(
         'dependencyCombinator' => "ENUM ('and','or') DEFAULT 'and'",
         'questionLastChangedAt' =>  "INT(10) UNSIGNED NOT NULL DEFAULT 0",
         'index_orderId' => "INDEX (`recordTypeId`,`orderId`)",
+        'index_apiId' => "UNIQUE INDEX (`apiId`)",
         'index_recordTypeId' => "INDEX (`recordTypeId`,`displayOnList`)",
     ),
     'dataFieldDependency' => array(
@@ -175,12 +185,14 @@ $tables = array(
     ),
     'relationship' => array(
         'id'                    => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
+        'apiId'                 => "VARCHAR(40) NULL",
         'relationshipLinkId'    => "INT(10) UNSIGNED NOT NULL",
         'fromRecordId'             => "INT(10) UNSIGNED NOT NULL",
         'toRecordId'             => "INT(10) UNSIGNED NOT NULL",
         'reciprocalRelationshipId'    => "INT(10) UNSIGNED NOT NULL",
         'index_fromRecordId'        => "UNIQUE INDEX(`fromRecordId`,`relationshipLinkId`,`toRecordId`)",
         'index_toRecordId'        => "INDEX(`toRecordId`,`fromRecordId`)",
+        'index_apiId' => "UNIQUE INDEX (`apiId`)",
     ),
     'relationshipPair' => array(
         'id'            => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
@@ -226,12 +238,15 @@ $tables = array(
     ),
     'project' => array(
         'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
+        'apiId' => "VARCHAR(40) NULL",
         'name' => "VARCHAR(255) NOT NULL",
         'deletedAt' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
         'index_name' => "UNIQUE INDEX(`name`,`deletedAt`)",
+        'index_apiId' => "UNIQUE INDEX (`apiId`)",
     ),
     'record' => array(
         'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
+        'apiId' => "VARCHAR(40) NULL",
         'typeId' => "INT(10) UNSIGNED NOT NULL",
         'createdBy' => "INT(10) UNSIGNED NOT NULL",
         'createdAt' => "INT(10) UNSIGNED NOT NULL",
@@ -250,6 +265,8 @@ $tables = array(
         'index_parentId' => "INDEX (`parentId`)",
         'index_path' => "INDEX (`path`(256),`depth`)",
         'index_depth' => "INDEX (`depth`)",
+        'index_apiId' => "UNIQUE INDEX (`apiId`)",
+
     ),
     'recordData' => array(
         'recordId' => "INT(10) UNSIGNED NOT NULL",
@@ -285,6 +302,7 @@ $tables = array(
     ),
     'recordType' => array(
         'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
+        'apiId' => "VARCHAR(40) NULL",
         'name' => "VARCHAR(255) NOT NULL",
         'colour' => "CHAR(7) DEFAULT ''",
         'publicPreviewMessage' => "MEDIUMTEXT NOT NULL",
@@ -294,12 +312,15 @@ $tables = array(
         'deletedAt' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
         'index_name' => "UNIQUE INDEX(`name`,`deletedAt`)",
         'index_projectId' => "INDEX(`projectId`,`name`,`deletedAt`)",
+        'index_apiId' => "UNIQUE INDEX (`apiId`)",
     ),
     'role' => array(
         'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
+        'apiId' => "VARCHAR(40) NULL",
         'name' => "VARCHAR(255) NOT NULL",
         'deletedAt' => "INT(10) UNSIGNED NOT NULL",
         'index_name' => "UNIQUE INDEX(`name`)",
+        'index_apiId' => "UNIQUE INDEX (`apiId`)",
     ),
     'rolePermission' => array(
         'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
@@ -321,6 +342,7 @@ $tables = array(
     ), 
     'user' => array(
         'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
+        'apiId' => "VARCHAR(40) NULL",
         'firstName' => "VARCHAR(255) NOT NULL",
         'lastName' => "VARCHAR(255) NOT NULL",
         'email' => "VARCHAR(255) NOT NULL",
@@ -334,8 +356,19 @@ $tables = array(
         'defaultsLastChangedAt' =>  "INT(10) UNSIGNED NOT NULL DEFAULT 0",
         'fontScale' => "TINYINT UNSIGNED NOT NULL DEFAULT 0",
         'index_email' => "UNIQUE INDEX (`email`,`deletedAt`)",
+        'index_apiId' => "UNIQUE INDEX (`apiId`)",
         'index_lastName' => "INDEX (`lastName`(40),`deletedAt`,`firstName`(40))",
         'index_deletedAt' => "INDEX (`deletedAt`)",
+    ),
+    'userAPIKey' => array(
+        'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
+        'userId' => "INT(10) UNSIGNED NOT NULL",
+        'name' => "VARCHAR(255) NOT NULL DEFAULT ''",
+        'apiKey' => "VARCHAR(128) NOT NULL DEFAULT ''",
+        'createdAt' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
+        'deletedAt' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
+        'index_apiKey' => "UNIQUE INDEX (`apiKey`)",
+        'index_userId' => "INDEX (`userId`)",
     ),
     'userDefaultAnswer' => array(
         'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
@@ -550,11 +583,19 @@ $dbSetup = function() {
                 }
             }
         }
+
+        // Load in OpenAPI JSON definition for API
+        require(SITE_BASE_DIR.'/lib/api/inputValidator.php');
+        $inputSpecIngestionResult = \ApiInputValidator::ingestInputSpecifications(SITE_BASE_DIR.'/www/api/v1/openApi.json.php');
+        if ($inputSpecIngestionResult !== true) {
+            echo "ERROR: API Specification Ingestion failed with errors:\n\t" . join("\n\t", $inputSpecIngestionResult)."\n";
+        }
+
     }
+
 };
 
 $writableDirectories = ['data/images','data/tmp/uploads','data/system','data/acme','data/emailMergeData'];
-
 
 # ======================================================================================
 # Version specific changes
@@ -586,6 +627,10 @@ $upgrades = array(
     6 => function() {
         global $DB;
         $DB->exec('UPDATE dataField SET allowUserDefault=1 WHERE typeId IN (SELECT id FROM dataFieldType WHERE hasValue)');
+    },
+    7 => function() {
+        global $DB;
+        $DB->exec('UPDATE user SET apiId=NULL WHERE apiId=""');
     },
 
     // =====================================================================================================

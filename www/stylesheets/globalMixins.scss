@@ -9,6 +9,7 @@
     // FONTS
     --f-title: urbane-rounded, Arial, sans-serif;
     --f-body: source-sans-pro, Arial, sans-serif;
+    --f-mono: monospace;
 
     --fontScaleFactorDefaulted: var(--fontScaleFactor, 1);
     --f-h1-size: clamp(calc(1.25rem * var(--fontScaleFactorDefaulted)), calc((1rem + 2.64vw) * var(--fontScaleFactorDefaulted)), calc(2.375rem * var(--fontScaleFactorDefaulted)));

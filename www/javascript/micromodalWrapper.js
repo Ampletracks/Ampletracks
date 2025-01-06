@@ -133,6 +133,7 @@ function modal(options) {
       var buttonId = `${modalId}-btn-${index}`;
       $('#' + buttonId).on('click', function() {
          var inputData = gatherInputValues();
+         inputData.__modalId = modalId;
          var result;
          if (buttonAttrib.onClick) {
             // If an individual click handler is provided
@@ -164,9 +165,10 @@ or
 prompt(text,title,onOk)
 */
 
-function prompt(text, title, onOk) {
+function prompt(text, title, onOk, extraMarkup) {
     // Check if the title is not provided and adjust arguments accordingly
     if (typeof title === 'function') {
+        extraMarkup = onOk;
         onOk = title;
         title = ''; // Default title to empty if not provided
     }
@@ -178,6 +180,7 @@ function prompt(text, title, onOk) {
     var htmlContent = `
         <label for="${inputId}">${text}</label>
         <input type="text" id="${inputId}" name="response" style="width: 100%; margin-top: 10px;" />
+        ${String(extraMarkup).trim()}
     `;
 
     // Define the modal options
@@ -192,7 +195,7 @@ function prompt(text, title, onOk) {
                onClick: function(data) {
                   // Call onOk with the input value when OK is clicked
                   var inputValue = $('#' + inputId).val();
-                  onOk(inputValue);
+                  return onOk(inputValue, data);
                }
             }
         ],

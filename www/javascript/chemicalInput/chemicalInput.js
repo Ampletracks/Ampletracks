@@ -363,7 +363,7 @@ const ChemicalInput = class {
     const from = this.chainData.findIndex(elem => elem.symbol == element.querySelector('.symbol').innerHTML);
     const to = from - 1;
     if (to >= 0) {
-      this.chainData.move(from, to);
+      move( this.chainData, from, to);
       this.renderChain();
     }
   }
@@ -372,7 +372,7 @@ const ChemicalInput = class {
     const from = this.chainData.findIndex(elem => elem.symbol == element.querySelector('.symbol').innerHTML);
     const to = from + 1;
     if (to <= this.chainData.length) {
-      this.chainData.move(from, to);
+      move( this.chainData, from, to);
       this.renderChain();
     }
   }
@@ -741,9 +741,9 @@ const encodeChain = (json, mode) => {
   return string;
 }
 
-Array.prototype.move = function(from, to) {
-  this.splice(to, 0, this.splice(from, 1)[0]);
-};
+function move(array from, to) {
+  array.splice(to, 0, array.splice(from, 1)[0]);
+}
 
 const json = [
   {

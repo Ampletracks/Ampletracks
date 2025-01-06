@@ -120,6 +120,10 @@ if ( $WS['mode']=='update' ) {
             exit;
         }
     }
+
+    if(!empty($API_METHOD)) {
+        return;
+    }
 }
 
 $id=0;
@@ -213,10 +217,14 @@ if (ws('mode')=='update' && !inputError() && preg_match('/^save.*close$/i',ws('s
 }
 
 if ($id && !isset($WS["{$ENTITY}_id"])) {
-    include(VIEWS_DIR.'/header.php');
-    echo "<h2>No ".fromCamelCase($ENTITY)." found with id ".$id."</h2>";
-    include(VIEWS_DIR.'/footer.php');
-    exit;
+    if(empty($API_METHOD)) {
+        include(VIEWS_DIR.'/header.php');
+        echo "<h2>No ".fromCamelCase($ENTITY)." found with id ".$id."</h2>";
+        include(VIEWS_DIR.'/footer.php');
+        exit;
+    } else {
+        return;
+    }
 }
 
 if (function_exists('prepareDisplay')) prepareDisplay($id,$WS['mode']);
@@ -238,6 +246,11 @@ if(ws('mode') == 'update') {
         addUserNotice(cms('There was a problem saving the changes',0), 'warning');
     }
 }
+
+if(!empty($API_METHOD)) {
+    return;
+}
+
 include(VIEWS_DIR.'/header.php');
 ?>
 <script>

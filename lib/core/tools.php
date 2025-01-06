@@ -302,14 +302,14 @@ $_SEARCH_SPEC_LOOKUP_TABLE = array(
 		- see http://dev.mysql.com/doc/refman/4.1/en/string-comparison-functions.html
 */
 
-function makeConditions( $prefix ) {
+function makeConditions( $prefix, $paramSpacePrefix = '' ) {
 	global $WS, $DB;
 	global $_SEARCH_SPEC_LOOKUP_TABLE;
 	$condition_sql = '';
 	$limited_param_space=0;
 	if (is_array($prefix)) {
 		$param_space = $prefix;
-		$prefix = '';
+		$prefix = $paramSpacePrefix;
 		$limited_param_space=1;
 	} else {
 		$param_space = $WS;
@@ -324,7 +324,7 @@ function makeConditions( $prefix ) {
 		# "seemingly_OK_variable_but_includes|filter_bogus_filter_eq"
 		# This might get past some CHECKS with the author of the code thinking its OK
 		# 'cos it doesn't start filter_ but the explode below would have acted on the filter.
-		if (!preg_match( "/^$prefix/i", $full_var )) continue;
+		if (!empty($prefix) && !preg_match( "/^$prefix/i", $full_var )) continue;
 
 		if ( is_object($val) ) continue;
 
@@ -1052,3 +1052,18 @@ if (!function_exists('each')) {
         ];
     }
 }
+
+// Polyfill for non-apache based servers where getallheaders() is not defined
+if (!function_exists('getallheaders')) {
+    function getallheaders() {
+        $headers = [];
+
+        foreach ($_SERVER as $name => $value) {
+           if (substr($name, 0, 5) == 'HTTP_') {
+               $headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = $value;
+           }
+        }
+        return $headers;
+    }
+}
+
