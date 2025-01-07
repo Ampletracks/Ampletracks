@@ -265,7 +265,7 @@ function graphXlsx(options) {
             grid: {
                 top: 100,
                 right: 20,
-                bottom: 30,
+                bottom: resolvedXAxisTitle ? 45 : 30,
                 left: 50
             },
             series: []

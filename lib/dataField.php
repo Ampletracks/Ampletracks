@@ -2221,6 +2221,7 @@ class DataField_graph extends DataField {
     private $recordTypeId = null;
     
     private $upload = false;
+    private $uploadQuestion = false;
 
     const parameters = array('default','uploadDataFieldId');
 
@@ -2317,16 +2318,24 @@ class DataField_graph extends DataField {
 	}
 	
 	function setup($recordId) {
+        global $DB;
 		include_once(LIB_DIR.'/dataFieldFileUpload.php');
 		if (empty($this->params['uploadDataFieldId'])) return false;
         $this->upload = new dataFieldFileUpload([
             'recordId'=>$recordId,
             'dataFieldId'=>$this->params['uploadDataFieldId']
         ]);
+        $this->uploadQuestion = $DB->getValue('SELECT question FROM dataField WHERE id=?',$this->params['uploadDataFieldId']);
         return true;
     }
     
     function displayInput() {
+        if (!$this->upload->exists()) {
+            ?>
+            <div class="warning"><?= cms('Graph will appear here once a file has been uploaded for the following field and the page reloaded:',0)?><br /><?=htmlspecialchars($this->uploadQuestion);?></div>
+            <?
+            return;
+        }
 		echo '<div class="graphContainer">';
 		echo '<button class="chartSettings"></button>';
 		echo '<div class="chartContainer" style="width:600px;height:400px;" id="chart_'.$this->id.'"><div>Loading Chart Data...</div><div class="throbber"></div></div>';

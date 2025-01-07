@@ -741,7 +741,7 @@ const encodeChain = (json, mode) => {
   return string;
 }
 
-function move(array from, to) {
+function move(array, from, to) {
   array.splice(to, 0, array.splice(from, 1)[0]);
 }
 
