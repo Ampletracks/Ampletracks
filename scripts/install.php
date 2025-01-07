@@ -574,7 +574,7 @@ $dbSetup = function() {
         foreach ($iterator as $fileinfo) {
             if ($fileinfo->isFile() && $fileinfo->getExtension() === 'html') {
                 $fullPath = $fileinfo->getRealPath();
-                $templateName = substr($fullPath, strpos($emailTemplateDir,$emailTemplateSubDir) + strlen($emailTemplateSubDir)-1);
+                $templateName = substr($fullPath, strpos($fullPath,$emailTemplateSubDir) + strlen($emailTemplateSubDir)+1);
                 $templateName = preg_replace('/\.html$/i','',$templateName);
                 $templateContent = file_get_contents( $fullPath );
                 list( $subject, $body ) = explode("\n",$templateContent,2);

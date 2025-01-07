@@ -179,10 +179,14 @@ function prepareDisplay( $dataFieldId ) {
     $extraScripts[] = '/javascript/dependentInputs.js';
     $extraStylesheets[] = '/javascript/jodit/jodit.css';
     $extraScripts[] = '/javascript/jodit/jodit.js';
-    
+   
+    if (!$dataFieldId) {
+        $recordTypeId = getPrimaryFilter();
+        ws('dataField_recordTypeId',$recordTypeId);
+    } 
+
     $DB->loadRow(['SELECT name FROM recordType WHERE id=?',ws('dataField_recordTypeId')],'recordType_');
-    if ($dataFieldId) $recordTypeId = ws('dataField_recordTypeId');
-    else $recordTypeId = getPrimaryFilter();
+    $recordTypeId = ws('dataField_recordTypeId');
     
     global $dataFieldTypeSelect, $dataFieldHelp;
     $dataFieldTypeSelect = new formOptionbox('dataField_typeId','
