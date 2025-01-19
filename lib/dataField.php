@@ -2362,6 +2362,7 @@ class DataField_graph extends DataField {
 				<script>
 					$('body').on('click','button.chartSettings',function(){
 						$(this).hide().parent().find('.chartDefinition').show();
+                        return false;
 					});
 				</script>
 				<?
