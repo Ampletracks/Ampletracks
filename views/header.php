@@ -77,7 +77,9 @@ call_user_func(function () {
                     <? if (!empty($cobrandingLogoUrl)) { ?>
                         <li><a href="/"><img src="<?=htmlspecialchars($cobrandingLogoUrl)?>" alt=""></a></li>
                     <? } ?>
-                    <li><a href="/"><img src="/images/ampletracks-logo.svg" alt="Ampletracks logo"></a></li>
+                    <? if (!getConfigBoolean('Suppress header logo')) { ?>
+                        <li><a href="/"><img src="/images/ampletracks-logo.svg" alt="Ampletracks logo"></a></li>
+                    <? } ?>
                 </ul>
                 <!-- This button is only visible in mobile view -->
                 <button class="primary-menu-button toggle-menu__toggle btn" aria-label="Primary menu" aria-expanded="false">

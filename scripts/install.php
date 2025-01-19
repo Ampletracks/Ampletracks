@@ -498,6 +498,7 @@ $dbSetup = function() {
         ("Shortcut Icon","URL of the shortcut icon (commonly known as the favicon)","","/"),
         ("Hide add button on record list","Set this to \"Yes\" to remove the \"Add\" button on the record list - this means that new records can only be created from the record type list page, or as children of existing records.","","/record/list.php"),
         ("Cobranding logo URL","URL for the logo which is presented alongside the Ampletracks logo","/images/brand-logo.png","/"),
+        ("Suppress header logo","If set to \"Yes\" then the main Ampletracks logo is not diplayed in the page header or login page","","/"),
         ("New account request email","Email address where requests to create a new account are sent. Leave this empty to disable this functionality. You can specify multiple space-separated addresses.","","/"),
         ("Timezone","The system timezone","","/"),
         ("Font scale factor","Scale up or down font sizes across the site. Defaults to 100%","","/"),

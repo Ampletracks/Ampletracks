@@ -3,7 +3,7 @@
 global $showCaptcha;
 if (!isset($showCaptcha)) $showCaptcha=false;
 
-$cobrandingLogoUrl = getConfig('Cobranding logo url');
+$cobrandingLogoUrl = getConfig('Cobranding logo URL');
 
 ?>
 <html>
@@ -11,7 +11,7 @@ $cobrandingLogoUrl = getConfig('Cobranding logo url');
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-        <title>Ampletracks</title>
+        <title><?=cms('Login page title',0,'Ampletracks Login'); ?></title>
 
         <? globalHeaderMarkup(); ?>
         <link rel="stylesheet" href="https://use.typekit.net/crp4ibc.css">
@@ -30,7 +30,9 @@ $cobrandingLogoUrl = getConfig('Cobranding logo url');
                         <? if (!empty($cobrandingLogoUrl)) { ?>
                             <li><a href="/"><img src="<?=htmlspecialchars($cobrandingLogoUrl)?>" alt=""></a></li>
                         <? } ?>
-                        <li><a href="/"><img src="/images/ampletracks-logo.svg" alt="Ampletracks logo"></a></li>
+                        <? if (!getConfigBoolean('Suppress header logo')) { ?>
+                            <li><a href="/"><img src="/images/ampletracks-logo.svg" alt="Ampletracks logo"></a></li>
+                        <? } ?>
                     </ul>
                 </div>
             </div>
