@@ -2399,8 +2399,12 @@ class DataField_graph extends DataField {
 		
 		
 		$this->displayJavascript(true);
-		
-		formHidden($prefix.'default',null,null,'id="chartDefinition"');
+        // The datafield admin page relies on the fact that, whilst the definition forms for multiple data field types
+        // are included on the page, only one is visible. Only the fields from the currently visible field type are actually
+        // saved. This falls down when hidden fields are used - these get submitted even if the datafield definition has
+        // been hidden - this results in the value saving over other defaults
+        // So instead of using a hidden field, we use a normal field and position it off the screen.
+		formTextarea($prefix.'default',80,10,null,'id="chartDefinition style="position:absolute; left: -200vw;"');
 		
 		?>
 		<h2>Default Chart Definition</h2>
