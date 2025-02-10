@@ -14,7 +14,7 @@ class imageUpload extends fileUpload {
     public static function validate($filename,&$metadata, &$state) {
         // Check that the upload is actually an image
         $fh = finfo_open(FILEINFO_MIME_TYPE);
-        if (!is_resource($fh)) return 'Problem loading finfo extension';
+        if (!(is_resource($fh) or $fh instanceof finfo)) return 'Problem loading finfo extension';
         
         $mimeTypeLookup = array(
             'image/gif' => IMG_GIF ,
