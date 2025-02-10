@@ -1836,6 +1836,7 @@ class DataField_upload extends DataField {
     }
 
     function displayInput() {
+        echo '<div id="'.$this->inputName().'"></div>';
         $this->upload->display();
         // errors might be logged against $this->fieldName (which is the special field name we use because it is an upload)
         inputError($this->fieldName);
@@ -2108,6 +2109,7 @@ class DataField_image extends DataField {
     }
 
     function displayInput() {
+        echo '<div id="'.$this->inputName().'"></div>';
         $this->upload->display();
         // errors might be logged against $this->fieldName (which is the special field name we use because it is an upload)
         inputError($this->fieldName);
