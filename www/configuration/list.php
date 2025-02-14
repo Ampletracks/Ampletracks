@@ -1,6 +1,6 @@
 <?
 
-$listSql = 'SELECT * FROM configuration ORDER BY name ASC';
+$listSql = 'SELECT * FROM configuration WHERE 1=1 ORDER BY name ASC';
 
 function afterList(){
 	echo "<ul>";

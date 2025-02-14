@@ -66,6 +66,18 @@
                 </div>
             </div>
 
+            <? if (getConfigBoolean('Enable public search')) { ?>
+            <div class="questionAndAnswer">
+                <div class="question">
+                    Include in public search
+                </div>
+                <div class="answer">
+                    <? formYesNo('recordType_includeInPublicSearch',false); ?>
+                    <? inputError('recordType_includeInPublicSearch'); ?>
+                </div>
+            </div>
+            <? } ?>
+
             <div class="questionAndAnswer">
                 <div class="question">
                     Label image

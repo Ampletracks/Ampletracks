@@ -85,6 +85,24 @@
 		<? formYesNo('dataField_displayToPublic',false,true) ?>
 	</div>
 </div>
+<? if (getConfigBoolean('Enable public search')) { ?>
+    <div class="questionAndAnswer" dependsOn="dataField_displayToPublic eq 1">
+        <div class="question">
+            <?=cms('Data Field: Use for general search',0,'Use for general search')?>:
+        </div>
+        <div class="answer">
+            <? formYesNo('dataField_useForGeneralSearch',false,true) ?>
+        </div>
+    </div>
+    <div class="questionAndAnswer" dependsOn="dataField_displayToPublic eq 1">
+        <div class="question">
+            <?=cms('Data Field: Allow for advanced search',0,'Allow for advanced search')?>:
+        </div>
+        <div class="answer">
+            <? formYesNo('dataField_useForAdvancedSearch',false,true) ?>
+        </div>
+    </div>
+<? } ?>
 
 <?=$onlyShowWhenFieldHasValue; ?>
     <div class="questionAndAnswer">
