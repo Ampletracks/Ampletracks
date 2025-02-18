@@ -513,7 +513,13 @@ formHidden('hiddenFields');
     $('#dataEntryForm').on('submit',function(){
 
         // We need to send the server a list of which input fields were hidden
-        hiddenFields = $(':input,iframe').filter(':hidden[name]').not('[name^=adminCheckStatus]').not('[name^=dataFieldInherited]').map(function() {  if(matches = $(this).attr('name').match(/\[(\d+)\]/)) return matches[1];}  ).get();
+        hiddenFields = $(':input,iframe').filter(':hidden[name]')
+            .not('[name^=dataFieldInherited]')
+            // For <input type=hidden> we need to only include the ones where the parent is hidden
+            .not(':input[type=hidden]')
+            .add( $(':input[type=hidden]').filter(function(index,element){return $(element).parent().is(':hidden');}) )
+            .map(function() {  if(matches = $(this).attr('name').match(/\[(\d+)\]/)) return matches[1];}  ).get();
+        
         // Make sure the list of field ID's doesn't contain repetitions of the same ID
         hiddenFields = hiddenFields.filter(function (value, index, self) { return self.indexOf(value) === index; });
         hiddenFields = hiddenFields.join(',');

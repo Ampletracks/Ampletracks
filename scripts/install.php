@@ -64,6 +64,7 @@ $tables = array(
         'question' => "VARCHAR(255) NOT NULL DEFAULT ''",
         'unit' => "VARCHAR(255) NOT NULL DEFAULT ''",
         'displayOnList' => "TINYINT(3) UNSIGNED NOT NULL DEFAULT 0",
+        'displayOnPublicList' => "TINYINT(3) UNSIGNED NOT NULL DEFAULT 0",
         'displayToPublic' => "TINYINT(3) UNSIGNED NOT NULL DEFAULT 0",
         'deletedAt' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
         'parameters' => "TEXT NOT NULL DEFAULT ''",
@@ -342,7 +343,23 @@ $tables = array(
         'action' => "ENUM('list','view','edit','delete','create') NOT NULL",
         'index_roleId' => "INDEX (`roleId`,`entity`,`action`,`level`)",
     ),
-
+    'search' => array(
+        'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
+        'userId' => "INT(10) UNSIGNED NOT NULL",
+        'lastUsedAt' => "INT(10) UNSIGNED NOT NULL",
+        'index_lastUsedAt' => "UNIQUE INDEX(`lastUsedAt`)",
+        'index_userId' => "UNIQUE INDEX (`userId`,`lastUsedAt`)",
+    ),
+    'searchBuild' => array(
+        'searchId' => "INT(10) UNSIGNED NOT NULL",
+        'recordId' => "INT(10) UNSIGNED NOT NULL",
+        'index_searchId' => "UNIQUE INDEX(`searchId`,`recordId`)",
+    ),
+    'searchResult' => array(
+        'searchId' => "INT(10) UNSIGNED NOT NULL",
+        'recordId' => "INT(10) UNSIGNED NOT NULL",
+        'index_searchId' => "UNIQUE INDEX(`searchId`,`recordId`)",
+    ),
     'userLibrary' => array(
         'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
         'userId' => "INT(10) UNSIGNED NOT NULL",

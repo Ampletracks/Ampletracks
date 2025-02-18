@@ -8,6 +8,7 @@
 		<th class="inheritance"><?=cms('Data field list: Inheritance',0,'Inheritance');?></th>
 		<th class="displayOnList"><?=cms('Data field list: Display on list',0,'Display on list');?></th>
 		<th class="displayToPublic"><?=cms('Data field list: Display to public',0,'Display to public');?></th>
+		<th class="displayOnList"><?=cms('Data field list: Display on public list',0,'Display on list');?></th>
 	</tr>
 	</thead>
 	<tbody>
@@ -48,6 +49,19 @@
 			?>
 		</td>
 		<td class="displayToPublic"><?=$rowData['displayToPublic']?'Yes':'No'?></td>
+		<td class="displayOnPublicList">
+			<?
+            if ($rowData['displayToPublic']) {
+                if (canDo('edit',$rowData['id'])) {
+                    if ($rowData['canDisplayOnList']) {
+                        formCheckbox('','1',$rowData['displayOnPublicList'],'class="displayOnPublicList"');
+                    }
+                } else {
+                    if ($rowData['canDisplayOnList']) echo $rowData['displayOnPublicList']?'yes':'no';
+                }
+            }
+			?>
+		</td>
 	</tr>
 </TEMPLATE>
 

@@ -369,6 +369,10 @@ class Dbif {
         ((bool)mysqli_set_charset( $this->dbHandle, "utf8"));
 	}
 
+    function escapeAndQuote($value) {
+        return '"'.mysqli_real_escape_string($this->dbHandle, $value).'"';
+    }
+
     /**
      * Get the error handler.
      *

@@ -120,7 +120,7 @@ class DataField {
 
         if ($objectOrName!==false) {
             if (method_exists($objectOrName,'formatForDisplay')) {
-                $objectOrName::formatForDisplay($value, $recordId, $fieldId);
+                echo $objectOrName::formatForDisplay($value, $recordId, $fieldId);
                 return;
             }
         }
@@ -878,6 +878,14 @@ class DataField {
             ?><input type="hidden" class="inherited" name="<?=$this->inheritedName()?>" value="<?=$inherited?>"><?
         }
     }
+
+    // Build SQL for use when searching for fields of this type
+    function searchSql( $searchTerm, $dataField, $recordTypeIdField ) {
+        global $DB;
+        $searchTerm = $DB->escapeAndQuote('%'.trim($searchTerm).'%');
+        $sql = " $recordTypeIdField={$this->recordTypeId} AND $dataField LIKE $searchTerm";
+        return $sql;
+    }
 }
 
 /*
@@ -916,7 +924,6 @@ class DataField_commentary extends DataField {
         </div>
         <?
     }
-
 }
 
 /*
@@ -1540,7 +1547,7 @@ class DataField_date extends DataField {
 
     static function formatForDisplay($value, $recordId, $fieldId) {
         if (!is_numeric($value)) return;
-        echo date('d/m/Y',$value);
+        return date('d/m/Y',$value);
     }
 }
 
@@ -2080,6 +2087,7 @@ class DataField_image extends DataField {
         ));
 
         $image->display('thumbnail','short');
+        return;
     }
 
     function filterNames() {
@@ -2301,6 +2309,23 @@ class DataField_chemicalFormula extends DataField {
         $this->versionLink();
         inputError($inputName);
         $this->displayDefaultWarning();
+    }
+
+    function searchSql( $searchTerm, $dataField, $dataFieldTypeIdField ) {
+        include_once(LIB_DIR.'/chemicalTools.php');
+        $elements = parseChemicalStringToElements($searchTerm);
+        if (empty($elements)) return false;
+
+        $sql = "$dataFieldTypeIdField={$this->id}";
+        foreach( $elements as $element ) {
+            $sql .= " AND $dataField RLIKE '{$element}[0-9]'";
+        }
+        return $sql;
+    }
+
+    function formatForDisplay($value){
+        include_once(LIB_DIR.'/chemicalTools.php');
+        return chemicalFormulaToHtml($value);
     }
 
 }
