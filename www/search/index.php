@@ -38,7 +38,7 @@ if (!empty($searchTerm) && ws('mode')=='search') {
         $dataFieldIdsQuery[0].=' AND dataField.useForGeneralSearch>0';
     }
     $dataFieldIds = $DB->getColumn($dataFieldIdsQuery);
-    
+   
     // If no record types specified then select all record types
     // Validate the list of ID's if one is provided
     $recordTypeIds = ws('recordTypeIds');
@@ -95,7 +95,6 @@ if (!empty($searchTerm) && ws('mode')=='search') {
         if (empty($searchSql)) continue;
         $unionQueries[] = "SELECT recordData.recordId FROM recordData $joins WHERE $searchSql AND hidden=0";
     }
-
     // Clear the searchBuild table for this search
     $DB->delete('searchBuild',['searchId'=>$searchId]);
 
@@ -179,14 +178,14 @@ include(VIEWS_DIR.'/header.php');
 <?formHidden('searchId'); ?>
 Search: <? formTextbox('searchTerm',20,100); ?>
 Searching: All Record Types <a href="#">Change</a>
-<div id="advancedSearch">
+<div style="display: none;" id="advancedSearch">
     <div id="form-row">
         <div class="question">Equals</div>
         <div class="answer">
             <? formTextbox('search_eq',20,100); ?>
         </div>
     </div>
-    <div id="form-row" depednsOn="search_eq em"
+    <div id="form-row" depednsOn="search_eq em">
         <div class="question">Contains</div>
         <div class="answer">
             <? formTextbox('search_ct',20,100); ?>
@@ -205,10 +204,9 @@ Searching: All Record Types <a href="#">Change</a>
         </div>
     </div>
     <div id="advancedSearchQuestionSelect">
-    <div id="advancedSearchQuestionSelect">
         <? $searchFieldSelect->displayCheckboxes(); ?>
     </div>
-</div>
+</div><br />
 
 <? if (ws('searchId')) { ?>
     <div class="extendSearch">
@@ -217,7 +215,7 @@ Searching: All Record Types <a href="#">Change</a>
 <? } ?>
 <input type="submit" value="Search" />
 <? if ($searchId && $numResults>0) { ?>
-    <a class="btn" href="search.php">Clear Search</a><br />
+    <a class="btn" href="index.php">Clear Search</a><br />
     <a target="_blank" class="btn" href="download.php?mode=start&searchId=<?wsp('searchId')?>">Download All Results</a><br />
 <? } ?>
 <?

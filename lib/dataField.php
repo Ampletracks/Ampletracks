@@ -1566,6 +1566,9 @@ class DataField_date extends DataField {
         if (!is_numeric($value)) return;
         return date('d/m/Y',$value);
     }
+
+    function exportAnswer() {
+    }
 }
 
 /*
