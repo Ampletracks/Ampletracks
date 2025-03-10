@@ -2360,7 +2360,7 @@ class DataField_chemicalFormula extends DataField {
         return $sql;
     }
 
-    function formatForDisplay($value){
+    static function formatForDisplay($value){
         include_once(LIB_DIR.'/chemicalTools.php');
         return chemicalFormulaToHtml($value);
     }

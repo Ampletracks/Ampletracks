@@ -466,7 +466,7 @@ function chemicalFormulaToHtml($inputString) {
             $displayNumber = (string) round($rounded);
         } else {
             // Otherwise show up to 4 decimals
-            $displayNumber = number_format($rounded, 4, '.', '');
+            $displayNumber = preg_replace('/(\\.\\d*[1-9]+)0+$/','$1',number_format($rounded, 4, '.', ''));
         }
 
         // If the display number is "1" in formula mode, you might opt to omit it:
@@ -479,7 +479,12 @@ function chemicalFormulaToHtml($inputString) {
     // 5. Join them without spaces for typical chemical formula style
     $result = implode('', $htmlParts);
 
-    if ($mode !== 'formula') $result .= substr($mode,0,2).'. %';
+    $displayMode = [
+        'weight' => 'wt.%',
+        'atomic' => 'at.%',
+        'formula' => ''
+    ];
+    $result .= $displayMode[$mode];
     return '<div class="chemicalFormula">'.$result.'</div>';
 }
 

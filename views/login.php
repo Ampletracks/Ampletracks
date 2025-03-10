@@ -101,12 +101,14 @@ $cobrandingLogoUrl = getConfig('Cobranding logo URL');
                             </a>
                         </li>
                     <? } ?>
-                    <li>
-                        <a id="scanLabelButton" href="#">
-                            <?= getSVGIcon('scanLabel') ?>
-                            Want to scan a label?
-                        </a>
-                    </li>
+                    <? if (getConfigBoolean('Enable label support')) { ?>
+                        <li>
+                            <a id="scanLabelButton" href="#">
+                                <?= getSVGIcon('scanLabel') ?>
+                                Want to scan a label?
+                            </a>
+                        </li>
+                    <? } ?>
                 </ul>
             </div>
 

@@ -117,6 +117,7 @@ function listSql(){
         GROUP BY record.id
         ORDER BY $orderBy
     ";
+
     return $sql;
 }
 

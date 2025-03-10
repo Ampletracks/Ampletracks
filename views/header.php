@@ -134,7 +134,7 @@ call_user_func(function () {
                                 </script>
                             </li>
                         <? } ?>
-                        <? if(strpos($_SERVER["PHP_SELF"], '/scanQRCode.php') !== 0) {?>
+                        <? if(getConfigBoolean('Enable label support') && strpos($_SERVER["PHP_SELF"], '/scanQRCode.php') !== 0) {?>
                             <li>
                                 <a href="/scanQRCode.php">
                                     <?= getSVGIcon('scanLabel') ?>
