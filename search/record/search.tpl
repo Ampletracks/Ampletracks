@@ -52,7 +52,7 @@
     ?>
     <tr>
         <td>
-            <a href="record/find.php?recordId=<?=signInput($rowData['id'],'PUBLIC_VIEW')?>">View</a>
+            <a href="../record/find.php?recordId=<?=signInput($rowData['id'],'PUBLIC_VIEW')?>">View</a>
         </td>
 
         <? foreach( $fieldsToDisplay as $fieldId => $fieldData ) {

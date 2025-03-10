@@ -45,7 +45,12 @@ class fileUpload {
     public function exists() {
         return file_exists($this->location());
     }
-    
+
+    public function size() {
+        if (!file_exists($this->location())) return false;
+        return filesize($this->location());
+    }
+
     public function store($tmpLocation, $info) {
         
         $finalLocation = $this->location();
@@ -156,17 +161,28 @@ class fileUpload {
         $class = get_called_class();
         $object = new $class();
         $object->unpackAttributes($packedAttributes);
-        $metadata = $object->loadMetadata();
+
+        $name = $object->name();
+        if ($name===false) $name='unknown';
         
         if ($type=="download") {
-            $name = isset($metadata['name'])?$metadata['name']:'unknown';
             header("Content-Disposition: attachment; filename*=UTF-8''".rawurlencode($name));
         }
 
-        readfile($object->location());
+        $fileLocation = $object->location();
+
+        header('Content-Encoding: none');
+        header('Content-Length: ' . filesize($fileLocation));
+
+        readfile($fileLocation);
         exit;
     }
     
+
+    public function name() {
+        $metadata = $this->loadMetadata();
+        return isset($metadata['name'])?$metadata['name']:false;
+    }
 
     public function signFileSpec( &$spec ) {
         $class = get_class($this);

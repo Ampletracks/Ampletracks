@@ -125,7 +125,7 @@ if (!$error && $USER_ID && $mode!='public') {
 }
 
 if (!$error) {
-    $dataFields = datafield::buildAllForRecord( $recordId, ['where'=>'dataField.displayToPublic'] );
+    $dataFields = datafield::buildAllForRecord( $recordId, ['where'=>'dataField.displayToPublic>0'] );
     dataField::loadAnswersForRecord($recordId,'dataField.displayToPublic');
     $previewMessage = $DB->getValue('
         SELECT publicPreviewMessage
@@ -135,6 +135,20 @@ if (!$error) {
 }
 
 if ($error && $errorReturnCode) http_response_code($errorReturnCode);
+
+if (ws('mode')=='json') {
+    include_once(LIB_DIR.'/kvToStruct.php');
+    include_once(LIB_DIR.'/api/tools.php');
+    $exportData = [];
+    foreach( $dataFields as $dataField ) {
+        $key = $dataField->exportName;
+        $exportData[$key] = $dataField->exportAnswer();
+    }
+    $exportData = kvToStruct($exportData);
+    $exportData['__apiId'] = API\getAPIId('record', $recordId);
+    echo json_encode($exportData,JSON_PRETTY_PRINT);
+    exit;
+}
 
 include(VIEWS_DIR.'/header.php');
 
@@ -186,7 +200,7 @@ if ($USER_ID && $mode!='public') {
         <? } ?>
         <div class="questionAndAnswerContainer recordData publicView">
             <? foreach( $dataFields as $dataField ) {
-                $dataField->displayRow( true );
+                $dataField->displayRow( true, false );
             } ?>
         </div>
     <? }

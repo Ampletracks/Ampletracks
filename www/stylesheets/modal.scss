@@ -17,12 +17,15 @@
 
     &__container {
         background: white;
-        max-width: 500px;
+        max-width: 75vw;
+        max-height: 75vh;
         width: 90%;
         padding: 20px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         border-radius: 8px;
         position: relative;
+        overflow-x:hidden;
+        overflow-y:scroll;
     }
 
     .modal__close {
@@ -53,6 +56,7 @@
     &__footer {
         justify-content: flex-end;
         gap: 10px;
+        overflow: hidden;
 
         .modal__btn {
             padding: 10px 20px;

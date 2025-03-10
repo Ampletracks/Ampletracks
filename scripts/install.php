@@ -54,6 +54,7 @@ $tables = array(
         'orderId' => "SMALLINT(5) UNSIGNED NOT NULL",
         'recordTypeId' => "INT(10) UNSIGNED NOT NULL",
         'name' => "VARCHAR(255) DEFAULT NULL",
+        'publicName' => "VARCHAR(255) DEFAULT NULL",
         'exportName' => "VARCHAR(255) DEFAULT NULL",
         'apiName' => "VARCHAR(255) DEFAULT NULL",
         'typeId' => "TINYINT(3) UNSIGNED NOT NULL",
@@ -93,6 +94,23 @@ $tables = array(
         'name' => "VARCHAR(255) DEFAULT NULL",
         'hasValue' => "TINYINT(3) UNSIGNED NOT NULL",
         'disabled' => "TINYINT(3) UNSIGNED NOT NULL DEFAULT 0",
+    ),
+    'downloadBundle' => array(
+        'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
+        'searchId' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
+        'createdAt' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
+        'index_searchId' => "INDEX (`searchId`,`createdAt`)",
+        'index_createdAt' => "INDEX (`createdAt`)"
+    ),
+    'downloadBundleEntry' => array(
+        'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
+        'downloadBundleId' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
+        'recordId' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
+        'dataFieldId' => "TINYINT(3) UNSIGNED NOT NULL",
+        'complete' => "TINYINT(3) UNSIGNED NOT NULL DEFAULT 0",
+        'size' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
+        'lastUpdatedAt' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
+        'index_searchId' => "INDEX (`downloadBundleId`,`lastUpdatedAt`)"
     ),
     'email' => array(
         'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",

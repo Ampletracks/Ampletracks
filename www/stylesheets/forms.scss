@@ -251,7 +251,7 @@ div.picklistHolder {
     }
 }
 
-.form-row {
+.form-row, #advancedSearch {
     position: relative;
     display: block;
     padding: 1rem;
@@ -294,6 +294,28 @@ div.picklistHolder {
     &.commentary {
         padding: 0;
         background-color: transparent;
+    }
+}
+
+#advancedSearch {
+    margin-bottom: 0.5em;
+}
+
+#advancedSearchQuestionSelect {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+
+    .checkbox {
+        label {
+            flex: 0 1 auto;
+            margin-right: 0.5em;
+        }
+
+        input[type="checkbox"],input[type="radio"] {
+            flex: 0 1 auto;
+            margin-right: 0.5em;
+        }
     }
 }
 

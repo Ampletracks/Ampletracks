@@ -444,6 +444,19 @@ class DataField {
         return $return;
     }
 
+    // This is called when the value needs to be exported to JSON
+    // This is just the fallback. This can be overridden with something
+    // better in the specific object definitions.
+    function exportAnswer() {
+        $unit = trim($this->unit);
+        $value = $this->getAnswer();
+        if (empty($unit)) {
+            return $value;
+        } else {
+            return [ 'value'=>$value, 'unit'=>$unit ];
+        }
+    }
+
     static function saveDefaultJavascriptDisplay() {
         if (self::$saveDefaultJavascriptDisplayed) return;
         self::$saveDefaultJavascriptDisplayed=true;
@@ -517,8 +530,12 @@ class DataField {
         if (strlen($unit)) echo '<span class="unit">'.htmlspecialchars($unit).'</span>';
     }
 
-    function displayLabel() {
-        echo htmlspecialchars($this->params['question']);
+    function displayLabel( $isPublic = false ) {
+        if ($isPublic && !empty($this->params['publicName'])) {
+            echo htmlspecialchars($this->params['publicName']);
+        } else {
+            echo htmlspecialchars($this->params['question']);
+        }
     }
 
     function displayPublicValue() {
@@ -543,7 +560,7 @@ class DataField {
         <div class="questionAndAnswer <?=htmlspecialchars($this->getType())?> <?=htmlspecialchars(implode(' ', $extraClasses))?>" <?=$this->getDependencyAttributes()?> <?=$title ? 'title="'.$title.'"' : ''?>>
 			<? if (!$hideLabel) { ?>
 				<div class="question">
-					<? $this->displayLabel(); ?>
+					<? $this->displayLabel($isPublic); ?>
 				</div>
 			<? } ?>
             <div class="answer">
@@ -2070,6 +2087,24 @@ class DataField_image extends DataField {
         if ($hidden) return true;
 
         return $result;
+    }
+
+	function displayRow( $isPublic = true, $hideLabel = true ) {
+		return parent::displayRow( $isPublic, $hideLabel );
+	}
+
+	function displayPublicValue( ) {
+		$file = $this->upload->getFileObject();
+        $file->display();
+	}
+
+    function exportAnswer() {
+        $file = $this->upload->getFileObject();
+        return [
+            'originalFilename' => $file->name(),
+            'filename' => $file->getDownloadName(),
+            'size' => $file->size()
+        ];
     }
 
     function displayInput() {

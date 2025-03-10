@@ -31,4 +31,12 @@ class dataFieldFileUpload extends fileUpload  {
         );
     }
 
+    public function getDownloadName() {
+        $filename = 'upload_'.(int)$this->attributes['dataFieldId'];
+        $name = $this->name();
+        $ext = pathinfo($name, PATHINFO_EXTENSION);
+        if (empty($ext)) $ext='unknown';
+        $filename .= '.'.$ext;
+        return $filename;
+    }
 }

@@ -2,18 +2,18 @@
 
 $INPUTS = [
     'search' => [
+        'searchId' => 'INT SIGNED(SEARCH)',
         'subMode' => 'TEXT',
         'searchTerm' => 'TEXT',
         'recordTypeIds' => 'INT ARRAY',
-        'searchId' => 'INT SIGNED(SEARCH)'
     ]
 ];
 
-include('../lib/core/startup.php');
+include('../../lib/core/startup.php');
 include(CORE_DIR.'/search.php');
 
 $searchTerm = trim(ws('searchTerm'));
-$searchId='';
+$searchId=ws('searchId');
 
 if (!empty($searchTerm) && ws('mode')=='search') {
     include_once(LIB_DIR.'/dataField.php');
@@ -60,8 +60,6 @@ if (!empty($searchTerm) && ws('mode')=='search') {
     }
 
     $dataFieldsQuery = $DB->query( $dataFieldsQuery );
-
-    $searchId=ws('searchId');
 
     // Check if they want to restart the result set
     if (!in_array($subMode,['remove','filter','add'])) {
@@ -160,6 +158,19 @@ $subModeSelect = new formOptionbox('subMode',[
     "start new search" => "new"
 ]);
 $subModeSelect->setExtra('id="subModeSelect"');
+
+$searchFieldSelect = new formOptionbox('','
+    SELECT IF(LENGTH(dataField.publicName),dataField.publicName,dataField.question), dataField.id
+    FROM
+        dataField
+        INNER JOIN recordType ON recordType.id=dataField.recordTypeId AND recordType.includeInPublicSearch>0
+        INNER JOIN dataFieldType ON dataFieldType.id=dataField.typeId
+    WHERE
+        dataField.useForAdvancedSearch AND
+        dataField.deletedAt=0 AND
+        dataField.displayToPublic>0 AND
+        dataFieldType.hasValue>0
+');
 include(VIEWS_DIR.'/header.php');
 ?>
 
@@ -167,15 +178,47 @@ include(VIEWS_DIR.'/header.php');
 <?formHidden('mode','search'); ?>
 <?formHidden('searchId'); ?>
 Search: <? formTextbox('searchTerm',20,100); ?>
-Searching: All Record Types <a href="#">Change</a><br />
+Searching: All Record Types <a href="#">Change</a>
+<div id="advancedSearch">
+    <div id="form-row">
+        <div class="question">Equals</div>
+        <div class="answer">
+            <? formTextbox('search_eq',20,100); ?>
+        </div>
+    </div>
+    <div id="form-row" depednsOn="search_eq em"
+        <div class="question">Contains</div>
+        <div class="answer">
+            <? formTextbox('search_ct',20,100); ?>
+        </div>
+    </div>
+    <div id="form-row">
+        <div class="question">Greater Than</div>
+        <div class="answer">
+            <? formTextbox('search_gt',10,20); ?>
+        </div>
+    </div>
+    <div id="form-row">
+        <div class="question">Less Than</div>
+        <div class="answer">
+            <? formTextbox('search_lt',10,20); ?>
+        </div>
+    </div>
+    <div id="advancedSearchQuestionSelect">
+    <div id="advancedSearchQuestionSelect">
+        <? $searchFieldSelect->displayCheckboxes(); ?>
+    </div>
+</div>
+
 <? if (ws('searchId')) { ?>
     <div class="extendSearch">
         <label for="subModeSelect">Extend existing search:</label><? $subModeSelect->display(); ?>
     </div>
 <? } ?>
 <input type="submit" value="Search" />
-<? if ($searchId) { ?>
+<? if ($searchId && $numResults>0) { ?>
     <a class="btn" href="search.php">Clear Search</a><br />
+    <a target="_blank" class="btn" href="download.php?mode=start&searchId=<?wsp('searchId')?>">Download All Results</a><br />
 <? } ?>
 <?
 if ($searchId) {
