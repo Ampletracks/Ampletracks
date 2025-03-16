@@ -129,8 +129,14 @@ ul.error {
         }
     }
 }
-div.answer ul.error {
-    width : 100%;
+div.answer {
+    ul.error {
+        width : 100%;
+    }
+    .info {
+        margin-top: -0.2em; 
+        margin-bottom: 0.8em; 
+    }
 }
 
 div.question {
@@ -298,10 +304,15 @@ div.picklistHolder {
 }
 
 #advancedSearch {
-    margin-bottom: 0.5em;
+    margin-bottom: 1em;
 }
 
-#advancedSearchQuestionSelect {
+#advancedSearchQuestionSelectContainer, #advancedSearchRecordTypeSelectContainer, #advancedSearchConditionsContainer {
+    background-color: white;
+    padding: 1em;
+}
+
+#advancedSearchQuestionSelect, #advancedSearchRecordTypeSelect,  {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 10px;

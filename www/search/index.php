@@ -4,10 +4,18 @@ $INPUTS = [
     'search' => [
         'searchId' => 'INT SIGNED(SEARCH)',
         'subMode' => 'TEXT',
+        'existingSearchDescription' => 'TEXT',
         'searchTerm' => 'TEXT',
         'recordTypeIds' => 'INT ARRAY',
+        'dataFieldIds' => 'TEXT ARRAY',
+        'search_eq' => 'TEXT',
+        'search_ct' => 'TEXT',
+        'search_gt' => 'TEXT',
+        'search_lt' => 'TEXT',
     ]
 ];
+
+$requireLogin = false;
 
 include('../../lib/core/startup.php');
 include(CORE_DIR.'/search.php');
@@ -20,25 +28,46 @@ if (!empty($searchTerm) && ws('mode')=='search') {
 
     $subMode = ws('subMode');
 
-    // If no specific dataField has been specified then use the ones that are flagged for use in general search
-    $dataFieldIds = ws('dataFieldIds');
-    $dataFieldIds =  array_filter(forceArray($dataFieldIds));
     $dataFieldIdsQuery = ['
-        SELECT id
+        SELECT
+            id,
+            IF(LENGTH(dataField.publicName),dataField.publicName,dataField.question) AS name
         FROM
             dataField 
         WHERE
             dataField.deletedAt=0 AND
             dataField.displayToPublic>0
     '];
+
+    // If no specific dataField has been specified then use the ones that are flagged for use in general search
+    $dataFieldIds = ws('dataFieldIds');
+    $dataFieldIds =  forceArray($dataFieldIds);
+
+    // Clean and validate dataFieldIds
+    if (count($dataFieldIds)) {
+        // some of the entries in $dataFieldIds may be comma separated lists
+        // To handle these we join all values into one long string then split on comma
+        $dataFieldIds = array_filter(explode(',', implode(',', $dataFieldIds)), function($value) {
+            return ctype_digit($value) && (int)$value > 0;
+        });
+    }
+
     if (count($dataFieldIds)) {
         $dataFieldIdsQuery[0].=' AND dataField.id IN (?) AND dataField.useForAdvancedSearch>0';
         $dataFieldIdsQuery[1] = $dataFieldIds;
+        $dataFieldDescription =  implode(',',array_values($dataFieldInfo));
+        if (count($dataFieldIds)>1) {
+            $dataFieldDescription = 'any of these fields ['.$dataFieldDescription.']';
+        }
+        $dataFieldDescription = ucfirst($dataFieldDescription);
     } else {
         $dataFieldIdsQuery[0].=' AND dataField.useForGeneralSearch>0';
+        $dataFieldDescription =  'Any general search field';
     }
-    $dataFieldIds = $DB->getColumn($dataFieldIdsQuery);
-   
+
+    $dataFieldInfo = $DB->getHash($dataFieldIdsQuery);
+    $dataFieldIds = array_keys($dataFieldInfo);    
+    
     // If no record types specified then select all record types
     // Validate the list of ID's if one is provided
     $recordTypeIds = ws('recordTypeIds');
@@ -158,8 +187,8 @@ $subModeSelect = new formOptionbox('subMode',[
 ]);
 $subModeSelect->setExtra('id="subModeSelect"');
 
-$searchFieldSelect = new formOptionbox('','
-    SELECT IF(LENGTH(dataField.publicName),dataField.publicName,dataField.question), dataField.id
+$recordTypeSelect = new formOptionbox('recordTypeIds','
+    SELECT DISTINCT recordType.name, recordType.id
     FROM
         dataField
         INNER JOIN recordType ON recordType.id=dataField.recordTypeId AND recordType.includeInPublicSearch>0
@@ -170,43 +199,101 @@ $searchFieldSelect = new formOptionbox('','
         dataField.displayToPublic>0 AND
         dataFieldType.hasValue>0
 ');
+$recordTypeSelect->setMultiple(true);
+
+$searchFields = $DB->query('
+    SELECT
+        IF(LENGTH(dataField.publicName),dataField.publicName,dataField.question) AS name,
+        MIN(dataField.id) AS id,
+        GROUP_CONCAT(DISTINCT dataField.id SEPARATOR ",") AS ids,
+        GROUP_CONCAT(DISTINCT recordType.id SEPARATOR "|") AS recordTypeIds
+    FROM
+        dataField
+        INNER JOIN recordType ON recordType.id=dataField.recordTypeId AND recordType.includeInPublicSearch>0
+        INNER JOIN dataFieldType ON dataFieldType.id=dataField.typeId
+    WHERE
+        dataField.useForAdvancedSearch AND
+        dataField.deletedAt=0 AND
+        dataField.displayToPublic>0 AND
+        dataFieldType.hasValue>0
+    GROUP BY name
+');
+
+$extraScripts[] = '/javascript/dependentInputs.js';
 include(VIEWS_DIR.'/header.php');
 ?>
 
 <form action="" method="post">
 <?formHidden('mode','search'); ?>
 <?formHidden('searchId'); ?>
+<?formHidden('existingSearchDescription'); ?>
 Search: <? formTextbox('searchTerm',20,100); ?>
-Searching: All Record Types <a href="#">Change</a>
-<div style="display: none;" id="advancedSearch">
-    <div id="form-row">
-        <div class="question">Equals</div>
-        <div class="answer">
-            <? formTextbox('search_eq',20,100); ?>
+<a class="btn small" href="#" id="advancedSearchButton">Advanced Search</a><br />
+<div id="advancedSearch">
+    <h2>Record Types</h2>
+    <div id="advancedSearchRecordTypeSelectContainer">
+        <div id="advancedSearchRecordTypeSelect">
+            <? $recordTypeSelect->displayCheckboxes(); ?>
+        </div>
+        <div class="info">Selecting no record types is the same as selecting all record types</div>
+    </div>
+
+    <h2>Search Fields</h2>
+    <div id="advancedSearchQuestionSelectContainer">
+        <div id="advancedSearchQuestionSelect">
+            <?
+            while( $searchFields->fetchInto($row) ) {
+                ?>
+                <span class="checkbox" dependencyCombinator="or" dependsOn1="recordTypeIds[] cy <?=$row['recordTypeIds']?>" dependsOn2="recordTypeIds[] em">
+                    <input id="searchField_<?=$row['id']?>" type="checkbox" name="dataFieldIds[]" value="<?=htmlspecialchars($row['ids'])?>">
+                    <label for="searchField_<?=$row['id']?>"><?=htmlspecialchars($row['name'])?></label>
+                </span>
+                <?
+            }
+            ?>
+        </div>
+        <div class="info">Selecting no fields is the same as selecting all fields</div>
+    </div>
+    <h2>Search Conditions</h2>
+    <div id="advancedSearchConditionsContainer">
+        <div id="form-row" dependencyCombinator="and" dependsOn1="search_ct ab" dependsOn2="search_gt ab" dependsOn3="search_lt ab"> 
+            <div class="question">Equals</div>
+            <div class="answer">
+                <? formTextbox('search_eq',20,100); ?>
+            </div>
+        </div>
+        <div id="form-row" dependencyCombinator="and" dependsOn1="search_eq ab" dependsOn2="search_gt ab" dependsOn3="search_lt ab"> 
+            <div class="question">Contains</div>
+            <div class="answer">
+                <? formTextbox('search_ct',20,100); ?>
+            </div>
+        </div>
+        <div id="form-row" dependencyCombinator="and" dependsOn1="search_eq ab" dependsOn2="search_ct ab">
+            <div class="question">Greater Than</div>
+            <div class="answer">
+                <? formTextbox('search_gt',10,20); ?>
+                <div class="info">For date fields use dd/mm/yyyy</div>
+            </div>
+        </div>
+        <div id="form-row" dependencyCombinator="and" dependsOn1="search_eq ab" dependsOn2="search_ct ab"> 
+            <div class="question">Less Than</div>
+            <div class="answer">
+                <? formTextbox('search_lt',10,20); ?>
+                <div class="info">For date fields use dd/mm/yyyy</div>
+            </div>
         </div>
     </div>
-    <div id="form-row" depednsOn="search_eq em">
-        <div class="question">Contains</div>
-        <div class="answer">
-            <? formTextbox('search_ct',20,100); ?>
-        </div>
-    </div>
-    <div id="form-row">
-        <div class="question">Greater Than</div>
-        <div class="answer">
-            <? formTextbox('search_gt',10,20); ?>
-        </div>
-    </div>
-    <div id="form-row">
-        <div class="question">Less Than</div>
-        <div class="answer">
-            <? formTextbox('search_lt',10,20); ?>
-        </div>
-    </div>
-    <div id="advancedSearchQuestionSelect">
-        <? $searchFieldSelect->displayCheckboxes(); ?>
-    </div>
-</div><br />
+</div>
+<script>
+    $(document).ready(function() {
+        $('#advancedSearch').hide();
+        $('#advancedSearchButton').click(function() {
+            $(this).hide();
+            $('#advancedSearch').toggle();
+            return false;
+        });
+    });
+</script>
 
 <? if (ws('searchId')) { ?>
     <div class="extendSearch">
