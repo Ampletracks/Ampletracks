@@ -142,6 +142,7 @@ if (ws('mode')=='json') {
     $exportData = [];
     foreach( $dataFields as $dataField ) {
         $key = $dataField->exportName;
+        if (!$dataField->hasValue()) continue;
         $exportData[$key] = $dataField->exportAnswer();
     }
     $exportData = kvToStruct($exportData);

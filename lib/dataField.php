@@ -1568,6 +1568,11 @@ class DataField_date extends DataField {
     }
 
     function exportAnswer() {
+        $answer = $this->getAnswer();
+        return [
+            'unixTime' => $answer,
+            'ISO8601'  => date('C',$answer)
+        ];
     }
 }
 
