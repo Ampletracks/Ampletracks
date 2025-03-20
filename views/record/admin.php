@@ -440,6 +440,21 @@ global $parentName;
 <script>
     let inheritanceStartupChecks;
 
+    function setAnswer( input, answer ) {
+        console.log('Setting',input,answer);
+        if (!input.eq(0).is('input[type=radio],input[type=checkbox]')) {
+            input.val(answer);
+        } else {
+            input.each(function(){
+                let self = $(this);
+                if (Array.isArray(answer)) {
+                    self.prop('checked',answer.indexOf(self.val())>=0);
+                }
+                else self.prop('checked',self.val()==answer);
+            })
+        }
+    }
+
     $(function () {
         function setInheritanceDisabled(inheritanceControl) {
             let controlType = inheritanceControl.prop('type');
@@ -457,9 +472,9 @@ global $parentName;
             if(controlType != 'hidden') {
                 if(inherited) {
                     inheritanceControl.data('changedAnswer', input.val());
-                    input.val(inheritanceControl.data('parentAnswer'));
+                    setAnswer(input,inheritanceControl.data('parentAnswer'));
                 } else {
-                    input.val(inheritanceControl.data('changedAnswer'));
+                    setAnswer(input,inheritanceControl.data('changedAnswer'));
                 }
             }
             input.prop('disabled', inherited);
