@@ -1906,6 +1906,15 @@ class DataField_upload extends DataField {
         inputError($this->inputName());
     }
 
+    function exportAnswer() {
+        $file = $this->upload->getFileObject();
+        return [
+            'originalFilename' => $file->name(),
+            'filename' => $file->getDownloadName(),
+            'size' => $file->size()
+        ];
+    }
+
     function filterNames() {
         return [];
     }
