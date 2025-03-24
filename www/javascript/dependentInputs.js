@@ -93,6 +93,7 @@ $(function(){
 			'cleanup': function(value) { return value.toLowerCase().split(/\|/); },
 			'test' : function(value,searchBits,comparator, multiple) {
 				var compareValue = value.toLowerCase();
+            console.log( compareValue, searchBits );
 				for( i=searchBits.length-1; i>=0; i--) {
 					if (!searchBits[i].length) continue;
 					if (compareValue.indexOf(searchBits[i].toLowerCase())>-1) {

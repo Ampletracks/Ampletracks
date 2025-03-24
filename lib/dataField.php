@@ -897,10 +897,28 @@ class DataField {
     }
 
     // Build SQL for use when searching for fields of this type
-    function searchSql( $searchTerm, $dataField, $recordTypeIdField ) {
+    function searchSql( $searchTerm, $condition, $dataField, $recordTypeIdField ) {
         global $DB;
-        $searchTerm = $DB->escapeAndQuote('%'.trim($searchTerm).'%');
-        $sql = " $recordTypeIdField={$this->recordTypeId} AND $dataField LIKE $searchTerm";
+        $sql = " $recordTypeIdField={$this->recordTypeId} AND ";
+        if ($condition=='bt') {
+            $searchTermFrom = $DB->escapeAndQuote(trim($searchTerm[0]));
+            $searchTermTo = $DB->escapeAndQuote(trim($searchTerm[1]));
+            $sql .= "$dataField BETWEEN $searchTermFrom AND $searchTermTo";
+        } else if (strpos('|lt|le|gt|ge|eq',$condition)) {
+            $operatorLookup = array(
+                'lt' => '<',
+                'le' => '<=',
+                'gt' => '>',
+                'ge' => '>=',
+                'eq' => '='
+            );
+            $operator = $operatorLookup[$condition];
+            $searchTerm = $DB->escapeAndQuote(trim($searchTerm));
+            $sql .= "$dataField $operator $searchTerm";
+        } else {
+            $searchTerm = $DB->escapeAndQuote('%'.trim($searchTerm).'%');
+            $sql .= "$dataField LIKE $searchTerm";
+        }
         return $sql;
     }
 }
@@ -1215,6 +1233,18 @@ class DataField_integer extends DataField {
         echo "<br />&lt;&nbsp;";
         formInteger( $names[1], $this->min, $this->max, 1, $values[1] );
     }
+
+    function searchSql( $searchTerm, $condition, $dataField, $recordTypeIdField ) {
+        if ($condition=='bt') {
+            foreach ($searchTerm as &$term) {
+                $term = (int)$term;
+            }
+        } else {
+            $searchTerm = (int)$searchTerm;
+        }
+        return parent::searchSql($searchTerm, $condition, $dataField, $recordTypeIdField);
+    }
+
 }
 
 /*
@@ -1251,6 +1281,18 @@ class DataField_float extends DataField_integer {
         echo "<br />&lt;&nbsp;";
         formTextbox( $names[1], 5, 200, $values[1] );
     }
+
+    function searchSql( $searchTerm, $condition, $dataField, $recordTypeIdField ) {
+        if ($condition=='bt') {
+            foreach ($searchTerm as &$term) {
+                $term = (float)$term;
+            }
+        } else {
+            $searchTerm = (float)$searchTerm;
+        }
+        return parent::searchSql($searchTerm, $condition, $dataField, $recordTypeIdField);
+    }
+
 }
 
 /*
@@ -1574,6 +1616,18 @@ class DataField_date extends DataField {
             'ISO8601'  => date('C',$answer)
         ];
     }
+
+    function searchSql( $searchTerm, $condition, $dataField, $recordTypeIdField ) {
+        if ($condition=='bt') {
+            foreach ($searchTerm as &$term) {
+                $term = strtotime($term);
+            }
+        } else {
+            $searchTerm = strtotime($searchTerm);
+        }
+        return parent::searchSql($searchTerm, $condition, $dataField, $recordTypeIdField);
+    }
+
 }
 
 /*
@@ -2356,12 +2410,12 @@ class DataField_chemicalFormula extends DataField {
         $this->displayDefaultWarning();
     }
 
-    function searchSql( $searchTerm, $dataField, $dataFieldTypeIdField ) {
+    function searchSql( $searchTerm, $condition, $dataField, $recordTypeIdField ) {
         include_once(LIB_DIR.'/chemicalTools.php');
         $elements = parseChemicalStringToElements($searchTerm);
         if (empty($elements)) return false;
 
-        $sql = "$dataFieldTypeIdField={$this->id}";
+        $sql = "$recordTypeIdField={$this->recordTypeId}";
         foreach( $elements as $element ) {
             $sql .= " AND $dataField RLIKE '{$element}[0-9]'";
         }

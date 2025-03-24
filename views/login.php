@@ -3,6 +3,12 @@
 global $showCaptcha;
 if (!isset($showCaptcha)) $showCaptcha=false;
 
+// If public search is enabled send them to the search page unless they explicitly want to login
+if (getConfigBoolean('Enable public search') && (!isset($_REQUEST['mode']) || $_REQUEST['mode']!='login')) {
+    header('Location: /search/');
+    exit;
+}
+
 $cobrandingLogoUrl = getConfig('Cobranding logo URL');
 
 ?>
