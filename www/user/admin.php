@@ -237,8 +237,9 @@ function reorderUserDefaults($userId) {
 }
 
 function processUpdateBefore($id) {
+    global $DB, $originalUserData;
+
     if ($id==0 && ws('user_email')) {
-        global $DB;
         // Check to see if a user with this email already exists
         $alreadyExists = $DB->getRow('SELECT id FROM user WHERE deletedAt=0 AND email=@@user_email@@');
         if ($alreadyExists) {
@@ -246,10 +247,35 @@ function processUpdateBefore($id) {
             return false;
         }
     }
+
+    $originalUserData = null;
+    if ($id) {
+        $originalUserData = $DB->getRow('SELECT firstName, lastName FROM user WHERE id=?',$id);
+    }
 }
 
 function processUpdateAfter($userId) {
-    global $DB;
+    global $DB, $originalUserData;
+
+    if ($originalUserData) {
+        // If the firstname or lastname has changed then we need to update any s3Uploads that are marked as usesOwner
+        $changed = false;
+        if (
+            ( wsset('user_firstName') && $originalUserData['firstName'] != ws('user_firstName')) ||
+            ( wsset('user_lastName') && $originalUserData['lastName'] != ws('user_lastName'))
+        ) {
+            $DB->exec('
+                UPDATE s3Upload
+                INNER JOIN record ON record.id=s3Upload.recordId
+                SET s3Upload.needsPathCheck=UNIX_TIMESTAMP()
+                WHERE
+                    record.userId=? AND
+                    record.deletedAt=0 AND
+                    s3Upload.deletedAt=0 AND
+                    s3Upload.usesOwner=1
+            ',$userId);
+        }
+    }
 
     // Build the selectors so that we can use them to validate the changes
     buildSelectors($userId);

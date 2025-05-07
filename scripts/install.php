@@ -46,6 +46,7 @@ $tables = array(
         'description' => "TEXT DEFAULT NULL",
         'value' => "TEXT DEFAULT NULL",
         'path' => "varchar(255) DEFAULT NULL",
+        'isSecret' => "TINYINT(3) UNSIGNED NOT NULL DEFAULT 0",
         'index_name' => "UNIQUE INDEX (`name`(120))",
     ),
     'dataField' => array(
@@ -76,9 +77,11 @@ $tables = array(
         'questionLastChangedAt' =>  "INT(10) UNSIGNED NOT NULL DEFAULT 0",
         'useForGeneralSearch' => "TINYINT(3) UNSIGNED NOT NULL DEFAULT 0",
         'useForAdvancedSearch' => "TINYINT(3) UNSIGNED NOT NULL DEFAULT 0",
+        'lastUpdatedAt' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
         'index_orderId' => "INDEX (`recordTypeId`,`orderId`)",
         'index_apiId' => "UNIQUE INDEX (`apiId`)",
         'index_recordTypeId' => "INDEX (`recordTypeId`,`displayOnList`)",
+        'index_lastUpdatedAt' => "INDEX (`lastUpdatedAt`,`deletedAt`)",
     ),
     'dataFieldDependency' => array(
         'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
@@ -219,9 +222,11 @@ $tables = array(
         'fromRecordId'             => "INT(10) UNSIGNED NOT NULL",
         'toRecordId'             => "INT(10) UNSIGNED NOT NULL",
         'reciprocalRelationshipId'    => "INT(10) UNSIGNED NOT NULL",
+        'lastUpdatedAt' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
         'index_fromRecordId'        => "UNIQUE INDEX(`fromRecordId`,`relationshipLinkId`,`toRecordId`)",
         'index_toRecordId'        => "INDEX(`toRecordId`,`fromRecordId`)",
         'index_apiId' => "UNIQUE INDEX (`apiId`)",
+        'index_lastUpdatedAt' => "INDEX (`lastUpdatedAt`)",
     ),
     'relationshipPair' => array(
         'id'            => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
@@ -236,42 +241,15 @@ $tables = array(
         'max'                    => "INT(10) UNSIGNED NOT NULL DEFAULT 1",
         'index_relationshipPairId' => "INDEX(`relationshipPairId`)",
     ),
-    'site' => array(
-        'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
-        'fqdn' => "VARCHAR(255) NOT NULL DEFAULT ''",
-    ),
-    'systemAlert' => array(
-        'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
-        'time' => "INT(10) UNSIGNED NOT NULL",
-        'file' => "VARCHAR(255) NOT NULL",
-        'lineNumber' => "INT(10) UNSIGNED NOT NULL",
-        'userId' => "INT(10) UNSIGNED NOT NULL",
-        'message' => "TEXT NOT NULL",
-        'userType' => "ENUM('user','admin') DEFAULT NULL",
-        'fixedAt' => "INT(10) UNSIGNED NOT NULL",
-        'index_userId' => "INDEX (`userId`)",
-        'index_fixedAt' => "INDEX (`fixedAt`)",
-        'index_time' => "INDEX (`time`,`userId`)",
-    ),
-    'systemData' => array(
-        'key'           => 'VARCHAR(255) NOT NULL',
-        'value'         => 'TEXT NOT NULL',
-        'index_key'     => 'UNIQUE INDEX( `key` )',
-    ),
-    'testLookup' => array(
-        'id' => "TINYINT(3) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
-        'test' => "CHAR(3) NOT NULL",
-        'name' => "VARCHAR(255) DEFAULT NULL",
-        'hasValue' => "TINYINT UNSIGNED NOT NULL",
-        'index_test' => "UNIQUE INDEX (`test`)",
-    ),
     'project' => array(
         'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
         'apiId' => "VARCHAR(40) NULL",
         'name' => "VARCHAR(255) NOT NULL",
         'deletedAt' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
+        'lastUpdatedAt' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
         'index_name' => "UNIQUE INDEX(`name`,`deletedAt`)",
         'index_apiId' => "UNIQUE INDEX (`apiId`)",
+        'index_lastUpdatedAt' => "INDEX (`lastUpdatedAt`,`deletedAt`)",
     ),
     'record' => array(
         'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
@@ -282,6 +260,7 @@ $tables = array(
         'ownerId' => "INT(10) UNSIGNED NOT NULL",
         'deletedAt' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
         'lastSavedAt' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
+        'lastUpdatedAt' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
         'hiddenFields' => "TEXT NOT NULL DEFAULT ''",
         'parentId' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
         'projectId' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
@@ -295,7 +274,7 @@ $tables = array(
         'index_path' => "INDEX (`path`(256),`depth`)",
         'index_depth' => "INDEX (`depth`)",
         'index_apiId' => "UNIQUE INDEX (`apiId`)",
-
+        'index_lastUpdatedAt' => "INDEX (`lastUpdatedAt`,`deletedAt`)",
     ),
     'recordData' => array(
         'recordId' => "INT(10) UNSIGNED NOT NULL",
@@ -335,22 +314,26 @@ $tables = array(
         'name' => "VARCHAR(255) NOT NULL",
         'colour' => "CHAR(7) DEFAULT ''",
         'publicPreviewMessage' => "MEDIUMTEXT NOT NULL",
-        'primaryDataFieldId' => "INT(10) UNSIGNED NOT NULL",
+        'primaryDataFieldId' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
         'builtInFieldsToDisplay' => "VARCHAR(255) NOT NULL DEFAULT 'id|labelId|project|path|relationships'",
         'includeInPublicSearch' => "TINYINT(3) UNSIGNED NOT NULL DEFAULT 0",
         'projectId' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
         'deletedAt' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
+        'lastUpdatedAt' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
         'index_name' => "UNIQUE INDEX(`name`,`deletedAt`)",
         'index_projectId' => "INDEX(`projectId`,`name`,`deletedAt`)",
         'index_apiId' => "UNIQUE INDEX (`apiId`)",
+        'index_lastUpdatedAt' => "INDEX (`lastUpdatedAt`,`deletedAt`)",
     ),
     'role' => array(
         'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
         'apiId' => "VARCHAR(40) NULL",
         'name' => "VARCHAR(255) NOT NULL",
         'deletedAt' => "INT(10) UNSIGNED NOT NULL",
+        'lastUpdatedAt' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
         'index_name' => "UNIQUE INDEX(`name`)",
         'index_apiId' => "UNIQUE INDEX (`apiId`)",
+        'index_lastUpdatedAt' => "INDEX (`lastUpdatedAt`,`deletedAt`)",
     ),
     'rolePermission' => array(
         'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
@@ -361,6 +344,40 @@ $tables = array(
         'action' => "ENUM('list','view','edit','delete','create') NOT NULL",
         'index_roleId' => "INDEX (`roleId`,`entity`,`action`,`level`)",
     ),
+
+    's3Upload' => array(
+        'id'              => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
+        'dataFieldId'   => "INT(10) UNSIGNED NOT NULL",
+        'recordId'        => "INT(10) UNSIGNED NOT NULL",
+        'status'          => "ENUM('inProgress','error','ok','needsMove','needsDelete','deleted') NOT NULL DEFAULT 'inProgress'",
+        'size'            => "BIGINT(20) UNSIGNED NOT NULL DEFAULT 0",
+        'originalFilename' => "VARCHAR(255) NOT NULL DEFAULT ''",
+        'createdAt'     => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
+        'uploadCompletedAt' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
+        'usesProject'     => "TINYINT(3) UNSIGNED NOT NULL DEFAULT 0",
+        'usesRecord'      => "TINYINT(3) UNSIGNED NOT NULL DEFAULT 0",
+        'usesOwner'       => "TINYINT(3) UNSIGNED NOT NULL DEFAULT 0",
+        'lastCheckedAt'   => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
+        'lastUpdatedAt'   => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
+        'numAttempts'     => "TINYINT(3) UNSIGNED NOT NULL DEFAULT 0",
+        'needsPathCheck'  => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
+        'path'            => "VARCHAR(1024) NOT NULL DEFAULT ''",
+        'newPath'         => "VARCHAR(1024) NOT NULL DEFAULT ''",
+        'errors'          => "MEDIUMTEXT NOT NULL DEFAULT ''",
+        's3UploadId'      => "VARCHAR(255) NOT NULL DEFAULT ''", // Max length of this is 128, but give a bit of room for the future
+        'progress'        => "TINYINT(3) UNSIGNED NOT NULL DEFAULT 0",
+        'apiId' => "VARCHAR(40) NULL",
+        'deletedAt' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
+        'deletedBy' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
+        // indexes
+        'index_dataFieldId'  => "INDEX (`dataFieldId`,`recordId`)",
+        'index_recordId'       => "INDEX (`recordId`)",
+        'index_lastCheckedAt'  => "INDEX (`status`,`lastCheckedAt`,`deletedAt`)",
+        'index_apiId'          => "UNIQUE INDEX (`apiId`)",
+        'index_deletedAt' => "INDEX (`deletedAt`,`status`)",
+        'index_lastUpdatedAt' => "INDEX (`lastUpdatedAt`,`deletedAt`)",
+    ),
+
     'search' => array(
         'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
         'userId' => "INT(10) UNSIGNED NOT NULL",
@@ -377,6 +394,35 @@ $tables = array(
         'searchId' => "INT(10) UNSIGNED NOT NULL",
         'recordId' => "INT(10) UNSIGNED NOT NULL",
         'index_searchId' => "UNIQUE INDEX(`searchId`,`recordId`)",
+    ),
+    'site' => array(
+        'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
+        'fqdn' => "VARCHAR(255) NOT NULL DEFAULT ''",
+    ),
+    'systemAlert' => array(
+        'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
+        'time' => "INT(10) UNSIGNED NOT NULL",
+        'file' => "VARCHAR(255) NOT NULL",
+        'lineNumber' => "INT(10) UNSIGNED NOT NULL",
+        'userId' => "INT(10) UNSIGNED NOT NULL",
+        'message' => "TEXT NOT NULL",
+        'userType' => "ENUM('user','admin') DEFAULT NULL",
+        'fixedAt' => "INT(10) UNSIGNED NOT NULL",
+        'index_userId' => "INDEX (`userId`)",
+        'index_fixedAt' => "INDEX (`fixedAt`)",
+        'index_time' => "INDEX (`time`,`userId`)",
+    ),
+    'systemData' => array(
+        'key'           => 'VARCHAR(255) NOT NULL',
+        'value'         => 'TEXT NOT NULL',
+        'index_key'     => 'UNIQUE INDEX( `key` )',
+    ),
+    'testLookup' => array(
+        'id' => "TINYINT(3) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
+        'test' => "CHAR(3) NOT NULL",
+        'name' => "VARCHAR(255) DEFAULT NULL",
+        'hasValue' => "TINYINT UNSIGNED NOT NULL",
+        'index_test' => "UNIQUE INDEX (`test`)",
     ),
     'userLibrary' => array(
         'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
@@ -398,6 +444,7 @@ $tables = array(
         'lastLoggedInAt' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
         'lastLoginIp' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
         'createdAt' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
+        'lastUpdatedAt' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
         'recordTypeFilter' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
         'defaultsLastChangedAt' =>  "INT(10) UNSIGNED NOT NULL DEFAULT 0",
         'fontScale' => "TINYINT UNSIGNED NOT NULL DEFAULT 0",
@@ -405,6 +452,7 @@ $tables = array(
         'index_apiId' => "UNIQUE INDEX (`apiId`)",
         'index_lastName' => "INDEX (`lastName`(40),`deletedAt`,`firstName`(40))",
         'index_deletedAt' => "INDEX (`deletedAt`)",
+        'index_lastUpdatedAt' => "INDEX (`lastUpdatedAt`,`deletedAt`)",
     ),
     'userAPIKey' => array(
         'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
@@ -531,36 +579,42 @@ $dbSetup = function() {
         }
     }
 
-    $DB->exec('INSERT IGNORE INTO configuration (name,description,value,path) VALUES
-        ("Minimum user password length","The minimum permissable password length for user accounts","10","/"),
-        ("Shortcut Icon","URL of the shortcut icon (commonly known as the favicon)","","/"),
-        ("Hide add button on record list","Set this to \"Yes\" to remove the \"Add\" button on the record list - this means that new records can only be created from the record type list page, or as children of existing records.","","/record/list.php"),
-        ("Cobranding logo URL","URL for the logo which is presented alongside the Ampletracks logo","/images/brand-logo.png","/"),
-        ("Suppress header logo","If set to \"Yes\" then the main Ampletracks logo is not diplayed in the page header or login page","","/"),
-        ("New account request email","Email address where requests to create a new account are sent. Leave this empty to disable this functionality. You can specify multiple space-separated addresses.","","/"),
-        ("Timezone","The system timezone","","/"),
-        ("Font scale factor","Scale up or down font sizes across the site. Defaults to 100%","","/"),
-        ("Custom header markup","Any markup you add here will be injected into the header of every page. One common application for this is to add any analytics tracking code.","","/"),
-        ("Font scale factor","Scale up or down font sizes across the site. Defaults to 100%. This is combined with (multiplied by) any user-specific scale factor","","/"),
-        ("Pause email delivery","Set this to \"yes\" to pause all outgoing email delivery.","no","/"),
-        ("Email engine","Choose the email delivery engine - currently only supported engine is SMTP - if this is empty then email sending is disabled.","SMTP","/"),
-        ("Email SMTP username","Username used to connect to the SMTP server if email delivery engine is SMTP.","","/"),
-        ("Email SMTP password","Password used to connect to the SMTP server if email delivery engine is SMTP.","","/"),
-        ("Email SMTP port","Port used to connect to the SMTP server if email delivery engine is SMTP.","587","/"),
-        ("Email SMTP server","Domain name of the SMTP server if email delivery engine is SMTP.","","/"),
-        ("Email SMTP encryption mechanism","This must be either SMTPS or STARTTLS.","STARTTLS","/"),
-        ("Email from name","Any emails sent by the system will use this as their from name. This is optional.","","/"),
-        ("Email from address","Any emails sent by the system will use this as their from address. This must be set for email to work","","/"),
-        ("Email reply-to name","Any emails sent by the system will use this as their reply-to name. This is optional.","","/"),
-        ("Email reply-to address","Any emails sent by the system will use this as their reply-to address. This is optional.","","/"),
-        ("Email sending throttle per minute","This determines the maximum number of queued emails the system will send per minute. This throttle is applied in addition to the per day and per hour throttles. N.B. This throttle will not prevent the delivery of any \"immediate priority\" emails such as forgotten password retreival emails, however immediate priority emails that have been sent do count towards the throttle. Empty (or any non-integer value) means unlimited.","100","/cron/email.php"),
-        ("Email sending throttle per hour","This determines the maximum number of queued emails the system will send per hour. This throttle is applied in addition to the per minute and per day throttles. N.B. This throttle will not prevent the delivery of any \"immediate priority\" emails such as forgotten password retreival emails, however immediate priority emails that have been sent do count towards the throttle. Empty (or any non-integer value) means unlimited.","1000","/cron/email.php"),
-        ("Email sending throttle per day","This determines the maximum number of queued emails the system will send per day. This throttle is applied in addition to the per minute and per hour throttles. N.B. This throttle will not prevent the delivery of any \"immediate priority\" emails such as forgotten password retreival emails, however immediate priority emails that have been sent do count towards the throttle. Empty (or any non-integer value) means unlimited.","50000","/cron/email.php"),
-        ("Only send emails to","Emails will only be sent to these addresses/domains. This is primarily intended for testing/development sites where you don\'t want emails being sent out to most users, but it might have other applications. This is a comma separated list. If this list is empty all emails will be sent. If there is one or more entries in this list then only emails which match one of the entries on this list will be sent. Matching is done based on a partial match anchored at the END of the email address e.g. .domain.com  matches all addresses for any subdomain of domain.com; @my.domain.com macthes all addresses at my.domain.com; name@domain.com matches name@domain.com and also my.name@domain.com","","/"),
-        ("Show login warning","Set this to \"yes\" to show the user a warning message every time they log in from a new IP address. One possble application for this is to remind users of any confidentiality agreements, or export constraints. The message will be repeated as determined by \"Login warning repeat period\" setting.","","/"),
-        ("Login warning repeat period","The number of days between repetitions of the login warning for each user on any given IP address. Set this to 1 to have users see the warnings every day for every IP address they come from. Default is 180 days i.e. 6 months. If you set this to zero then the login warning will be repeated on every login.","180","/"),
-        ("Enable public search","Set this to yes if you want to enable the publc (i.e. without logging in) search interface. Records will only be searchable if the record type definition specifies that they should included in the public search.","no","/"),
-        ("Enable label support","Set this to yes if you want to support for QR Code based labelling of records.","yes","/")
+    $DB->exec('INSERT IGNORE INTO configuration (isSecret,name,description,value,path) VALUES
+        (0,"Minimum user password length","The minimum permissable password length for user accounts","10","/"),
+        (0,"Shortcut Icon","URL of the shortcut icon (commonly known as the favicon)","","/"),
+        (0,"Hide add button on record list","Set this to \"Yes\" to remove the \"Add\" button on the record list - this means that new records can only be created from the record type list page, or as children of existing records.","","/record/list.php"),
+        (0,"Cobranding logo URL","URL for the logo which is presented alongside the Ampletracks logo","/images/brand-logo.png","/"),
+        (0,"Suppress header logo","If set to \"Yes\" then the main Ampletracks logo is not diplayed in the page header or login page","","/"),
+        (0,"New account request email","Email address where requests to create a new account are sent. Leave this empty to disable this functionality. You can specify multiple space-separated addresses.","","/"),
+        (0,"Timezone","The system timezone","","/"),
+        (0,"Font scale factor","Scale up or down font sizes across the site. Defaults to 100%","","/"),
+        (0,"Custom header markup","Any markup you add here will be injected into the header of every page. One common application for this is to add any analytics tracking code.","","/"),
+        (0,"Font scale factor","Scale up or down font sizes across the site. Defaults to 100%. This is combined with (multiplied by) any user-specific scale factor","","/"),
+        (0,"Pause email delivery","Set this to \"yes\" to pause all outgoing email delivery.","no","/"),
+        (0,"Email engine","Choose the email delivery engine - currently only supported engine is SMTP - if this is empty then email sending is disabled.","SMTP","/"),
+        (0,"Email SMTP username","Username used to connect to the SMTP server if email delivery engine is SMTP.","","/"),
+        (1,"Email SMTP password","Password used to connect to the SMTP server if email delivery engine is SMTP.","","/"),
+        (0,"Email SMTP port","Port used to connect to the SMTP server if email delivery engine is SMTP.","587","/"),
+        (0,"Email SMTP server","Domain name of the SMTP server if email delivery engine is SMTP.","","/"),
+        (0,"Email SMTP encryption mechanism","This must be either SMTPS or STARTTLS.","STARTTLS","/"),
+        (0,"Email from name","Any emails sent by the system will use this as their from name. This is optional.","","/"),
+        (0,"Email from address","Any emails sent by the system will use this as their from address. This must be set for email to work","","/"),
+        (0,"Email reply-to name","Any emails sent by the system will use this as their reply-to name. This is optional.","","/"),
+        (0,"Email reply-to address","Any emails sent by the system will use this as their reply-to address. This is optional.","","/"),
+        (0,"Email sending throttle per minute","This determines the maximum number of queued emails the system will send per minute. This throttle is applied in addition to the per day and per hour throttles. N.B. This throttle will not prevent the delivery of any \"immediate priority\" emails such as forgotten password retreival emails, however immediate priority emails that have been sent do count towards the throttle. Empty (or any non-integer value) means unlimited.","100","/cron/email.php"),
+        (0,"Email sending throttle per hour","This determines the maximum number of queued emails the system will send per hour. This throttle is applied in addition to the per minute and per day throttles. N.B. This throttle will not prevent the delivery of any \"immediate priority\" emails such as forgotten password retreival emails, however immediate priority emails that have been sent do count towards the throttle. Empty (or any non-integer value) means unlimited.","1000","/cron/email.php"),
+        (0,"Email sending throttle per day","This determines the maximum number of queued emails the system will send per day. This throttle is applied in addition to the per minute and per hour throttles. N.B. This throttle will not prevent the delivery of any \"immediate priority\" emails such as forgotten password retreival emails, however immediate priority emails that have been sent do count towards the throttle. Empty (or any non-integer value) means unlimited.","50000","/cron/email.php"),
+        (0,"Only send emails to","Emails will only be sent to these addresses/domains. This is primarily intended for testing/development sites where you don\'t want emails being sent out to most users, but it might have other applications. This is a comma separated list. If this list is empty all emails will be sent. If there is one or more entries in this list then only emails which match one of the entries on this list will be sent. Matching is done based on a partial match anchored at the END of the email address e.g. .domain.com  matches all addresses for any subdomain of domain.com; @my.domain.com macthes all addresses at my.domain.com; name@domain.com matches name@domain.com and also my.name@domain.com","","/"),
+        (0,"Show login warning","Set this to \"yes\" to show the user a warning message every time they log in from a new IP address. One possble application for this is to remind users of any confidentiality agreements, or export constraints. The message will be repeated as determined by \"Login warning repeat period\" setting.","","/"),
+        (0,"Login warning repeat period","The number of days between repetitions of the login warning for each user on any given IP address. Set this to 1 to have users see the warnings every day for every IP address they come from. Default is 180 days i.e. 6 months. If you set this to zero then the login warning will be repeated on every login.","180","/"),
+        (0,"Enable public search","Set this to yes if you want to enable the publc (i.e. without logging in) search interface. Records will only be searchable if the record type definition specifies that they should included in the public search.","no","/"),
+        (0,"Enable label support","Set this to yes if you want to support for QR Code based labelling of records.","yes","/"),
+        (0,"S3 upload endpoint","The API endpoint for S3 storage. IMPORTANT: Ampletracks uses chunked multipart uploads. If a user abandons an upload the partial upload is retained by S3 and YOU WILL BE CHARGED for this storage even though you cannot see the file(s) in the bucket. This cost might be considerable for large files. There is nothing Ampletracks code can do about this. MAKE SURE you configure a \"Lifecycle rule\" in AWS S3 to automatically delete these.","","/record"),
+        (0,"S3 upload public key","The public key for S3 storage","","/record"),
+        (1,"S3 upload secret key","The secret key for S3 storage","","/record"),
+        (0,"S3 upload bucket name","The name of the S3 bucket","","/record"),
+        (0,"S3 upload region","The region for the S3 bucket","","/record"),
+        (0,"S3 upload path prefix","The path prefix to be added to all S3 files. N.B. Changing this will cause ALL FILES STORED IN S3 TO BE MOVED - this may take some time to complete. Files will still be available in the old location whilst the change is being processed.","","/record")
     ');
     
     $words='his,that,from,word,other,were,which,time,each,tell,also,play,small,home,hand,port,large,spell,even,land,here,must,high,kind,need,house,animal,point,mother,world,near,build,self,earth,father,work,part,take,place,made,after,back,little,only,round,man,year,came,show,every,good,under,name,very,just,form,great,think,help,line,differ,turn,much,mean,before,move,right,boy,old,many,write,like,long,make,thing,more,day,number,sound,most,people,water';
@@ -598,7 +652,8 @@ $dbSetup = function() {
     (14,"Type To Search","1","1"),
     (15,"Suggested Textbox","1","0"),
     (16,"Chemical Formula","1","0"),
-    (17,"Graph","1","0")
+    (17,"Graph","1","0"),
+    (18,"S3 Upload","1","0")
     ');
     
     // set any missing path depths
@@ -685,6 +740,17 @@ $upgrades = array(
     7 => function() {
         global $DB;
         $DB->exec('UPDATE user SET apiId=NULL WHERE apiId=""');
+        
+    },
+    8 => function() {
+        global $DB;
+        $DB->exec('UPDATE user SET lastUpdatedAt=UNIX_TIMESTAMP() WHERE lastUpdatedAt=0');
+        $DB->exec('UPDATE dataField SET lastUpdatedAt=UNIX_TIMESTAMP() WHERE lastUpdatedAt=0');
+        $DB->exec('UPDATE project SET lastUpdatedAt=UNIX_TIMESTAMP() WHERE lastUpdatedAt=0');
+        $DB->exec('UPDATE record SET lastUpdatedAt=UNIX_TIMESTAMP() WHERE lastUpdatedAt=0');
+        $DB->exec('UPDATE recordType SET lastUpdatedAt=UNIX_TIMESTAMP() WHERE lastUpdatedAt=0');
+        $DB->exec('UPDATE role SET lastUpdatedAt=UNIX_TIMESTAMP() WHERE lastUpdatedAt=0');
+        $DB->exec('UPDATE relationship SET lastUpdatedAt=UNIX_TIMESTAMP() WHERE lastUpdatedAt=0');
     },
 
     // =====================================================================================================

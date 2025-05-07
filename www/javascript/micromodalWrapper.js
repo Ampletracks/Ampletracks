@@ -230,7 +230,10 @@ function confirm(text, title, onOk) {
         html: text,
         buttons: [
             {align:'left', text:'Cancel'}, // No specific action needed, modal will close on cancel
-            {align:'right', text:'OK', onClick: onOk} // Execute onOk callback when OK is clicked
+            {align:'right', text:'OK', onClick: function(){
+                MicroModal.close();
+                onOk();// Execute onOk callback when OK is clicked  
+            }}
         ],
     };
 

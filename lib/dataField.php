@@ -25,6 +25,7 @@ class DataField {
         15 => "Suggested Textbox",
         16 => "Chemical Formula",
         17 => "Graph",
+        18 => "S3 Upload",
     );
 
     static $saveDefaultJavascriptDisplayed = false;
@@ -33,6 +34,7 @@ class DataField {
     protected $filterSpec = array( 'width'=>10,'filter'=>['ct']);
 
     protected $params;
+    protected $updated = false;
     private $defaulted=false;
     public $id;
     static $answers;
@@ -91,6 +93,7 @@ class DataField {
             WHERE
                 record.id=?
         '.$where,$id);
+
         self::setAnswers( $answers );
     }
 
@@ -194,6 +197,14 @@ class DataField {
             } else {
                 if (!is_string($value)) $value = '';
             }
+
+            if (method_exists($objectName,'checkParameter')) {
+                // Pass the existing value in as well just in case we want to detect changes
+                $errors = $objectName::checkParameter($parameterName, $value, $dataFieldId, $data[$parameterName] ?? null);
+                if (!empty($errors)) {
+                    inputError($prefixedParameterName,$errors);
+                }
+            }
             $data[$parameterName] = $value;
         }
         $objectName::sanitizeParameters( $data, $dataFieldId );
@@ -274,6 +285,10 @@ class DataField {
 
     function getAnswers() {
         return self::$answers;
+    }    
+
+    function hasBeenUpdated() {
+        return $this->updated;
     }    
 
     function getUserDefault() {
@@ -711,6 +726,7 @@ class DataField {
                 'REPLACE INTO recordData (recordId, dataFieldId, data, valid, inherited, hidden, fromRecordId) VALUES (?,?,?,?,?,?,?)',
                 $this->params['recordId'], $this->params['id'], $value, $result===true?1:0, $inherited, $hidden, $fromRecordId
             );
+            $this->updated = true;
         } else if (!$isEmpty) {
             $result .= cms('. The answer you provided has been replaced with the previous value');
         }
@@ -742,7 +758,7 @@ class DataField {
         return $result;
     }
 
-    static function doInheritance($dataFieldId, $value, $recordId) {
+    static function doInheritance($dataFieldId, $value, $recordId, &$updatedRecordIds = []) {
         global $DB;
         $inheritance = $DB->getValue('SELECT inheritance FROM dataField WHERE id = ?', $dataFieldId);
         if($inheritance == 'none' || $inheritance == 'default') return true;
@@ -750,7 +766,7 @@ class DataField {
         $successAll = true;
         $childRecordIds = self::getDataFieldInheritedRecordIds($dataFieldId, $recordId, $inheritance != 'immutable');
         foreach($childRecordIds as $childRecordId) {
-            $successAll = $successAll && self::propagateInheritance($dataFieldId, $value, $childRecordId, $inheritance, $recordId);
+            $successAll = $successAll && self::propagateInheritance($dataFieldId, $value, $childRecordId, $inheritance, $recordId, $updatedRecordIds);
         }
 
         if($inheritance == 'immutable') {
@@ -775,11 +791,14 @@ class DataField {
         return $childRecordIds;
     }
 
-    private static function propagateInheritance($dataFieldId, $value, $recordId, $inheritance, $fromRecordId) {
+    private static function propagateInheritance($dataFieldId, $value, $recordId, $inheritance, $fromRecordId, &$updatedRecordIds = []) {
         $dataFieldId = (int)$dataFieldId;
         $dataFields = self::buildAllForRecord($recordId, array('where' => "dataField.id = '$dataFieldId'"));
         $dataField = $dataFields[$dataFieldId];
         $successAll = $dataField->save($value, $dataField->hidden, 1, $fromRecordId);
+        if ($dataField->hasBeenUpdated()) {
+            $updatedRecordIds[$recordId] = $recordId;
+        }
 
         // A bit 'belt and braces' but this should make sure everything gets freed before we recurse
         foreach($dataFields as $key => $df) {
@@ -2606,6 +2625,641 @@ class DataField_graph extends DataField {
 		</div>
 		<?
 		echo '</div>';
+    }
+
+}
+
+/**
+ * S3-upload field
+ *
+ * ▸ One global bucket; credentials & endpoint live in the existing
+ *   configuration system (getConfig('S3 endpoint URL'), etc.).
+ * ▸ Per-field parameters:
+ *      – storagePath   (template with placeholders, MUST contain <unique_id>)
+ *      – maxSize       (MB, 0 ⇒ unlimited)
+ *      – minSize       (MB, 0 ⇒ unlimited)
+ *
+ */
+class DataField_s3Upload extends DataField
+{
+    /* These keys will be (de-)serialised into the field’s “parameters” blob */
+    const parameters = array( 'storagePath', 'maxSize', 'minSize' );
+
+    /* ─────────────────────────────────────────────────────────────── *
+     *  Admin-side “field definition” form
+     * ─────────────────────────────────────────────────────────────── */
+    function displayDefinitionForm()
+    {
+        $prefix = parent::$parameterPrefix;   // e.g. “parameter_”
+
+        /* ── 1. STORAGE-PATH TEMPLATE ───────────────────────────── */
+        questionAndAnswer(
+            'Storage-path template',
+            function () use ($prefix) {
+
+                // text box for the template
+                formTextarea($prefix.'storagePath', 100,2);
+                inputError($prefix.'storagePath');
+                // helper note
+                ?>
+                    <div class="warning">
+                        Changing this field will cause all existing files to be moved to their respective new locations in the bucket.
+                        This will be done in the background and may take a long time (days) if there are many files.
+                        Files will still be accessible during this time.
+                    </div>
+                    <div class="note">
+                        This must include <code>&lt;unique_id&gt;</code>.
+                        Other placeholders you may use are:<br>
+                        <code>&lt;uploaded_file_name&gt;</code>,
+                        <code>&lt;uploaded_file_extension&gt;</code>,
+                        <code>&lt;uploaded_file_basename&gt;</code> (filename without the extension),
+                        <code>&lt;uploaded_at_year&gt;</code>,
+                        <code>&lt;uploaded_at_month&gt;</code>,
+                        <code>&lt;uploaded_at_day&gt;</code>,
+                        <code>&lt;uploaded_at_hour&gt;</code>,
+                        <code>&lt;uploaded_at_minute&gt;</code>,
+                        <code>&lt;record_created_at_year&gt;</code>,
+                        <code>&lt;record_created_at_month&gt;</code>,
+                        <code>&lt;record_created_at_day&gt;</code>,
+                        <code>&lt;record_created_at_hour&gt;</code>,
+                        <code>&lt;record_created_at_minute&gt;</code>,
+                        <code>&lt;record_title&gt;</code>,
+                        <code>&lt;project_name&gt;</code>,
+                        <code>&lt;record_type_name&gt;</code>,
+                        <code>&lt;owner_name&gt;</code>,
+                        <code>&lt;owner_first_name&gt;</code>,
+                        <code>&lt;owner_last_name&gt;</code>,
+                        <code>&lt;project_api_id&gt;</code>,
+                        <code>&lt;record_api_id&gt;</code>,
+                        <code>&lt;owner_api_id&gt;</code>,
+                        <code>&lt;record_type_api_id&gt;</code>,
+                        <code>&lt;record_data_{field_name}&gt;</code>.
+                        <br>Example:&nbsp;
+                        <code>&lt;project_name&gt;/&lt;upload_date&gt;/&lt;unique_id&gt;</code>
+                    </div>
+                    <div class="info">
+                        Each substitution will be truncated to 16 characters (except for API ID's that default to 43) unless specify a different length in the placeholder like this:
+                        <code>&lt;owner_name:20&gt;</code>. The maximum possible length of the template will be calculated on save and must not exceed 1024 charatcers.
+                    </div>
+                <?
+            }
+        );
+
+        /* ── 2. MAXIMUM FILE SIZE ──────────────────────────────── */
+        questionAndAnswer(
+            'Maximum file size',
+            function () use ($prefix) {
+                formInteger($prefix.'maxSize', 0, null, null, 0);
+                echo ' MB <div class="note">0 = no limit (handled in S3 policy)</div>';
+            }
+        );
+
+        /* ── 3. MINIMUM FILE SIZE ──────────────────────────────── */
+        questionAndAnswer(
+            'Minimum file size',
+            function () use ($prefix) {
+                formInteger($prefix.'minSize', 0, null, null, 0);
+                echo ' MB <div class="note">0 = no limit</div>';
+            }
+        );
+    }
+
+    static function checkParameter($parameterName, $value, $dataFieldId, $oldValue = null) {
+        include_once(LIB_DIR.'/s3Tools.php');
+        switch ($parameterName) {
+            case 'storagePath':
+                if (empty($value)) {
+                    return ['Storage path must not be empty'];
+                }
+                if (strpos($value, '<unique_id>') === false) {
+                    return ['Storage path must contain <unique_id>'];
+                }
+                $maxLength = s3Tools\calculateMaxFilePathLength($value);
+                if ($maxLength > 1024) {
+                    return ['Once expanded the storage path is too long (it could exceen 1024 characters) - remove placeholders or specify a length limit like this: <example_placeholder:20>'];
+                }
+
+                // If the path has changed then we need to mark all uploads as needing to be moved (or at least checked)
+                if ($oldValue && $oldValue != $value) {
+                    global $DB;
+                    $DB->update('s3upload',['dataFieldId'=>$dataFieldId],[
+                        'needsPathCheck' => time(),
+                    ]);
+                }
+                break;
+
+            case 'maxSize':
+            case 'minSize':
+                if (!empty($value) && !is_numeric($value)) {
+                    return 'File size must be a number';
+                }
+                break;
+        }
+    }
+
+	function setup($recordId, $displayPopOut = false) {
+        $this->recordId = $recordId;
+        $this->displayPopOut = $displayPopOut;
+    }
+
+    function displayInput()
+    {
+        $inputName = $this->inputName();
+        $fieldId   = signInput((int)$this->id,'s3UploadDataFieldId');
+        $recordId  = signInput((int)$this->recordId,'s3UploadRecordId');
+        $existingUploadId = $this->getAnswer() ? signInput((int)$this->getAnswer(), 's3UploadId') : '';
+        $canEdit = true;
+        // If they are allowed to edit the record then they can delete the file too
+        // ... but keep this separate just in case we want to change it later
+        $canDelete = $canEdit; 
+        ?>
+
+        <!-- UI skeleton -->
+        <div
+            class="s3Uploader <?= $this->getAnswer() ? 'hasExisting' : '' ?>"
+            data-field-id="<?= htmlspecialchars($fieldId); ?>"
+            data-record-id="<?= htmlspecialchars($recordId); ?>"
+            data-existing-upload-id="<?= htmlspecialchars($existingUploadId) ?>"
+            data-max-size="<?= ($this->params['maxSize']>0 ? $this->params['maxSize']*1048576 : '') ?>"
+            data-min-size="<?= ($this->params['minSize']>0 ? $this->params['minSize']*1048576 : '') ?>"
+            data-status="<?= $existingUploadId ? 'displayExisting' : 'waitingForFile' ?>"
+            >
+            <div class="throbber"></div>
+            <div class="existingUpload"></div>
+            <? if ($canEdit) { ?>
+                <div class="newUpload">
+                    <input type="file">
+                    <div class="popOutHelp">
+                        If you are planning to upload a very large file then we recommend you 
+                        <a target="_blank" class="openInTab" href="s3Upload.php?mode=upload&recordId=<?= rawurlencode($recordId)?>&dataFieldId=<?= rawurlencode($fieldId)?>">upload the file in a separate tab</a>
+                    </div>
+                    <span class="filenameDisplay"></span>
+
+                    <div class="progressWrapper"
+                        style="height:20px;background:#eee;border-radius:3px;overflow:hidden;">
+                        <div class="progressBar" style="width:0;height:100%;background:#4caf50;"></div>
+                    </div>
+
+                    <div class="progressInfo"  style="font-size:0.85em;margin-top:4px;"></div>
+                </div>
+                <div class="uploadError error"   ></div>
+                <div class="openedInTab info" >Upload being handled in another tab</div>
+            <? } else { ?>
+                <div class="newUpload">
+                    <i>No file uploaded</i>
+                </div>
+            <? } ?>
+            <div class="controls" style="margin-bottom:8px;">
+                <? if ($canEdit) { ?><button type="button" class="replace" >Replace</button><? } ?>
+                <? if ($canDelete) { ?><button type="button" class="delete" >Delete</button><? } ?>
+                <button type="button" class="download" >Download</button>
+                <button type="button" class="pause" >Pause</button>
+                <button type="button" class="resume" >Resume</button>
+                <button type="button" class="cancel" >Cancel</button>
+                <button type="button" class="cancelReplace" >Cancel</button>
+            </div>
+        </div>
+
+        <!-- local Flow.js copy -->
+        <script src="/javascript/flow.min.js"></script>
+        <link rel="stylesheet" href="/stylesheets/s3Upload.css">
+        <script>
+
+        function translateXhrMessage(err) {
+            switch (err?.name) {
+                case 'NetworkError':   // request never left the tab
+                case 'TimeoutError':   // you set xhr.timeout / AbortController
+                case 'AbortError':     // user navigated away or you aborted
+                return 'We can’t reach the server just now. Please check your connection and hit resume when you\'re back online.';
+
+                case 'SecurityError':  // CORS or mixed-content block
+                return 'This request was blocked for security reasons.';
+
+                default:               // anything else – keep it generic
+                return 'Something went wrong. Please wait a bit and then try the "resume" button.';
+            }
+        }
+
+        (function ($) {
+            const FIVE_MB = 5 * 1024 * 1024;
+            const FIVE_GB = 5 * 1024 * 1024 * 1024;
+            const FIVE_TB = 5 * 1024 * 1024 * 1024 * 1024;
+
+            $('.s3Uploader').each(function () {
+
+                // N.B. Showing and hiding of the various UI elements is done
+                // via CSS classes which are all driven from the data-status
+                // attribute on the main container.
+
+                const $container = $(this);
+
+                const recordId = $container.data('recordId');
+                const fieldId = $container.data('fieldId');
+
+                /* DOM shortcuts (jquery elements) */
+                const $fileInput = $container.find('input[type="file"]');
+                const $filenameDisplay = $container.find('span.filenameDisplay');
+                const $existingUploadDisplay = $container.find('div.existingUpload');
+                const $progressWrapper = $container.find('.progressWrapper');
+                const $progressBar     = $container.find('.progressBar');
+                const $progressInfo    = $container.find('.progressInfo');
+                const $errorBox        = $container.find('.uploadError');
+
+                /* Size limits (bytes) from PHP */
+                const maxSizeBytes = $container.data('maxSize');
+                const minSizeBytes = $container.data('minSize');
+
+                /* Constants */
+                const CHUNK_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB parts - this is the minimum size AWS allows for S3 multipart uploads
+
+                var existingUploadId;
+                function displayExistingUpload(newUploadId) {
+                    console.log('displayExistingUpload',newUploadId);
+                    if (newUploadId) existingUploadId = newUploadId;
+                    console.log('displayExistingUpload',existingUploadId);
+                    if (!existingUploadId) {
+                        resetUpload();
+                    } else {
+                        $container.addClass('inProgress');
+                        $existingUploadDisplay.load('s3Upload.php',{mode:'displayExisting',uploadId:existingUploadId},function(){
+                            console.log('Existing upload loaded');
+                            $container.removeClass('inProgress');
+                        });
+                        $container.attr('data-status','displayExisting');
+                        $container.addClass('hasExisting');
+                    }
+                }
+                displayExistingUpload($container.data('existingUploadId'));
+
+                /* START */
+                $container.find('a.openInTab').on('click', (e) => {
+                    $container.attr('data-status','openedInTab');
+                });
+
+                $container.find('div.controls')
+                .on('click','button.replace', () => {
+                    console.log('Replace existing upload');
+                    resetUpload();
+                })
+                .on('click', 'button.pause', () => {
+                    flow.pause();
+                    togglePauseState(true);
+                })
+                .on('click','button.resume', () => {
+                    togglePauseState(false);
+                    if (retryFinalise) {
+                        retryFinalise();
+                    } else {
+                        flow.resume();
+                    }
+                })
+                .on('click','button.cancel', () => {
+                    flow.cancel();
+                    resetUpload(false);
+                })
+                .on('click','button.cancelReplace', () => {
+                    displayExistingUpload();
+                })
+                .on('click','button.delete', () => {
+                    if (!existingUploadId) {
+                        $container.removeClass('hasExisting');
+                        resetUpload();
+                        return true;
+                    }
+                    confirm('Are you sure you want to delete this file?','Are you sure?',function(){
+                        $container.addClass('inProgress');
+                        $container.attr('data-status','deleting');
+                        $errorBox.empty();
+                        $.ajax({
+                            url: 's3Upload.php',
+                            type: 'POST',
+                            data: { mode: 'delete', uploadId: existingUploadId },
+                            success: function(response) {
+                                $container.removeClass('hasExisting');
+                                resetUpload();
+                            },
+                            error: function(xhr, status, error) {
+                                showError('Delete failed',xhr.responseText || error, true);
+                                $container.removeClass('inProgress');
+                                displayExistingUpload();
+                            }
+                        });
+                        return true;
+                    });
+                })
+                .on('click', 'button.download', () => {
+                    if (!existingUploadId) {
+                        showError('No file available to download');
+                        return;
+                    }
+                    window.open('s3Upload.php?mode=download&uploadId=' + encodeURIComponent(existingUploadId), '_blank');
+                });
+
+                function togglePauseState(isPaused) {
+                    if (!isPaused) $errorBox.empty();
+                    $container.attr('data-status',isPaused ? 'paused' : 'uploading');
+                }
+
+                /* UI helpers */
+                function resetUpload(initial) {
+                    $container.removeClass('inProgress');
+                    $container.attr('data-status','waitingForFile');
+                    $progressBar.css('width', '0%');
+                    $progressInfo.empty();
+                    $errorBox.empty();
+                    $filenameDisplay.empty();
+                }
+
+                /**
+                * showError(context, payload)
+                *
+                *  ▸ context  (string) – short label you supply (“Start failed”, “Upload error”, …).
+                *  ▸ payload  (xhr | string | object) – whatever the Ajax fail-handler or other
+                *      code gives you.  The function will:
+                *        • If it looks like JSON with an .error key  → show that text.
+                *        • Else if it’s a string (HTML/plain)        → render as HTML.
+                *        • Else                                     → stringify & escape.
+                */
+                function showError(context, payload, alert) {
+                    if (!context && !payload) {
+                        $errorBox.hide();
+                        return;
+                    }
+
+                    if (payload) {
+                        if (payload.responseText !== undefined) {
+                            // Peel off responseText if an XHR object
+                            payload = payload.responseText;
+                        } else if (payload instanceof Error) {
+                            // If it’s an Error object translate it to something more freindly
+                            payload = translateXhrMessage(payload);
+                        }
+                    }
+
+                    let isHtml      = false;
+                    let extracted   = '';
+
+                    if (typeof payload === 'string') {
+                        try {
+                            const parsed = JSON.parse(payload);
+                            extracted = (parsed && typeof parsed === 'object')
+                                        ? (parsed.error || JSON.stringify(parsed))
+                                        : payload;
+                            if (parsed && typeof parsed !== 'object') isHtml = true;   // unlikely
+                        } catch (_) {                 // not JSON → assume raw HTML / plain
+                            extracted = payload;
+                            isHtml    = true;
+                        }
+                    } else if (typeof payload === 'object') {
+                        extracted = JSON.stringify(payload);
+                    } else {
+                        extracted = String(payload);
+                    }
+
+                    // Prefix with context label if supplied
+                    if (context) extracted = context + ': ' + extracted;
+
+                    if (alert) {
+                        alertPopup(extracted);
+                    } else if (isHtml) {
+                        $errorBox.html(extracted);   // render HTML fragment
+                    } else {
+                        $errorBox.text(extracted);   // text-escape
+                    }
+                }
+
+                /* byte / time helpers */
+                function humanBytes(bytes) {
+                    const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+                    let unit = 0;
+                    while (bytes >= 1024 && unit < units.length - 1) {
+                        bytes /= 1024;
+                        unit++;
+                    }
+                    return bytes.toFixed(unit ? 1 : 0) + ' ' + units[unit];
+                }
+
+                function humanTimeRemaining(seconds) {
+                    if (!isFinite(seconds)) return '∞';
+                    const minutes = Math.floor(seconds / 60);
+                    const secs    = Math.floor(seconds % 60);
+                    return (minutes ? minutes + ' m ' : '') + secs + ' s';
+                }
+
+                /*  runtime state */
+                const etagsForParts   = [];
+                let uploadId = null;
+
+                function getSignedUrl(chunk) {
+                    const partNumber = chunk.offset + 1;          // 1-based
+
+                    let response;
+                    let error = null;
+                    do {
+                        const xhr = new XMLHttpRequest();
+                        xhr.open('POST', 's3Upload.php?mode=signParts&part='+partNumber+'&uploadId='+encodeURIComponent(uploadId), false); // <— sync!
+                        xhr.setRequestHeader('Content-Type', 'application/json');
+                        try {
+                            xhr.send();
+                        } catch (e) {
+                            error = e;
+                            break;
+                        }
+
+                        if ( xhr.status !== 200) {
+                            console.log('XHR error:', xhr.status, xhr.statusText);
+                            error = xhr.statusText || xhr.responseText;
+                            break;
+                        }
+
+                        try {
+                            response = JSON.parse(xhr.responseText);
+                        } catch (e) {
+                            error = 'Invalid response from server';
+                            break;
+                        }
+
+                        if (!response.url) {
+                            error = 'No URL returned';
+                            break;
+                        }
+                    } while (false);
+
+                    if (error) {
+                        flow.pause();
+                        $container.attr('data-status','paused');
+                        showError('Unable to get instructions for uploading the next chunk',error);
+                        return null;
+                    }
+
+                    return response.url;
+                }
+
+                /* Flow init */
+                const flow = new Flow({
+                    chunkSize           : CHUNK_SIZE_BYTES, // This will be overridden later
+                    forceChunkSize      : true,
+                    singleFile          : true,
+                    testChunks          : false,
+                    simultaneousUploads : 3,
+                    method              : 'octet',
+                    uploadMethod        : 'PUT',
+                    permanentErrors     : [400,401,403,404,500,501],
+                    /* OK... buckle up!
+                    Flow.js insists on sending a whole bunch of flow-specific stuff with each chunk PUT request
+                    If we use method:'multipart' then it will send this data as part of the multipart/form-data request.
+                    This doesn't upset the URL signing, BUT we end up with this form data at the top of every chunk in the file uploaded to S3 which we definitelyt don't want.
+                    To avoid this we have to use "octet" as the method, but then flow.js insists on adding the parameters to the GET String.
+                    This is a problem because the URL signing process requires us to use the same parameters in the GET string as we do in the PUT request.
+                    flow.js does not allow us to override this behaviour, so we have to do it ourselves.
+                    So we have to override the getParams() method to return an empty object. This is a bit of a hack, but it works.
+                    */
+                    query: function (_file, chunk) {
+                        console.log('Flow target:', chunk);
+                        Object.getPrototypeOf(chunk).getParams = function () { return {}; };
+                    },
+                    /*  target() is called once per chunk.
+                    We synchronously fetch (or retrieve cached) presigned URL. */
+                    target: function (_file, chunk) {
+                        return getSignedUrl(chunk);
+                    }
+                });
+
+                flow.assignBrowse($fileInput[0]);
+
+                /* File chosen */
+                flow.on('fileAdded', file => {
+
+                    uploadId = null;
+                    // Forget any etags from previous uploads
+                    etagsForParts.length = 0;
+
+                    /* ---------------  dynamic chunk size --------------- */
+                    if (file.size > FIVE_TB) {
+                        showError('File exceeds the 5 TB S3 object limit');
+                        flow.removeFile(file);
+                        return;
+                    }
+
+                    // smallest chunk that keeps parts ≤ 10 000
+                    let chunkSize = Math.ceil(file.size / 10000);
+
+                    // round chunkSize up to nearest 5 MB multiple
+                    chunkSize = Math.ceil(chunkSize / FIVE_MB) * FIVE_MB;
+
+                    // clamp to S3 min/max
+                    if (chunkSize < FIVE_MB) chunkSize = FIVE_MB;
+                    if (chunkSize > FIVE_GB) chunkSize = FIVE_GB;
+                    flow.opts.chunkSize = chunkSize;
+                        
+                    if ((maxSizeBytes && file.size > maxSizeBytes) ||
+                        (minSizeBytes && file.size < minSizeBytes)) {
+                        showError('File does not meet size constraints.');
+                        flow.removeFile(file);
+                        return;
+                    }
+
+                    console.log('File added:', file);
+                    $filenameDisplay.text('Uploading: '+file.name);   // <-- show name
+
+                    $container.attr('data-status','uploading');
+
+                    /* Create multipart */
+                    $.post(
+                        's3Upload.php?mode=start&recordId='+encodeURIComponent(recordId)+'&dataFieldId='+encodeURIComponent(fieldId),
+                        JSON.stringify({ filename: file.name, size: file.size }),
+                        'json'
+                    ).done(startResp => {
+
+                        uploadId = startResp.uploadId;
+
+                        flow.upload();
+                    }).fail(function(xhr) {
+                        showError('Unable to start multipart upload',xhr,alert);
+                        flow.cancel();
+                        resetUpload();
+                    });
+
+                });
+
+                /* Chunk progress */
+                flow.on('fileProgress', (file) => {
+                    file.chunks.forEach(chunk => {
+                        /* status() returns 'success', 'error', 'uploading', … */
+                        if (chunk.status() === 'success' ) {
+
+                            const xhr  = chunk.xhr;                       // the completed xhr
+                            const etag = xhr && xhr.getResponseHeader('ETag');
+                            if (etag) {
+                                console.log('Chunk ETag:', etag);
+                                
+                                etagsForParts[chunk.offset + 1] = {
+                                    PartNumber: chunk.offset + 1,
+                                    ETag      : etag.replace(/"/g, '')     // strip quotes
+                                };
+                            }
+                        }
+                    });
+
+                    const percent = Math.floor(file.progress() * 100);
+                    const transferred = humanBytes(file.size * file.progress());
+                    const eta = humanTimeRemaining(file.timeRemaining());
+
+                    if (!file.lastReportedProgress || percent > file.lastReportedProgress) {
+                        file.lastReportedProgress = percent;
+                        $.get('s3Upload.php', {
+                            mode: 'updateProgress',
+                            uploadId: uploadId,
+                            progress: percent
+                        }).fail(xhr => console.error('Failed to update progress:', xhr.responseText));
+                    }
+
+                    $progressBar.css('width', percent + '%');
+                    $progressInfo.text(`${percent}% • ${transferred} / ${humanBytes(file.size)} • ${eta} remaining`);
+                });
+
+                var retryFinalise = false;
+                var retryFinaliseInterval = false;
+                var retryFinaliseCount = 0;
+
+                function finaliseUpload() {
+                    retryFinaliseCount++;
+                    $.post(
+                        's3Upload.php?mode=complete&uploadId='+encodeURIComponent(uploadId),
+                        JSON.stringify({
+                            parts       : etagsForParts.filter(Boolean)
+                        }),
+                        'json'
+                    ).done(() => {
+                        displayExistingUpload(uploadId);
+                        window.clearInterval(retryFinaliseInterval);
+                        retryFinaliseInterval = false;
+                        retryFinalise = false;
+                        retryFinaliseCount = 0;
+                    }).fail(xhr => {
+                        showError('There was a problem finalising the upload, the upload has been paused - click resume to try the final step again. An new attempt will be made automatically every 60 seconds (retry: '+retryFinaliseCount+')', xhr);
+                        if (!retryFinalise) {
+                            retryFinalise = function() { finaliseUpload(uploadId,etagsForParts); }
+                            retryFinaliseInterval = window.setInterval(retryFinalise, 10000);
+                        }
+                        togglePauseState(true); // Update UI to reflect paused state
+                    })
+                }
+
+                /* All chunks uploaded → Complete multipart */
+                flow.on('fileSuccess', () => {
+                    finaliseUpload();
+                });
+
+                flow.on('fileError', (_, message) => showError('Upload error: ' + message));
+
+
+            });
+        })(jQuery);
+        </script>
+        <?php
+
+        inputError($inputName);
     }
 
 }

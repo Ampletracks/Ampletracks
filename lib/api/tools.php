@@ -35,6 +35,7 @@ function getAPIIdPrefix($entityType) {
         'dataField'     => 'df',
         'record'        => 'r',
         'project'       => 'p',
+        's3Upload'      => 'bl',   // bl = blob
     ];
 
     $idPrefix = $prefixLookup[$entityType] ?? null;
@@ -73,23 +74,27 @@ function checkSetApiIds(&$entities, $entityMap, $removeOriginal = true) {
     return $entities;
 }
 
-function getAPIId($entityType, $id) {
+function getAPIId($entityType, $id, $idBase = null) {
     global $DB, $LOGGER;
 
     $idPrefix = getAPIIdPrefix($entityType);
 
     // If we've got here we know $entityType is safe to use
-    $idBase = $DB->getValue('
-        SELECT apiId
-        FROM `'.$entityType.'`
-        WHERE id = ?
-    ', $id);
+
+    if (!$idBase) {
+        $idBase = $DB->getValue('
+            SELECT apiId
+            FROM `'.$entityType.'`
+            WHERE id = ?
+        ', $id);
+    }
+
     if(!$idBase) {
         $updated = false;
         $try = 0;
         while(!$updated && $try++ < 3) {
             $newApiId = generateKeyString(API_KS_ENTITY_ID);
-            $updated = $DB->update($entityType, ['id' => $id, 'apiId' => null], ['apiId' => $newApiId]);
+            $updated = $DB->update($entityType, ['id' => $id, 'apiId' => null], ['lastUpdatedAt' => time(), 'apiId' => $newApiId]);
             if($updated) {
                 $idBase = $newApiId;
             }
@@ -106,7 +111,7 @@ function getAPIId($entityType, $id) {
             ', $id);
             if(!$idBase) {
                 $LOGGER->log("Failed to generate apiId for ->$entityType|$id<-");
-                throw new APIException('Failed', 500);
+                throw new APIException('Failed to generate apiId for $entityType', 500);
             }
         }
     }

@@ -231,6 +231,7 @@ function getUserPermissionsForEntity( $entity='', $userId=0 ) {
 //          In this case the function will do another query to lookup the project and owner ID for the entity
 //          When checking a record you can pass $entity='record' OR $entity='recordTypeId:<recordTypeId>'
 //          If $entity is not passed then the global $ENTITY will be used
+//          If $userId is not passed then the global $USER_ID will be used
 //          When checking for "list" permissions there may or may not be an entityId - just pass 0 for the entityId
 //          When checking for "create" permissions there is no entityId - just pass 0 for the entityId
 //    OR

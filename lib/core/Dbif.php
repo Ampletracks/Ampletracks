@@ -648,7 +648,7 @@ class Dbif {
 			$checkResult = $this->getValue( $checkArgs );
 			if ($checkResult) return 0;
 		}
-		
+
 		return( $this->insert( $tableName, $insertData ) );
 	}
 

@@ -81,7 +81,7 @@ function prepareDisplay( $id ) {
         
     $queryh = $DB->query('
         SELECT
-            dataField.name AS `option`,
+            CONCAT(IF(dataField.name="","<no name>",dataField.name)," (ID:",dataField.id,")") AS `option`,
             dataField.id AS `value`,
             dataField.displayOnList AS `selected`
         FROM
@@ -101,8 +101,10 @@ function prepareDisplay( $id ) {
     
     global $primaryDataFieldIdSelect;
     $primaryDataFieldIdSelect = new formOptionbox( 'recordType_primaryDataFieldId');
-    $primaryDataFieldIdSelect->addLookup(array('
-        SELECT dataField.name,dataField.id
+    $primaryDataFieldIdSelect->addLookup(['
+        SELECT
+            CONCAT(IF(dataField.name="","<no name>",dataField.name)," (ID:",dataField.id,")") AS `option`,
+            dataField.id AS `value`
         FROM
             dataField
             INNER JOIN dataFieldType ON dataFieldType.id = dataField.typeId
@@ -111,7 +113,7 @@ function prepareDisplay( $id ) {
             dataField.recordTypeId=? AND 
             dataFieldType.hasValue
         ORDER BY dataField.name ASC
-    ',$id));    
+    ',$id]);    
 }
 
 $extraScripts = [ '../javascript/coloris/coloris.min.js' ];

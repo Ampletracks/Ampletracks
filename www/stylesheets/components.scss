@@ -202,6 +202,7 @@ hr.contentStart {
 div.warning {
     font-size: 90%;
     opacity: 0.7;
+    margin-bottom: 0.5em;
     // Force the warning onto a new row
     width: 100%;
     @include backgroundIcon(0.25, 8, 20, left,orange);
@@ -210,6 +211,7 @@ div.warning {
 div.error:not(.form-row):not(:has(ul.error)) {
     font-size: 90%;
     opacity: 0.7;
+    margin-bottom: 0.5em;
     // Force the warning onto a new row
     width: 100%;
     @include backgroundIcon(0.25, 7, 11, left,red);
@@ -218,6 +220,7 @@ div.error:not(.form-row):not(:has(ul.error)) {
 div.info,div.note {
     font-size: 90%;
     line-height: 1.5em;
+    margin-bottom: 0.5em;
     // Force the warning onto a new row
     width: 100%;
     color: var(--c-brand-m);
