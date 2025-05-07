@@ -241,6 +241,7 @@ function buildS3FilePath( $pathTemplate, $recordId, $originalFilename, $uploaded
     $usage = [
         'usesProject'     => false,
         'usesRecord'      => false,
+        'usesRecordType'  => false,
         'usesOwner'       => false,
     ];
 

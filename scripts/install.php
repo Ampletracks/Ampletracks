@@ -356,6 +356,7 @@ $tables = array(
         'uploadCompletedAt' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
         'usesProject'     => "TINYINT(3) UNSIGNED NOT NULL DEFAULT 0",
         'usesRecord'      => "TINYINT(3) UNSIGNED NOT NULL DEFAULT 0",
+        'usesRecordType'  => "TINYINT(3) UNSIGNED NOT NULL DEFAULT 0",
         'usesOwner'       => "TINYINT(3) UNSIGNED NOT NULL DEFAULT 0",
         'lastCheckedAt'   => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
         'lastUpdatedAt'   => "INT(10) UNSIGNED NOT NULL DEFAULT 0",

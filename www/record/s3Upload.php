@@ -354,10 +354,6 @@ if ($mode === 'start') {
         'progress'          => 0,
         'size'              => $size,
         'originalFilename'  => $filename,
-        'usesProject'       => isset($fieldParams['usesProject']) ? (int)$fieldParams['usesProject'] : 0,
-        'usesRecord'        => isset($fieldParams['usesRecord']) ? (int)$fieldParams['usesRecord'] : 0,
-        'usesRecordType'    => isset($fieldParams['usesRecordType']) ? (int)$fieldParams['usesRecordType'] : 0,
-        'usesOwner'         => isset($fieldParams['usesOwner']) ? (int)$fieldParams['usesOwner'] : 0,
         'lastCheckedAt'     => time(),
         'numAttempts'       => 0,
         'newPath'           => '',
@@ -394,6 +390,7 @@ if ($mode === 'start') {
         'path' => $path,
         'usesProject'     => $usage['usesProject']     ? 1 : 0,
         'usesRecord'      => $usage['usesRecord']      ? 1 : 0,
+        'usesRecordType'  => $usage['usesRecordType']  ? 1 : 0,
         'usesOwner'       => $usage['usesOwner']       ? 1 : 0,
         's3UploadId'      => $s3UploadId
     ])) {

@@ -2642,6 +2642,8 @@ class DataField_graph extends DataField {
  */
 class DataField_s3Upload extends DataField
 {
+    private static $javascriptDone = false;
+
     /* These keys will be (de-)serialised into the field’s “parameters” blob */
     const parameters = array( 'storagePath', 'maxSize', 'minSize' );
 
@@ -2698,7 +2700,7 @@ class DataField_s3Upload extends DataField
                         <code>&lt;project_name&gt;/&lt;upload_date&gt;/&lt;unique_id&gt;</code>
                     </div>
                     <div class="info">
-                        Each substitution will be truncated to 16 characters (except for API ID's that default to 43) unless specify a different length in the placeholder like this:
+                        Each substitution will be truncated to 16 characters (except for API ID's that default to 43) unless you specify a different length in the placeholder like this:
                         <code>&lt;owner_name:20&gt;</code>. The maximum possible length of the template will be calculated on save and must not exceed 1024 charatcers.
                     </div>
                 <?
@@ -2762,65 +2764,11 @@ class DataField_s3Upload extends DataField
         $this->displayPopOut = $displayPopOut;
     }
 
-    function displayInput()
-    {
-        $inputName = $this->inputName();
-        $fieldId   = signInput((int)$this->id,'s3UploadDataFieldId');
-        $recordId  = signInput((int)$this->recordId,'s3UploadRecordId');
-        $existingUploadId = $this->getAnswer() ? signInput((int)$this->getAnswer(), 's3UploadId') : '';
-        $canEdit = true;
-        // If they are allowed to edit the record then they can delete the file too
-        // ... but keep this separate just in case we want to change it later
-        $canDelete = $canEdit; 
+	function displayJavascript() {
+        if (self::$javascriptDone) return
+        self::$javascriptDone = true;
         ?>
 
-        <!-- UI skeleton -->
-        <div
-            class="s3Uploader <?= $this->getAnswer() ? 'hasExisting' : '' ?>"
-            data-field-id="<?= htmlspecialchars($fieldId); ?>"
-            data-record-id="<?= htmlspecialchars($recordId); ?>"
-            data-existing-upload-id="<?= htmlspecialchars($existingUploadId) ?>"
-            data-max-size="<?= ($this->params['maxSize']>0 ? $this->params['maxSize']*1048576 : '') ?>"
-            data-min-size="<?= ($this->params['minSize']>0 ? $this->params['minSize']*1048576 : '') ?>"
-            data-status="<?= $existingUploadId ? 'displayExisting' : 'waitingForFile' ?>"
-            >
-            <div class="throbber"></div>
-            <div class="existingUpload"></div>
-            <? if ($canEdit) { ?>
-                <div class="newUpload">
-                    <input type="file">
-                    <div class="popOutHelp">
-                        If you are planning to upload a very large file then we recommend you 
-                        <a target="_blank" class="openInTab" href="s3Upload.php?mode=upload&recordId=<?= rawurlencode($recordId)?>&dataFieldId=<?= rawurlencode($fieldId)?>">upload the file in a separate tab</a>
-                    </div>
-                    <span class="filenameDisplay"></span>
-
-                    <div class="progressWrapper"
-                        style="height:20px;background:#eee;border-radius:3px;overflow:hidden;">
-                        <div class="progressBar" style="width:0;height:100%;background:#4caf50;"></div>
-                    </div>
-
-                    <div class="progressInfo"  style="font-size:0.85em;margin-top:4px;"></div>
-                </div>
-                <div class="uploadError error"   ></div>
-                <div class="openedInTab info" >Upload being handled in another tab</div>
-            <? } else { ?>
-                <div class="newUpload">
-                    <i>No file uploaded</i>
-                </div>
-            <? } ?>
-            <div class="controls" style="margin-bottom:8px;">
-                <? if ($canEdit) { ?><button type="button" class="replace" >Replace</button><? } ?>
-                <? if ($canDelete) { ?><button type="button" class="delete" >Delete</button><? } ?>
-                <button type="button" class="download" >Download</button>
-                <button type="button" class="pause" >Pause</button>
-                <button type="button" class="resume" >Resume</button>
-                <button type="button" class="cancel" >Cancel</button>
-                <button type="button" class="cancelReplace" >Cancel</button>
-            </div>
-        </div>
-
-        <!-- local Flow.js copy -->
         <script src="/javascript/flow.min.js"></script>
         <link rel="stylesheet" href="/stylesheets/s3Upload.css">
         <script>
@@ -2840,7 +2788,7 @@ class DataField_s3Upload extends DataField
             }
         }
 
-        (function ($) {
+        $(function () {
             const FIVE_MB = 5 * 1024 * 1024;
             const FIVE_GB = 5 * 1024 * 1024 * 1024;
             const FIVE_TB = 5 * 1024 * 1024 * 1024 * 1024;
@@ -3255,10 +3203,73 @@ class DataField_s3Upload extends DataField
 
 
             });
-        })(jQuery);
+        });
         </script>
-        <?php
+        <?
+    }
 
+    function displayInput()
+    {
+        $this->displayJavascript();
+
+        $inputName = $this->inputName();
+        $fieldId   = signInput((int)$this->id,'s3UploadDataFieldId');
+        $recordId  = signInput((int)$this->recordId,'s3UploadRecordId');
+        $existingUploadId = $this->getAnswer() ? signInput((int)$this->getAnswer(), 's3UploadId') : '';
+        $canEdit = true;
+        // If they are allowed to edit the record then they can delete the file too
+        // ... but keep this separate just in case we want to change it later
+        $canDelete = $canEdit;
+
+
+        ?>
+
+        <!-- UI skeleton -->
+        <div
+            class="s3Uploader <?= $this->getAnswer() ? 'hasExisting' : '' ?>"
+            data-field-id="<?= htmlspecialchars($fieldId); ?>"
+            data-record-id="<?= htmlspecialchars($recordId); ?>"
+            data-existing-upload-id="<?= htmlspecialchars($existingUploadId) ?>"
+            data-max-size="<?= ($this->params['maxSize']>0 ? $this->params['maxSize']*1048576 : '') ?>"
+            data-min-size="<?= ($this->params['minSize']>0 ? $this->params['minSize']*1048576 : '') ?>"
+            data-status="<?= $existingUploadId ? 'displayExisting' : 'waitingForFile' ?>"
+            >
+            <div class="throbber"></div>
+            <div class="existingUpload"></div>
+            <? if ($canEdit) { ?>
+                <div class="newUpload">
+                    <input type="file">
+                    <div class="popOutHelp">
+                        If you are planning to upload a very large file then we recommend you 
+                        <a target="_blank" class="openInTab" href="s3Upload.php?mode=upload&recordId=<?= rawurlencode($recordId)?>&dataFieldId=<?= rawurlencode($fieldId)?>">upload the file in a separate tab</a>
+                    </div>
+                    <span class="filenameDisplay"></span>
+
+                    <div class="progressWrapper"
+                        style="height:20px;background:#eee;border-radius:3px;overflow:hidden;">
+                        <div class="progressBar" style="width:0;height:100%;background:#4caf50;"></div>
+                    </div>
+
+                    <div class="progressInfo"  style="font-size:0.85em;margin-top:4px;"></div>
+                </div>
+                <div class="uploadError error"   ></div>
+                <div class="openedInTab info" >Upload being handled in another tab</div>
+            <? } else { ?>
+                <div class="newUpload">
+                    <i>No file uploaded</i>
+                </div>
+            <? } ?>
+            <div class="controls" style="margin-bottom:8px;">
+                <? if ($canEdit) { ?><button type="button" class="replace" >Replace</button><? } ?>
+                <? if ($canDelete) { ?><button type="button" class="delete" >Delete</button><? } ?>
+                <button type="button" class="download" >Download</button>
+                <button type="button" class="pause" >Pause</button>
+                <button type="button" class="resume" >Resume</button>
+                <button type="button" class="cancel" >Cancel</button>
+                <button type="button" class="cancelReplace" >Cancel</button>
+            </div>
+        </div>
+        <?
         inputError($inputName);
     }
 
