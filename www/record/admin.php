@@ -47,12 +47,13 @@ function postStartup($mode,$id) {
     // We want to handle uploads ourselves
     $dontProcessUploads=true;
 
-    global $permissionsEntity,$permissionsModeMap;
+    global $permissionsEntity,$permissionsModeMap,$originalRecordData;
 
     $currentProjectId = 0;
     if ($id) {
         global $DB;
-        list( $recordTypeId, $currentProjectId, $currentOwnerId, $createdBy, $lastSavedAt ) = $DB->getRow('SELECT typeId,projectId,ownerId,createdBy,lastSavedAt FROM record WHERE id=?',$id);
+        $originalRecordData = $DB->getRow('SELECT typeId,projectId,createdBy,lastSavedAt,ownerId FROM record WHERE id=?',$id);
+        list( $recordTypeId, $currentProjectId, $createdBy, $lastSavedAt ) = $originalRecordData;
         $permissionsEntity = 'recordTypeId:'.$recordTypeId;
 
         if($mode == 'logEditAccess') {
@@ -75,7 +76,7 @@ function postStartup($mode,$id) {
         }
     } else { // No record ID provided...
         $permissionsEntity = 'recordTypeId:'.ws('record_typeId');
-        $currentOwnerId = 0;
+        $originalRecordData = [];
     }
 
     if (isSuperuser()) $limitSql='(TRUE OR project.id=? )';
@@ -121,7 +122,7 @@ function postStartup($mode,$id) {
                         UNION SELECT ?
                     )
                 ORDER BY name
-            ',$USER_ID,$currentOwnerId);
+            ',$USER_ID,$originalRecordData['ownerId']);
         } else {
             global $USER_FIRST_NAME, $USER_LAST_NAME;
             $ownerSelect->addOption($USER_FIRST_NAME.' '.$USER_LAST_NAME,$USER_ID);
@@ -374,8 +375,26 @@ function processUpdateBefore( $id ) {
 }
 
 function processUpdateAfter( $id, $isNew ) {
-    global $DB, $USER_ID, $dataFields, $editMode;
-    
+    global $DB, $USER_ID, $dataFields, $editMode, $originalRecordData;
+
+    // If the record ownership has changed then we might need to update s3Upload paths    
+    if (wsset('record_ownerId') && isset($originalRecordData['ownerId'])) {
+        $ownerId = ws('record_ownerId');
+        if ((int)$ownerId != (int)$originalRecordData['ownerId']) {
+            // If the ownerId has changed then we need to mark any s3Uploads for this record that have "usesOwner" set as needing be checked
+            $DB->update('s3Upload', ['recordId' => $id, 'deletedAt' => 0, 'usesOwner' => 1 ], ['needsPathCheck' => time()]);
+        }
+    }
+
+    // Similarly, if the project for this record has changed then we might need to update s3Upload paths    
+    if (wsset('record_projectId') && isset($originalRecordData['projectId'])) {
+        $projectId = ws('record_projectId');
+        if ((int)$projectId != (int)$originalRecordData['projectId']) {
+            // If the projectId has changed then we need to mark any s3Uploads for this record that have "usesProject" set as needing be checked
+            $DB->update('s3Upload', ['recordId' => $id, 'deletedAt' => 0, 'usesProject' => 1 ], ['needsPathCheck' => time()]);
+        }
+    }
+
     $editMode=true;
     
     // Save all the data fields
@@ -398,6 +417,7 @@ function processUpdateAfter( $id, $isNew ) {
     $saveDefault = array_filter($saveDefault);
 
     $defaultsChanged = 0;
+    $updatedRecordIds = [];
 
     foreach( $dataFields as $dataFieldId=>$dataField) {
 
@@ -434,8 +454,21 @@ function processUpdateAfter( $id, $isNew ) {
             ]);
         }
         $result = $dataField->save( $value, $hidden, $inherited, null );
+
+        if ($dataField->hasBeenUpdated()) {
+            $updatedRecordIds[$id] = $id;
+        }
+
         if ($result!==true) inputError('dataField['.$dataFieldId.']',$result);
-        else DataField::doInheritance($dataFieldId, $value, $id);
+        else DataField::doInheritance($dataFieldId, $value, $id, $updatedRecordIds);
+
+    }
+
+    // s3Upload paths can contain feild data, so if any fields have been updated in any records,
+    // we need to mark the s3Upload paths as needing to be checked to see if they need to be updated
+    // But only if the s3Upload is marked as "usesRecord"
+    if (count($updatedRecordIds)) {
+        $DB->update('s3Upload', ['recordId' => $updatedRecordIds, 'usesRecord'=>1, 'deletedAt'=>0], ['needsPathCheck' => time()]);
     }
 
     if ($defaultsChanged) {

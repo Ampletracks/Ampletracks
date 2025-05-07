@@ -22,10 +22,10 @@ function setConfig( $key, $value ) {
 }
 
 
-function getConfig( $key, $default='', $standardise=false ) {
+function getConfig( $key, $default='', $standardise=false, $reload=false ) {
     static $config;
 
-    if (!is_array($config)) {
+    if ($reload || !is_array($config)) {
         # load in the config for this page
         global $DB, $_SERVER;
         $pathBits = explode('/',$_SERVER['SCRIPT_NAME']);
@@ -70,6 +70,7 @@ function logAction($entity, $entityId, $message ) {
 # inputError('*') => Return all errors as an array
 # inputError('fieldName') => Display errors for specified field
 # inputError('fieldName','errorMessage') => Record error "errorMessage" against field "FieldName"
+# inputError('fieldName',['errorMessage1','errorMessage2'...]) => Record multiple errors against field "FieldName"
 # inputError('fieldName',false) => Number of errors against field "FieldName"
 function inputError($field=null, $message=null) {
 	static $errors = array();
@@ -102,8 +103,14 @@ function inputError($field=null, $message=null) {
         return( isset($errors[$field]) ? count($errors[$field]) : 0);
     } else {
 		# we are in setting mode
-		if (!isset($errors[$field])) $errors[$field]=array();
-		$errors[$field][] = $message;
+        if (!is_array($message)) $message = array($message);
+        foreach ($message as $msg) {
+            $msg = trim($msg);
+            if (strlen($msg)) {
+        		if (!isset($errors[$field])) $errors[$field]=array();
+                $errors[$field][] = $msg;
+            }
+        }
 	}
 }
 

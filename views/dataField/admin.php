@@ -9,6 +9,11 @@
 <p>
     Belongs to record type: <? wsp('recordType_name') ?>
 </p>
+<? if (inputError()) { ?>
+    <div class="error">
+        There was an error with the data you submitted. Please check the fields below.
+    </div>
+<? } ?>
 <h2>Basics</h2>
 <div class="questionAndAnswer">
 	<div class="question">
@@ -127,7 +132,7 @@
             <? formYesNo('dataField_optional',false,false,true); ?>
         </div>
     </div>
-    <div class="questionAndAnswer">
+    <div class="questionAndAnswer" dependsOn="dataField_typeId !in 18">
         <div class="question">
             <?=cms('Data Field: Allow user default',0,'Allow user default')?>:
         </div>
@@ -135,7 +140,7 @@
             <? formYesNo('dataField_allowUserDefault',false,false,false); ?>
         </div>
     </div>
-    <div class="questionAndAnswer">
+    <div class="questionAndAnswer" dependsOn="dataField_typeId !in 18">
         <div class="question">
             <?=cms('Data Field: Inheritance',0,'Inheritance')?>:
         </div>
@@ -143,7 +148,7 @@
             <? $GLOBALS['inheritanceSelect']->display(); formPlaceholder('dataField_inheritance') ?>
         </div>
     </div>
-    <div class="questionAndAnswer" dependsOn="dataField_typeId !in 11|12">
+    <div class="questionAndAnswer" dependsOn="dataField_typeId !in 11|12|18">
         <div class="question">
             <?=cms('Data Field: Save invalid answers',0,'Save invalid answers')?>:
         </div>
@@ -151,7 +156,7 @@
             <? $GLOBALS['saveInvalidAnswersSelect']->display(); formPlaceholder('dataField_saveInvalidAnswers') ?>
         </div>
     </div>
-    <div class="questionAndAnswer" dependsOn="dataField_typeId !in 5|7|8|9|10|11|12|16">
+    <div class="questionAndAnswer" dependsOn="dataField_typeId !in 5|7|8|9|10|11|12|16|18">
         <div class="question">
             <?=cms('Data Field: Unit',0,'Unit')?>:
         </div>

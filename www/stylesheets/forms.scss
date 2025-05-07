@@ -43,7 +43,7 @@ input[type="file"] {
 }
 
 textarea {
-    min-height: 200px;
+    min-height: 5em;
 }
 
 select {
@@ -89,6 +89,7 @@ div.questionAndAnswer {
 
     &.error {
         background-color: var(--c-brand-c);
+        padding: 0.5em;
 
         input[type="text"],
         input[type="number"],
@@ -106,7 +107,7 @@ ul.error {
     color: var(--c-error);
     list-style: none;
     padding-left: 0;
-    margin-bottom: 0;
+    margin: 0 0 0.5em 0;
 
     li {
         display: flex;

@@ -193,6 +193,9 @@ function prepareDisplay( $dataFieldId ) {
     $dataFieldTypeSelect = new formOptionbox('dataField_typeId','
         SELECT name,id FROM dataFieldType WHERE !disabled ORDER BY name ASC
     ');
+    if (!isset($WS['dataField_typeId'])) {
+        $dataFieldTypeSelect->setDefault(4);
+    }
     $dataFieldHelp='';
     $dataFieldObjects = DataField::getAllTypes();
     foreach( $dataFieldTypeSelect->getOptions() as $id ) {
@@ -290,9 +293,14 @@ function prepareDisplay( $dataFieldId ) {
 }
 
 function extraButtonsAfter() {
-    ?>
-    <button class="saveAndNext btn" name="submitButton" type="submit" value="Save &amp; Next">Save &amp; Next</button>
-    <?
+    // Only show the "Save and Next" button if there is another field to go to
+    global $WS, $DB, $recordTypeId, $dataFieldId;
+    $nextDataFieldId = $DB->getValue('SELECT id FROM dataField WHERE orderId>"@@dataField_orderId@@" AND deletedAt=0 AND recordTypeId="@@dataField_recordTypeId@@" ORDER BY orderId limit 1');
+    if ($nextDataFieldId) {
+        ?>
+        <button class="saveAndNext btn" name="submitButton" type="submit" value="Save &amp; Next">Save &amp; Next</button>
+        <?
+    }
 }
 
 include( '../../lib/core/adminPage.php' );

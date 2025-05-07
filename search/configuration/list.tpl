@@ -31,7 +31,7 @@
 <td class="name">@@name@@</td>
 <td class="description">@@description@@</td>
 <td class="value">
-    <? if (preg_match('/password$/i',$rowData['name'])) { ?>
+    <? if ($rowData['isSecret'] || preg_match('/password$/i',$rowData['name'])) { ?>
         <i>hidden</i>
     <? } else { ?>
         @@value@@

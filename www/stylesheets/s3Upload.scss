@@ -1,0 +1,92 @@
+div.s3Uploader {
+    width: 100%;
+
+    .filenameDisplay {
+       margin-bottom: 10px;
+        display: block;
+    }
+
+    .existingUpload {
+        border: 1px solid grey;
+        padding: 5px 10px;
+        background-color: #eee;
+        margin: 20px 0;
+
+        p {
+            margin: 5px 0;
+        }
+    }
+
+    div.controls {
+        margin-top: 10px;
+    }
+
+    div.controls button, input[type="file"], div.existingUpload, div.progressWrapper,div.throbber,div.openedInTab {
+        display: none;
+    }
+    
+    div.uploadError {
+        &:empty {
+            display: none;
+        }
+        margin: 15px 0;
+        padding: 5px;
+        background-color: #fdd;
+    }
+
+    &.inProgress {
+        div.throbber {
+            display: block;
+        }
+    }
+
+    &[data-status="displayExisting"] {
+        div.existingUpload {
+            display: block;
+        }
+        div.newUpload {
+            display: none;
+        }
+        button.replace, button.delete, button.download {
+            display: inline-block;
+        }
+    }
+
+    &[data-status="waitingForFile"] {
+        input[type="file"] {
+            margin: 10px 0;
+            display: block;
+        }
+        &.hasExisting button.cancelReplace {
+            display: inline-block;
+        }
+    }
+
+    &[data-status="uploading"] {
+        div.progressWrapper {
+            display: block;
+        }
+        button.pause, button.cancel {
+            display: inline-block;
+        }
+    }
+
+    &[data-status="paused"] {
+        div.progressWrapper {
+            display: block;
+        }
+        button.resume, button.cancel {
+            display: inline-block;
+        }
+    }
+
+    &[data-status="openedInTab"] {
+        div.openedInTab {
+            display: block;
+        }
+        div.popOutHelp {
+            display: none;
+        }
+    }
+
+}

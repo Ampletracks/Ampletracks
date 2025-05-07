@@ -76,6 +76,12 @@ if (function_exists('processInputs')) processInputs(ws('mode'),ws('id'));
 
 // =============== UPDATE =================
 if ( $WS['mode']=='update' ) {
+
+    // get details of the columns in the table
+    // This is used to determine if the lastUpdatedAt column should be updated (for edits)
+    // and also to add createdAt and createdBy columns
+    $colNames=$DB->getColumnNames($ENTITY);
+
     //  if we have an ID then we are in edit mode
     $proceed = true;
     $actuallyChanged = false;
@@ -101,11 +107,36 @@ if ( $WS['mode']=='update' ) {
 
         // otherwise we are not in edit mode so create a new item
         } else {
+            // if the table has a createdAt column then set it to now
+            if (in_array('createdAt',$colNames)) {
+                $WS[$ENTITY.'_createdAt'] = time();
+            }
+            // if the table has a createdBy column then set it to the current user
+            if (in_array('createdBy',$colNames)) {
+                $WS[$ENTITY.'_createdBy'] = $USER_ID;
+            }
 
             $WS['id'] = $DB->autoInsert($ENTITY,$ENTITY.'_');
-            logAction($ENTITY,$WS['id'],'Created');
-            $actuallyChanged = true;
+            if ($WS['id']>0) {
+                $actuallyChanged = true;
+                logAction($ENTITY,$WS['id'],'Created');
+            } else {
+                $proceed = false;
+                if (isAjaxRequest()) {
+                    echo "Failed to create new ".fromCamelCase($ENTITY);
+                    exit;
+                }
+            }
         }
+
+        // if the update was successful then we need to update the lastUpdatedAt column (if it exists)
+        if ($actuallyChanged) {
+            # see if the table has a lastUpdatedAt column
+            if (in_array('lastUpdatedAt',$colNames) && in_array('id',$colNames)) {
+                $DB->update($ENTITY,['id'=>$WS['id']],['lastUpdatedAt'=>time()]);
+            }
+        }
+
         if (class_exists('formAsyncUpload') && (!isset($GLOBALS['dontProcessUploads']) || !$GLOBALS['dontProcessUploads'])) {
             formAsyncUpload::setAttributesAll($WS['id']);
             $errors = formAsyncUpload::storeAll();
