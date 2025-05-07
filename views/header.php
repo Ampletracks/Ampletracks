@@ -28,7 +28,12 @@ call_user_func(function () {
             <title><?=htmlspecialchars($title)?></title>
         <? } ?>
 
-        <link rel="stylesheet" href="https://use.typekit.net/crp4ibc.css">
+        <? 
+            /* Benj 20250313 - Disabling this to see if anything breaks
+             * don't really see why we need it
+            <link rel="stylesheet" href="https://use.typekit.net/crp4ibc.css">
+            */
+        ?>
         <?
             $fontScaleFactor = (int)getConfig('Font scale factor');
             if ($fontScaleFactor<10 || $fontScaleFactor >  255) $fontScaleFactor=100;
@@ -134,7 +139,7 @@ call_user_func(function () {
                                 </script>
                             </li>
                         <? } ?>
-                        <? if(strpos($_SERVER["PHP_SELF"], '/scanQRCode.php') !== 0) {?>
+                        <? if(getConfigBoolean('Enable label support') && strpos($_SERVER["PHP_SELF"], '/scanQRCode.php') !== 0) {?>
                             <li>
                                 <a href="/scanQRCode.php">
                                     <?= getSVGIcon('scanLabel') ?>
@@ -157,7 +162,14 @@ call_user_func(function () {
                             </ul>
                         </li>
                     <? } else { ?>
-                        <? if(strpos($_SERVER["PHP_SELF"], '/scanQRCode.php') !== 0) {?>
+                        <li>
+                            <a href="/login.php?mode=login">
+                                <?= getSVGIcon('login') ?>
+                                <?=cms('Main Nav: Login',0,'Login')?>
+                            </a>
+                        </li>
+
+                        <? if(getConfigBoolean('Enable label support') && strpos($_SERVER["PHP_SELF"], '/scanQRCode.php') !== 0) {?>
                             <li>
                                 <a href="/scanQRCode.php">
                                     <?= getSVGIcon('scanLabel') ?>

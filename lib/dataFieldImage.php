@@ -120,4 +120,13 @@ class dataFieldImage extends imageUpload  {
         // If the "keep original" setting has changed then remove the original file
         if ($originalFile && !strlen($this->getImageSize('original'))) unlink( $originalFile );
     }
+
+    public function getDownloadName() {
+        $filename = 'image_'.(int)$this->attributes['dataFieldId'];
+        $name = $this->name();
+        $ext = pathinfo($name, PATHINFO_EXTENSION);
+        if (empty($ext)) $ext='unknown';
+        $filename .= '.'.$ext;
+        return $filename;
+    }
 }

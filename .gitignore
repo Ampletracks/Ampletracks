@@ -1,4 +1,5 @@
 *.swp
+workspace.code-workspace
 www/stylesheets/*.css
 www/images/instanceLogos
 lib/phpqrcode/cache/

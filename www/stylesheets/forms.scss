@@ -129,8 +129,14 @@ ul.error {
         }
     }
 }
-div.answer ul.error {
-    width : 100%;
+div.answer {
+    ul.error {
+        width : 100%;
+    }
+    .info {
+        margin-top: -0.2em; 
+        margin-bottom: 0.8em; 
+    }
 }
 
 div.question {
@@ -251,7 +257,7 @@ div.picklistHolder {
     }
 }
 
-.form-row {
+.form-row, #advancedSearch {
     position: relative;
     display: block;
     padding: 1rem;
@@ -294,6 +300,37 @@ div.picklistHolder {
     &.commentary {
         padding: 0;
         background-color: transparent;
+    }
+}
+
+#advancedSearch {
+    margin-bottom: 1em;
+}
+
+#advancedSearchButton {
+    display: block;
+}
+
+#advancedSearchQuestionSelectContainer, #advancedSearchRecordTypeSelectContainer, #advancedSearchConditionsContainer {
+    background-color: white;
+    padding: 1em;
+}
+
+#advancedSearchQuestionSelect, #advancedSearchRecordTypeSelect,  {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+
+    .checkbox {
+        label {
+            flex: 0 1 auto;
+            margin-right: 0.5em;
+        }
+
+        input[type="checkbox"],input[type="radio"] {
+            flex: 0 1 auto;
+            margin-right: 0.5em;
+        }
     }
 }
 

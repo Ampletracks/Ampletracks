@@ -3,6 +3,7 @@
 $INPUTS = array(
     'update' => array(
         'dataField_displayOnList'           => 'INT',
+        'dataField_displayOnPublicList'     => 'INT',
         'dataField_optional'                => 'INT',
         'dataField_dependencyCombinator'    => 'TEXT',
         'dependencyId'                      => 'INT ARRAY',

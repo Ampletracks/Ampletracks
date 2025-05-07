@@ -223,11 +223,6 @@ class imageUpload extends fileUpload {
         return true;
     }
 
-    public function exists() {
-        return file_exists(self::infoLocation($this->location()));
-    }
-    
-
     public function store($tmpLocation, $metadata) {
         
         $finalLocation = $this->location();
@@ -293,11 +288,11 @@ class imageUpload extends fileUpload {
     
     public function displayPreview() {
 
-        list($url,$width,$height) = $this->downloadUrl('thumbnail','short',false);
+        list($url,$width,$height) = $this->downloadUrl('short','thumbnail',false);
 
         $extraMarkup = '';
         if (strlen($this->getImageSize('original')) && file_exists($this->getFileForSize('original'))) {
-            $downloadUrl = $this->downloadUrl( 'original','medium', true );
+            $downloadUrl = $this->downloadUrl( 'medium', 'original', true );
             if (strlen($downloadUrl)) $extraMarkup = '<a target="_blank" href="'.$downloadUrl.'&download"><button type="button" class="download">Download</button></a>';
         }
         
@@ -306,16 +301,45 @@ class imageUpload extends fileUpload {
         return true;
     }
 
-        
+    // Returns the file size of the best available image
+    public function size() {
+        $dir = $this->location();
+        if (!is_dir($dir)) return false;
+        $size = $this->getBestSize();
+        return filesize($dir.'/'.$size);
+    }
 
-    function downloadUrl( $size='',$longevity='', $justUrl=true ) {
+    function getBestSize() {
+        if (strlen($this->getImageSize('original')) && file_exists($this->getFileForSize('original'))) {
+            return 'original';
+        }
+        $bestArea=0;
+        $bestSize='';
+        foreach( $this->sizes as $name=>$dims ) {
+            if (!strlen($dims)) continue;
+            if ($name=='original') continue;
+            if (!file_exists($this->getFileForSize($name))) continue;
+
+            list($x,$y) = explode( 'x', $dims );
+            $area = $x*$y;
+            if ($area > $bestArea) {
+                $bestArea = $area;
+                $bestSize = $name;
+            }
+        }
+        return $bestSize;
+    }
+
+    function downloadUrl( $longevity='', $size='best', $justUrl=true ) {
+
+        if ($size=='best') $size = $this->getBestSize();
+
         $downloadDetails = $this->display( $size,$longevity,true );
         if ($justUrl) return $downloadDetails[0];
         return $downloadDetails;
     }
     
     function display($size='',$longevity='', $dontPrint=false ) {
-        
         if ($size=='thumbnail') {
             $dims = $this->getThumbnailSize();
         } else {
@@ -333,7 +357,6 @@ class imageUpload extends fileUpload {
             printf('<img src="%s" width="%s" height="%s" />',htmlspecialchars(static::$missingImage),htmlspecialchars($width),htmlspecialchars($height));
             return false;
         }
-        
         if ($dims==='original') {
             $metadata = $this->loadMetadata();
             $width = isset($metadata['width']) ? $metadata['width'] : '';
@@ -347,9 +370,7 @@ class imageUpload extends fileUpload {
         $this->signFileSpec($spec);
         
         $url='/fileDownload.php?spec='.rawurlencode($spec);
-        
         if ($dontPrint) return array( $url, $width, $height );
-        
         // We want to provide height and width here so that the page loads quicker
         // However, these may not be correct if the image was generated in the past when the dimensions for this image type were different
         // The "resizeOnLoad" class triggers javascript which resizes the image on load to fit within the new dimensions without changing
@@ -360,6 +381,7 @@ class imageUpload extends fileUpload {
     }
 
     public static function download($spec) {
+
         list($type,$size,$time,$longevity,$packedAttributes) = explode(':',$spec,5);
 
         // Longevity can either be a number of seconds or a lookup to pre-defined longevity values
@@ -372,7 +394,7 @@ class imageUpload extends fileUpload {
             }
             $longevity = static::$linkLongevity[$longevity];
         }
-        
+
         if (($time+$longevity) < time() ) {
             if ($type=="download") {
                 header("Content-Disposition: attachment; filename*=UTF-8''imageError.png");
@@ -422,6 +444,8 @@ class imageUpload extends fileUpload {
             $dims = $this->getImageSize($size);
             echo $this->scaleImage(SITE_BASE_DIR.'/www/'.static::$missingImage, $dims)[0];
         } else {
+            //header('Content-Encoding: none');
+            header('Content-Length: ' . filesize($imageFile));
             readfile( $imageFile );
         }
         exit;

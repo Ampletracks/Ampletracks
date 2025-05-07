@@ -1,0 +1,272 @@
+<h2>Advanced Export Field Naming</h2>
+
+<p>
+  You can use the advanced notation described below in the export name to have
+  data exported as a nested data structure. The notation
+  allows data to be stored in objects and arrays.
+</p>
+
+<ul>
+  <li>
+    <strong>Nested Structures</strong>:
+    The path notation indicates how to nest objects and arrays when exporting the record data to JSON.
+  </li>
+  <li>
+    <strong>Arrays vs. Objects</strong>:
+    You can represent arrays using bracketed segments (<code>[ ]</code> or <code>( )</code>),
+    and objects by continuing the path after a segment.
+  </li>
+</ul>
+
+<h2>Basic Notation</h2>
+<p>
+  An export name path is split on the slash character <code>/</code>. Each segment can be:
+</p>
+<ul>
+  <li>
+    <strong>Plain text</strong> (e.g. <code>user</code>), indicating an object key.
+  </li>
+  <li>
+    <strong>Brackets</strong> (e.g. <code>[n]</code> or <code>(n)</code>), indicating an array index.
+  </li>
+  <li>
+    <strong>Empty brackets</strong> (e.g. <code>[]</code> or <code>()</code>), indicating an array
+    entry that holds a direct value (string) rather than an object.
+  </li>
+</ul>
+
+<h3>Example of an Object Key</h3>
+<pre><code>person/forename =&gt; "Alice"
+</code></pre>
+<p>is exported as</p>
+<pre><code>{
+  "person": {
+    "forename": "Alice"
+  }
+}
+</code></pre>
+
+<h3>Example of an Array of Objects</h3>
+<pre><code>people/[0]/forename =&gt; "Alice"
+people/[0]/surname  =&gt; "Smith"
+people/[1]/forename =&gt; "Bob"
+people/[1]/surname  =&gt; "Jameson"
+</code></pre>
+<p>is exported as</p>
+<pre><code>{
+  "people": [
+    { "forename": "Alice", "surname": "Smith" },
+    { "forename": "Bob",   "surname": "Jameson" }
+  ]
+}
+</code></pre>
+
+<h2>Squishable vs. Literal Array Indices</h2>
+<p>
+  To accommodate different use cases for arrays, there are two bracket types:
+</p>
+
+<ol>
+  <li>
+    <strong>Square Brackets <code>[n]</code></strong><br>
+    These denote a <em>“squishable”</em> array. If some indices are missing or unfilled,
+    the empty positions are pruned out during the final assembly.<br>
+    <em>Intended Use:</em> For use when a number of separate fields are used on the form to collect a number of possible values for the same field but the user might leave some of them blank.
+  </li>
+  <li>
+    <strong>Parentheses <code>(n)</code></strong><br>
+    These denote a <em>“literal”</em> array. Here, any unused indices remain
+    as <code>null</code> positions in the final array, preserving the original
+    index positions.<br>
+    <em>Intended Use:</em> Scenarios where array position is meaningful—perhaps
+    if you need a placeholder at index 1 to indicate a deliberately unfilled field.
+  </li>
+</ol>
+
+<h3>Squishable Array Example</h3>
+<pre><code>people/[0]/forename =&gt; "Alice"
+people/[0]/surname  =&gt; "Smith"
+people/[1]/forename =&gt; &lt;unset&gt;
+people/[1]/surname  =&gt; &lt;unset&gt;
+people/[2]/forename =&gt; "Bob"
+people/[2]/surname  =&gt; "Jameson"
+</code></pre>
+
+<p>No data appears for index <code>[1]</code>, so the final JSON <em>compresses</em> that gap:</p>
+<pre><code>{
+  "people": [
+    { "forename": "Alice", "surname": "Smith" },
+    { "forename": "Bob",   "surname": "Jameson" }
+  ]
+}
+</code></pre>
+
+<h3>Literal Array Example</h3>
+<pre><code>people/(0)/forename =&gt; "Alice"
+people/(0)/surname  =&gt; "Smith"
+people/(1)/forename =&gt; &lt;unset&gt;
+people/(1)/surname  =&gt; &lt;unset&gt;
+people/(2)/forename =&gt; "Bob"
+people/(2)/surname  =&gt; "Jameson"
+</code></pre>
+
+<p>
+  Since <code>(1)</code> is unused, we <em>still preserve</em> the slot:
+  <br><strong>Any empty slots will be populated with null's</strong>
+</p>
+
+<p>You end up with:</p>
+<pre><code>{
+  "people": [
+    { "forename": "Alice", "surname": "Smith" },
+    null,
+    { "forename": "Bob",   "surname": "Jameson" }
+  ]
+}
+</code></pre>
+
+<h2>Arrays of Strings</h2>
+<p>
+  If there is <em>no further subpath</em> after the bracketed segment, the value
+  is treated as a direct string entry. For example:
+</p>
+<pre><code>people/[0] =&gt; "Alice"
+people/[1] =&gt; &lt;unset&gt;
+people/[2] =&gt; "Bob"
+</code></pre>
+<p>
+  When using <em>squishable</em> brackets <code>[ ]</code>, index <code>[1]</code> is unset, so
+  the final array compresses to:
+</p>
+<pre><code>{
+  "people": ["Alice", "Bob"]
+}
+</code></pre>
+<p>
+  If you used <em>literal</em> brackets <code>( )</code>, you would end up:
+</p>
+<pre><code>{
+  "people": [
+    "Alice",
+    null,
+    "Bob"
+  ]
+}
+</code></pre>
+
+<h2>Complex Example</h2>
+<p>
+  Below is a more substantial example illustrating different data types and both
+  array styles in a single document.
+</p>
+
+<h3>Example Keys and Values</h3>
+<pre><code># A literal array for "seats" where every position is meaningful.
+seats/(0)/row    =&gt; "A"
+seats/(0)/number =&gt; "12"
+seats/(1)/row    =&gt; &lt;unset&gt;
+seats/(1)/number =&gt; &lt;unset&gt;
+seats/(2)/row    =&gt; "C"
+seats/(2)/number =&gt; "5"
+
+# A squishable array for "guests", where missing entries are skipped.
+guests/[0]/forename =&gt; "Alice"
+guests/[0]/surname  =&gt; "Smith"
+guests/[1]/forename =&gt; &lt;unset&gt;
+guests/[1]/surname  =&gt; "Wilson"
+guests/[2]          =&gt; "Bob Jameson"   # Single string entry (no further subpath)
+
+# Some top-level objects
+venue/address  =&gt; "123 High Street"
+venue/capacity =&gt; "200"
+
+# A top-level key, not nested
+title =&gt; "Seating and Guest Plan"
+</code></pre>
+
+<h3>Final JSON Breakdown</h3>
+
+<ol>
+  <li>
+    <strong>Literal Array: <code>seats</code></strong><br>
+    <p>Indices: <code>(0)</code>, <code>(1)</code>, <code>(2)</code>.
+       <code>(1)</code> is unfilled, so that slot becomes <code>null</code>.
+       <code>(0)</code> merges <code>"row": "A"</code> and <code>"number": "12"</code>.
+       <code>(2)</code> merges <code>"row": "C"</code> and <code>"number": "5"</code>.
+    </p>
+    <pre><code>[
+  { "row": "A", "number": "12" },
+  null,
+  { "row": "C", "number": "5" }
+]
+</code></pre>
+  </li>
+  <li>
+    <strong>Squishable Array: <code>guests</code></strong><br>
+    <p>Indices: <code>[0]</code>, <code>[1]</code>, <code>[2]</code>.
+       <code>[0]</code> merges <code>"forename": "Alice"</code> and
+       <code>"surname": "Smith"</code>.
+       <code>[1]</code> partially filled—only <code>"surname": "Wilson"</code> is provided.
+       <code>[2]</code> is directly set to <code>"Bob Jameson"</code>.</p>
+    <p>Because it’s <em>squishable</em>, we remove fully empty slots, but
+       <code>[1]</code> has a <code>surname</code> so we keep it. Thus:
+    </p>
+    <pre><code>[
+  { "forename": "Alice", "surname": "Smith" },
+  { "surname": "Wilson" },
+  "Bob Jameson"
+]
+</code></pre>
+  </li>
+  <li>
+    <strong>Objects</strong><br>
+    <p><code>venue</code> merges two keys into one object:</p>
+    <pre><code>{
+  "address": "123 High Street",
+  "capacity": "200"
+}
+</code></pre>
+    <p><code>title</code> is a simple top-level string property.</p>
+  </li>
+</ol>
+
+<h3>Complete JSON</h3>
+<pre><code>{
+  "title": "Seating and Guest Plan",
+  "venue": {
+    "address": "123 High Street",
+    "capacity": "200"
+  },
+  "seats": [
+    { "row": "A", "number": "12" },
+    null,
+    { "row": "C", "number": "5" }
+  ],
+  "guests": [
+    {
+      "forename": "Alice",
+      "surname": "Smith"
+    },
+    {
+      "surname": "Wilson"
+    },
+    "Bob Jameson"
+  ]
+}
+</code></pre>
+
+<h2>Optional Slashes Around Brackets</h2>
+<p>
+  The slashes on either side of brackets are optional e.g.
+</p>
+<ul>
+  <li><code>people(0)/forename</code> &ndash; can be used instead of <code>people/(0)/forename</code></li>
+  <li><code>people[0]forename</code> &ndash; can be used instead of <code>people/[0]/forename</code></li>
+</ul>
+
+<p>
+  This allows for a
+  <strong>“cleaner” path</strong> which might feel more familiar to those accustomed to
+  certain programming languages, where array-like access is written
+  <code>something[index]</code> without additional separators.
+</p>

@@ -54,6 +54,7 @@ $tables = array(
         'orderId' => "SMALLINT(5) UNSIGNED NOT NULL",
         'recordTypeId' => "INT(10) UNSIGNED NOT NULL",
         'name' => "VARCHAR(255) DEFAULT NULL",
+        'publicName' => "VARCHAR(255) DEFAULT NULL",
         'exportName' => "VARCHAR(255) DEFAULT NULL",
         'apiName' => "VARCHAR(255) DEFAULT NULL",
         'typeId' => "TINYINT(3) UNSIGNED NOT NULL",
@@ -64,6 +65,7 @@ $tables = array(
         'question' => "VARCHAR(255) NOT NULL DEFAULT ''",
         'unit' => "VARCHAR(255) NOT NULL DEFAULT ''",
         'displayOnList' => "TINYINT(3) UNSIGNED NOT NULL DEFAULT 0",
+        'displayOnPublicList' => "TINYINT(3) UNSIGNED NOT NULL DEFAULT 0",
         'displayToPublic' => "TINYINT(3) UNSIGNED NOT NULL DEFAULT 0",
         'deletedAt' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
         'parameters' => "TEXT NOT NULL DEFAULT ''",
@@ -72,6 +74,8 @@ $tables = array(
         'inheritance' => "ENUM('normal','none','default','immutable') DEFAULT 'none'",
         'dependencyCombinator' => "ENUM ('and','or') DEFAULT 'and'",
         'questionLastChangedAt' =>  "INT(10) UNSIGNED NOT NULL DEFAULT 0",
+        'useForGeneralSearch' => "TINYINT(3) UNSIGNED NOT NULL DEFAULT 0",
+        'useForAdvancedSearch' => "TINYINT(3) UNSIGNED NOT NULL DEFAULT 0",
         'index_orderId' => "INDEX (`recordTypeId`,`orderId`)",
         'index_apiId' => "UNIQUE INDEX (`apiId`)",
         'index_recordTypeId' => "INDEX (`recordTypeId`,`displayOnList`)",
@@ -90,6 +94,23 @@ $tables = array(
         'name' => "VARCHAR(255) DEFAULT NULL",
         'hasValue' => "TINYINT(3) UNSIGNED NOT NULL",
         'disabled' => "TINYINT(3) UNSIGNED NOT NULL DEFAULT 0",
+    ),
+    'downloadBundle' => array(
+        'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
+        'searchId' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
+        'createdAt' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
+        'index_searchId' => "INDEX (`searchId`,`createdAt`)",
+        'index_createdAt' => "INDEX (`createdAt`)"
+    ),
+    'downloadBundleEntry' => array(
+        'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
+        'downloadBundleId' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
+        'recordId' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
+        'dataFieldId' => "TINYINT(3) UNSIGNED NOT NULL",
+        'complete' => "TINYINT(3) UNSIGNED NOT NULL DEFAULT 0",
+        'size' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
+        'lastUpdatedAt' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
+        'index_searchId' => "INDEX (`downloadBundleId`,`lastUpdatedAt`)"
     ),
     'email' => array(
         'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
@@ -316,6 +337,7 @@ $tables = array(
         'publicPreviewMessage' => "MEDIUMTEXT NOT NULL",
         'primaryDataFieldId' => "INT(10) UNSIGNED NOT NULL",
         'builtInFieldsToDisplay' => "VARCHAR(255) NOT NULL DEFAULT 'id|labelId|project|path|relationships'",
+        'includeInPublicSearch' => "TINYINT(3) UNSIGNED NOT NULL DEFAULT 0",
         'projectId' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
         'deletedAt' => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
         'index_name' => "UNIQUE INDEX(`name`,`deletedAt`)",
@@ -339,7 +361,23 @@ $tables = array(
         'action' => "ENUM('list','view','edit','delete','create') NOT NULL",
         'index_roleId' => "INDEX (`roleId`,`entity`,`action`,`level`)",
     ),
-
+    'search' => array(
+        'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
+        'userId' => "INT(10) UNSIGNED NOT NULL",
+        'lastUsedAt' => "INT(10) UNSIGNED NOT NULL",
+        'index_lastUsedAt' => "UNIQUE INDEX(`lastUsedAt`)",
+        'index_userId' => "UNIQUE INDEX (`userId`,`lastUsedAt`)",
+    ),
+    'searchBuild' => array(
+        'searchId' => "INT(10) UNSIGNED NOT NULL",
+        'recordId' => "INT(10) UNSIGNED NOT NULL",
+        'index_searchId' => "UNIQUE INDEX(`searchId`,`recordId`)",
+    ),
+    'searchResult' => array(
+        'searchId' => "INT(10) UNSIGNED NOT NULL",
+        'recordId' => "INT(10) UNSIGNED NOT NULL",
+        'index_searchId' => "UNIQUE INDEX(`searchId`,`recordId`)",
+    ),
     'userLibrary' => array(
         'id' => "INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY",
         'userId' => "INT(10) UNSIGNED NOT NULL",
@@ -520,7 +558,9 @@ $dbSetup = function() {
         ("Email sending throttle per day","This determines the maximum number of queued emails the system will send per day. This throttle is applied in addition to the per minute and per hour throttles. N.B. This throttle will not prevent the delivery of any \"immediate priority\" emails such as forgotten password retreival emails, however immediate priority emails that have been sent do count towards the throttle. Empty (or any non-integer value) means unlimited.","50000","/cron/email.php"),
         ("Only send emails to","Emails will only be sent to these addresses/domains. This is primarily intended for testing/development sites where you don\'t want emails being sent out to most users, but it might have other applications. This is a comma separated list. If this list is empty all emails will be sent. If there is one or more entries in this list then only emails which match one of the entries on this list will be sent. Matching is done based on a partial match anchored at the END of the email address e.g. .domain.com  matches all addresses for any subdomain of domain.com; @my.domain.com macthes all addresses at my.domain.com; name@domain.com matches name@domain.com and also my.name@domain.com","","/"),
         ("Show login warning","Set this to \"yes\" to show the user a warning message every time they log in from a new IP address. One possble application for this is to remind users of any confidentiality agreements, or export constraints. The message will be repeated as determined by \"Login warning repeat period\" setting.","","/"),
-        ("Login warning repeat period","The number of days between repetitions of the login warning for each user on any given IP address. Set this to 1 to have users see the warnings every day for every IP address they come from. Default is 180 days i.e. 6 months. If you set this to zero then the login warning will be repeated on every login.","180","/")
+        ("Login warning repeat period","The number of days between repetitions of the login warning for each user on any given IP address. Set this to 1 to have users see the warnings every day for every IP address they come from. Default is 180 days i.e. 6 months. If you set this to zero then the login warning will be repeated on every login.","180","/"),
+        ("Enable public search","Set this to yes if you want to enable the publc (i.e. without logging in) search interface. Records will only be searchable if the record type definition specifies that they should included in the public search.","no","/"),
+        ("Enable label support","Set this to yes if you want to support for QR Code based labelling of records.","yes","/")
     ');
     
     $words='his,that,from,word,other,were,which,time,each,tell,also,play,small,home,hand,port,large,spell,even,land,here,must,high,kind,need,house,animal,point,mother,world,near,build,self,earth,father,work,part,take,place,made,after,back,little,only,round,man,year,came,show,every,good,under,name,very,just,form,great,think,help,line,differ,turn,much,mean,before,move,right,boy,old,many,write,like,long,make,thing,more,day,number,sound,most,people,water';

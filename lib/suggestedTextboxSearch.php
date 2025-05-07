@@ -32,7 +32,7 @@ foreach($predefinedOptions as $predefinedOption) {
 // That we show the user all the existing values regardless of whether user-contributed additions are
 // currently allowed. This is because, the setting may have changed and user-contributed values
 // might have been allowed in the past
-if ( ws('mode')=='search' || ( $dataFieldParams['allowAdditions'] && $dataFieldParams['suggestAdditions'] )) {
+if ( ws('mode')=='search' || ( $dataFieldParams['allowAdditions']??0 && $dataFieldParams['suggestAdditions']??0 )) {
     $values = DataField::findValuesUserCanSee(
         ws('dataFieldId'),
         'recordData.data LIKE "%'.$DB->escape(ws('ttsSearch')).'%" AND',

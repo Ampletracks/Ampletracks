@@ -120,7 +120,7 @@ class DataField {
 
         if ($objectOrName!==false) {
             if (method_exists($objectOrName,'formatForDisplay')) {
-                $objectOrName::formatForDisplay($value, $recordId, $fieldId);
+                echo $objectOrName::formatForDisplay($value, $recordId, $fieldId);
                 return;
             }
         }
@@ -444,6 +444,19 @@ class DataField {
         return $return;
     }
 
+    // This is called when the value needs to be exported to JSON
+    // This is just the fallback. This can be overridden with something
+    // better in the specific object definitions.
+    function exportAnswer() {
+        $unit = trim($this->unit);
+        $value = $this->getAnswer();
+        if (empty($unit)) {
+            return $value;
+        } else {
+            return [ 'value'=>$value, 'unit'=>$unit ];
+        }
+    }
+
     static function saveDefaultJavascriptDisplay() {
         if (self::$saveDefaultJavascriptDisplayed) return;
         self::$saveDefaultJavascriptDisplayed=true;
@@ -517,8 +530,12 @@ class DataField {
         if (strlen($unit)) echo '<span class="unit">'.htmlspecialchars($unit).'</span>';
     }
 
-    function displayLabel() {
-        echo htmlspecialchars($this->params['question']);
+    function displayLabel( $isPublic = false ) {
+        if ($isPublic && !empty($this->params['publicName'])) {
+            echo htmlspecialchars($this->params['publicName']);
+        } else {
+            echo htmlspecialchars($this->params['question']);
+        }
     }
 
     function displayPublicValue() {
@@ -543,7 +560,7 @@ class DataField {
         <div class="questionAndAnswer <?=htmlspecialchars($this->getType())?> <?=htmlspecialchars(implode(' ', $extraClasses))?>" <?=$this->getDependencyAttributes()?> <?=$title ? 'title="'.$title.'"' : ''?>>
 			<? if (!$hideLabel) { ?>
 				<div class="question">
-					<? $this->displayLabel(); ?>
+					<? $this->displayLabel($isPublic); ?>
 				</div>
 			<? } ?>
             <div class="answer">
@@ -878,6 +895,32 @@ class DataField {
             ?><input type="hidden" class="inherited" name="<?=$this->inheritedName()?>" value="<?=$inherited?>"><?
         }
     }
+
+    // Build SQL for use when searching for fields of this type
+    function searchSql( $searchTerm, $condition, $dataField, $recordTypeIdField ) {
+        global $DB;
+        $sql = " $recordTypeIdField={$this->recordTypeId} AND ";
+        if ($condition=='bt') {
+            $searchTermFrom = $DB->escapeAndQuote(trim($searchTerm[0]));
+            $searchTermTo = $DB->escapeAndQuote(trim($searchTerm[1]));
+            $sql .= "$dataField BETWEEN $searchTermFrom AND $searchTermTo";
+        } else if (strpos('|lt|le|gt|ge|eq',$condition)) {
+            $operatorLookup = array(
+                'lt' => '<',
+                'le' => '<=',
+                'gt' => '>',
+                'ge' => '>=',
+                'eq' => '='
+            );
+            $operator = $operatorLookup[$condition];
+            $searchTerm = $DB->escapeAndQuote(trim($searchTerm));
+            $sql .= "$dataField $operator $searchTerm";
+        } else {
+            $searchTerm = $DB->escapeAndQuote('%'.trim($searchTerm).'%');
+            $sql .= "$dataField LIKE $searchTerm";
+        }
+        return $sql;
+    }
 }
 
 /*
@@ -916,7 +959,6 @@ class DataField_commentary extends DataField {
         </div>
         <?
     }
-
 }
 
 /*
@@ -1191,6 +1233,18 @@ class DataField_integer extends DataField {
         echo "<br />&lt;&nbsp;";
         formInteger( $names[1], $this->min, $this->max, 1, $values[1] );
     }
+
+    function searchSql( $searchTerm, $condition, $dataField, $recordTypeIdField ) {
+        if ($condition=='bt') {
+            foreach ($searchTerm as &$term) {
+                $term = (int)$term;
+            }
+        } else {
+            $searchTerm = (int)$searchTerm;
+        }
+        return parent::searchSql($searchTerm, $condition, $dataField, $recordTypeIdField);
+    }
+
 }
 
 /*
@@ -1227,6 +1281,18 @@ class DataField_float extends DataField_integer {
         echo "<br />&lt;&nbsp;";
         formTextbox( $names[1], 5, 200, $values[1] );
     }
+
+    function searchSql( $searchTerm, $condition, $dataField, $recordTypeIdField ) {
+        if ($condition=='bt') {
+            foreach ($searchTerm as &$term) {
+                $term = (float)$term;
+            }
+        } else {
+            $searchTerm = (float)$searchTerm;
+        }
+        return parent::searchSql($searchTerm, $condition, $dataField, $recordTypeIdField);
+    }
+
 }
 
 /*
@@ -1540,8 +1606,28 @@ class DataField_date extends DataField {
 
     static function formatForDisplay($value, $recordId, $fieldId) {
         if (!is_numeric($value)) return;
-        echo date('d/m/Y',$value);
+        return date('d/m/Y',$value);
     }
+
+    function exportAnswer() {
+        $answer = $this->getAnswer();
+        return [
+            'unixTime' => $answer,
+            'ISO8601'  => date('C',$answer)
+        ];
+    }
+
+    function searchSql( $searchTerm, $condition, $dataField, $recordTypeIdField ) {
+        if ($condition=='bt') {
+            foreach ($searchTerm as &$term) {
+                $term = strtotime($term);
+            }
+        } else {
+            $searchTerm = strtotime($searchTerm);
+        }
+        return parent::searchSql($searchTerm, $condition, $dataField, $recordTypeIdField);
+    }
+
 }
 
 /*
@@ -2066,6 +2152,24 @@ class DataField_image extends DataField {
         return $result;
     }
 
+	function displayRow( $isPublic = true, $hideLabel = true ) {
+		return parent::displayRow( $isPublic, $hideLabel );
+	}
+
+	function displayPublicValue( ) {
+		$file = $this->upload->getFileObject();
+        $file->display();
+	}
+
+    function exportAnswer() {
+        $file = $this->upload->getFileObject();
+        return [
+            'originalFilename' => $file->name(),
+            'filename' => $file->getDownloadName(),
+            'size' => $file->size()
+        ];
+    }
+
     function displayInput() {
         echo '<div id="'.$this->inputName().'"></div>';
         $this->upload->display();
@@ -2082,6 +2186,7 @@ class DataField_image extends DataField {
         ));
 
         $image->display('thumbnail','short');
+        return;
     }
 
     function filterNames() {
@@ -2303,6 +2408,23 @@ class DataField_chemicalFormula extends DataField {
         $this->versionLink();
         inputError($inputName);
         $this->displayDefaultWarning();
+    }
+
+    function searchSql( $searchTerm, $condition, $dataField, $recordTypeIdField ) {
+        include_once(LIB_DIR.'/chemicalTools.php');
+        $elements = parseChemicalStringToElements($searchTerm);
+        if (empty($elements)) return false;
+
+        $sql = "$recordTypeIdField={$this->recordTypeId}";
+        foreach( $elements as $element ) {
+            $sql .= " AND $dataField RLIKE '{$element}[0-9]'";
+        }
+        return $sql;
+    }
+
+    static function formatForDisplay($value){
+        include_once(LIB_DIR.'/chemicalTools.php');
+        return chemicalFormulaToHtml($value);
     }
 
 }

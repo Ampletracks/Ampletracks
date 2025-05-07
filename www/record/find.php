@@ -1,9 +1,14 @@
 <?
 
+$INPUTS = [
+    '.*' => [
+        'recordId' => 'INT SIGNED(PUBLIC_VIEW)'
+    ]
+];
+
 $requireLogin = false;
 $extraBodyClass = 'public';
 include('../../lib/core/startup.php');
-
 include(LIB_DIR.'/labelTools.php');
 include(LIB_DIR.'/recordTools.php');
 include(LIB_DIR.'/dataField.php');
@@ -12,8 +17,10 @@ $error = '';
 $errorReturnCode = 400;
 $canCreateRecord = false;
 $recordId=0;
+$mode="";
 
 if (isset($_GET['token'])) {
+    $mode="token";
     $token = $_GET['token'];
     if (strlen($token)<10) {
         $error = 'Invalid token';
@@ -26,7 +33,21 @@ if (isset($_GET['token'])) {
             $recordId = $result;
         }
     }
+} else if (ws('recordId')>0 && getConfigBoolean('Enable public search')) {
+    $mode="public";
+    $recordId = $DB->getValue('
+        SELECT record.id
+        FROM
+            record
+            INNER JOIN recordType ON recordType.id=record.typeId
+        WHERE
+            record.id=? AND
+            record.deletedAt=0 AND
+            recordType.includeInPublicSearch>0
+    ',ws('recordId'));
+    if (!$recordId) $error="No matching record found";
 } else {
+    $mode="label";
     if (!isset($_GET['id']) || strlen($_GET['id'])<12) {
         $error = 'Label ID not provided, or not long enough';
     } else if( !preg_match('/^[A-Za-z0-9_-]+$/',$_GET['id']) ) {
@@ -98,13 +119,13 @@ if (isset($_GET['token'])) {
 }
 
 // If they are logged in then redirect them to the record editting page
-if (!$error && $USER_ID) {
+if (!$error && $USER_ID && $mode!='public') {
     header('Location: /record/admin.php?id='.$recordId);
     exit;
 }
 
 if (!$error) {
-    $dataFields = datafield::buildAllForRecord( $recordId, ['where'=>'dataField.displayToPublic'] );
+    $dataFields = datafield::buildAllForRecord( $recordId, ['where'=>'dataField.displayToPublic>0'] );
     dataField::loadAnswersForRecord($recordId,'dataField.displayToPublic');
     $previewMessage = $DB->getValue('
         SELECT publicPreviewMessage
@@ -115,17 +136,33 @@ if (!$error) {
 
 if ($error && $errorReturnCode) http_response_code($errorReturnCode);
 
+if (ws('mode')=='json') {
+    include_once(LIB_DIR.'/kvToStruct.php');
+    include_once(LIB_DIR.'/api/tools.php');
+    $exportData = [];
+    foreach( $dataFields as $dataField ) {
+        $key = $dataField->exportName;
+        if (!$dataField->hasValue()) continue;
+        if (!method_exists($dataField,'exportAnswer')) continue;
+        $exportData[$key] = $dataField->exportAnswer();
+    }
+    $exportData = kvToStruct($exportData);
+    $exportData['__apiId'] = API\getAPIId('record', $recordId);
+    echo json_encode($exportData,JSON_PRETTY_PRINT);
+    exit;
+}
+
 include(VIEWS_DIR.'/header.php');
 
 echo "<h1>";
-if ($USER_ID) {
+if ($USER_ID && $mode!='public') {
     echo cms('Associate label: header',0,'Associate Label');
 } else {
     echo cms('Public record preview: header',0,'Sample Details');
 }
 echo "</h1>";
 
-if ($USER_ID) {
+if ($USER_ID && $mode!='public') {
     if($canCreateRecord) { ?>
         <form method="post" action="/record/admin.php">
             <? formHidden('labelId',$label->id); ?>
@@ -134,7 +171,7 @@ if ($USER_ID) {
             <input type="submit" value="Create new record" />
         </form>
     <? }
-    if($recentRecordSelect instanceof formOptionbox && count($recentRecordSelect->getOptions()) > 1) {
+    if(isset($recentRecordSelect) && $recentRecordSelect instanceof formOptionbox && count($recentRecordSelect->getOptions()) > 1) {
         ?>
         <form method="post" action="/record/admin.php" id="associateLabelForm">
             <? formHidden('labelId', $label->id); ?>
@@ -165,7 +202,7 @@ if ($USER_ID) {
         <? } ?>
         <div class="questionAndAnswerContainer recordData publicView">
             <? foreach( $dataFields as $dataField ) {
-                $dataField->displayRow( true );
+                $dataField->displayRow( true, false );
             } ?>
         </div>
     <? }

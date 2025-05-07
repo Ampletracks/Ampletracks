@@ -33,14 +33,16 @@ function extraPageContent(){
             }
         });
         
-        $('table.main tbody input:checkbox.displayOnList').on('change',function(){
+        $('table.main tbody input:checkbox').filter('.displayOnList, .displayOnPublicList').on('change',function(){
             var self = $(this);
             var dataFieldId = self.closest('tr').data('id');
-            $.post('admin.php',{
+            var postData = {
                 mode                    : 'update',
                 id                      : dataFieldId,
-                dataField_displayOnList : self.is(':checked')?1:0
-            },function(data){
+            };
+            var fieldName = self.is('.displayOnList') ? 'dataField_displayOnList':'dataField_displayOnPublicList';
+            postData[fieldName] =  self.is(':checked')?1:0;
+            $.post('admin.php',postData,function(data){
                     if (data!='OK') $.alertable.alert(data);
                 })
         });

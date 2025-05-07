@@ -42,7 +42,9 @@ $(function(){
 			}
 		}, 
 		'em' : {
-			'alias' : [ ],
+         // em means empty AND visible
+         // ab => absent => means empty OR not visible
+			'alias' : [ 'ab' ],
 			'test' : function(value,testValue,comparator) {
 				return value=='';
 			}
@@ -91,6 +93,7 @@ $(function(){
 			'cleanup': function(value) { return value.toLowerCase().split(/\|/); },
 			'test' : function(value,searchBits,comparator, multiple) {
 				var compareValue = value.toLowerCase();
+            console.log( compareValue, searchBits );
 				for( i=searchBits.length-1; i>=0; i--) {
 					if (!searchBits[i].length) continue;
 					if (compareValue.indexOf(searchBits[i].toLowerCase())>-1) {
@@ -317,8 +320,9 @@ $(function(){
 		} 
 		
 		// If we're not doing a visibility check and we can't even see this element then we treat it as being false
-        // This visibility check doesn't apply if the dependency is self-referential i.e it depends on a child of this element
-		if (!$.contains(dependent.domObject.get(0),this.domObject.get(0)) && !this.visible) {
+      // This visibility check doesn't apply if the dependency is self-referential i.e it depends on a child of this element
+      // "ab" (absent) is a special case - it means the element is either empty or not visible - in this case we don't want to return false if the element is not visible
+		if (comparator!='ab' && !$.contains(dependent.domObject.get(0),this.domObject.get(0)) && !this.visible) {
 		//if (!this.visible) {
 			// no point in caching this
 			debug && console.log('Dependee is invisible - returning false');
@@ -328,7 +332,7 @@ $(function(){
         // Empty is deemed to be unset for everything except =="" and "is empty" check
 		if (this.value=='') {
 			debug && console.log('Empty value detected');
-            if ((comparator=='eq' && testValue=='') || comparator=='em') return !negate;
+            if ((comparator=='eq' && testValue=='') || comparator=='em' || comparator=='ab') return !negate;
             // If they're doing an equality test for anything other than "" then we must have failed the check
             // BUT in this instance (unlike below) negating does matter
             if (comparator=='eq') return negate;

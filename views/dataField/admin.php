@@ -47,6 +47,9 @@
             <? formTextBox('dataField_exportName',50,200); ?>
             <div class="info">
                 This is name used when exporting records to JSON. If this is empty then this field will not be included in the JSON export.
+                <a confirm="#exportNameHelp">Advanced usage...</a>
+                <div id="exportNameHelp" style="display: none"><? include(VIEWS_DIR.'/dataField/exportNameHelp.html'); ?></div>
+                
             </div>
         </div>
     </div>
@@ -85,6 +88,35 @@
 		<? formYesNo('dataField_displayToPublic',false,true) ?>
 	</div>
 </div>
+<? if (getConfigBoolean('Enable public search')) { ?>
+    <div class="questionAndAnswer" dependsOn="dataField_displayToPublic eq 1">
+        <div class="question">
+            <?=cms('Data Field: Field name on public view',0,'Field name on public view')?>:
+        </div>
+        <div class="answer">
+            <? formTextBox('dataField_publicName',50,200) ?>
+            <div class="info">
+                If this is empty then the "question" defined above will be displayed as the field label in the public view.
+            </div>
+        </div>
+    </div>
+    <div class="questionAndAnswer" dependsOn="dataField_displayToPublic eq 1">
+        <div class="question">
+            <?=cms('Data Field: Use for general search',0,'Use for general search')?>:
+        </div>
+        <div class="answer">
+            <? formYesNo('dataField_useForGeneralSearch',false,true) ?>
+        </div>
+    </div>
+    <div class="questionAndAnswer" dependsOn="dataField_displayToPublic eq 1">
+        <div class="question">
+            <?=cms('Data Field: Allow for advanced search',0,'Allow for advanced search')?>:
+        </div>
+        <div class="answer">
+            <? formYesNo('dataField_useForAdvancedSearch',false,true) ?>
+        </div>
+    </div>
+<? } ?>
 
 <?=$onlyShowWhenFieldHasValue; ?>
     <div class="questionAndAnswer">

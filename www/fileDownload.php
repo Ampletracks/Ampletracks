@@ -14,7 +14,6 @@ if ($class===false) {
     echo "Invalid URL";
     exit;
 }
-
 $class = preg_replace('/[^0-9a-z+=\' _-]/i','',$class);
 $classFile = LIB_DIR.'/'.$class.'.php';
 

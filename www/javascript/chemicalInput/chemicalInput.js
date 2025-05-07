@@ -306,10 +306,10 @@ const ChemicalInput = class {
       let count;
       switch(this.mode) {
         case 'at': 
-          count = elem.count / this.getTotalCount();
+          count = elem.count / this.getTotalCount() * 100;
           break;
         case 'wt':
-          count = (Number(elem.weight) * elem.count) / this.getTotalWeight();
+          count = (Number(elem.weight) * elem.count) / this.getTotalWeight() * 100;
           break;
         case 'formula':
         default:
@@ -486,6 +486,7 @@ const ChemicalInput = class {
     // Clean up - remove the temp percentage props on the this.chainData array.
     this.chainData.forEach(el => delete el.percentage);
     this.renderChain();
+    this.chainElements.querySelector(`[data-symbol="${chainDataItem.symbol}"]`)?.focus();
   }
 
   // Formula mode.
@@ -526,9 +527,9 @@ const ChemicalInput = class {
       const chainElement = e.target.closest('.periodic-table__element-wrap');
       const chainDataItem = this.chainData.find(item => item.symbol == chainElement.querySelector('.symbol').innerHTML);
       switch(this.mode) {
-        case 'at': this.adjustElementByPercentage(chainDataItem, Number(e.target.value)); break;
-        case 'wt': this.adjustElementByPercentage(chainDataItem, Number(e.target.value)); break;
-        case 'formula': this.adjustElementByCount(chainDataItem, Number(e.target.value)); break;
+        case 'at': this.adjustElementByPercentage(chainDataItem, Number(e.target.value/100)); break;
+        case 'wt': this.adjustElementByPercentage(chainDataItem, Number(e.target.value/100)); break;
+        case 'formula': this.adjustElementByCount(chainDataItem, Number(e.target.value/100)); break;
       }
     }
   }
