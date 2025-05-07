@@ -672,15 +672,18 @@ class Dbif {
 		return $values;
 	}
 	
-	function duplicateData( $table_name, $where_data, $update_data, $dest_table=null, $callback=null, $destDb=null ) {
+	function duplicateData( $table_name, $where_data, $update_data, $dest_table=null, $callback=null, $destDb=null, $unsetColumns=null ) {
 		if (is_null($dest_table)) $dest_table = $table_name;
 		$queryData = $this->conditionsFromHash( $where_data );
 		$queryData[0] = "SELECT * FROM `$table_name` WHERE ".$queryData[0];
 		$query = $this->query( $queryData );
 		$idx = 0;
+        if (is_null($unsetColumns)) $unsetColumns=[];
+        $unsetColumns = array_flip($unsetColumns);
 		while ( $query->fetchInto( $row, MYSQLI_ASSOC ) ) {
 			$newRow = array_merge($row, $update_data);
 			if (is_null($destDb)) $destDb=$this;
+            $newRow = array_diff_key( $newRow, $unsetColumns );
 			$id = $destDb->insert($dest_table,$newRow);
 			if (is_callable($callback)) $callback( $row, $id, $idx );
 			$idx++;

@@ -296,7 +296,7 @@ function processInputs($mode,$id) {
             global $DB;
             $DB->duplicateData('recordData',array('recordId'=>$id),array('recordId'=>$recordId));
             $DB->duplicateData('recordDataChildLock',array('recordId'=>$id),array('recordId'=>$recordId));
-        }); 
+        },null,['apiId']); 
         // Correct the path for the new record
         $DB->exec('UPDATE record SET path = REGEXP_REPLACE(path,?,?) WHERE id=?',$id.',$',$newRecordId.',',$newRecordId);
 
